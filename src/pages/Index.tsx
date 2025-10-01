@@ -128,6 +128,19 @@ const Index = () => {
 
       const { data: session } = await supabase.auth.getSession();
       const authToken = session?.session?.access_token;
+
+      // Prepare text content for non-image files
+      let fileTextToSend: string | undefined;
+      let fileNameToSend: string | undefined;
+      if (selectedFile && !selectedFile.type.startsWith('image/')) {
+        try {
+          const txt = await selectedFile.text();
+          fileTextToSend = txt.slice(0, 12000); // limit to avoid huge payloads
+          fileNameToSend = selectedFile.name;
+        } catch (e) {
+          console.warn('Failed to read file as text:', e);
+        }
+      }
       
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
         method: 'POST',
@@ -139,7 +152,9 @@ const Index = () => {
         body: JSON.stringify({ 
           message: content,
           model: selectedModel,
-          image: filePreview // Send base64 image if available
+          image: filePreview, // Send base64 image if available
+          fileText: fileTextToSend,
+          fileName: fileNameToSend,
         })
       });
 

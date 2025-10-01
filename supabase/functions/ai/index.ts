@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, model, image } = await req.json();
+    const { message, model, image, fileText, fileName } = await req.json();
 
     if (!message) {
       return new Response(JSON.stringify({ error: "Message is required" }), {
@@ -32,46 +32,50 @@ serve(async (req) => {
       });
     }
 
-    // Detect if this is an image generation request
-    const isImageRequest = message.toLowerCase().includes('image') || 
-                          message.toLowerCase().includes('picture') || 
-                          message.toLowerCase().includes('photo') ||
-                          message.toLowerCase().includes('draw') ||
-                          message.toLowerCase().includes('generate') && (message.toLowerCase().includes('visual') || message.toLowerCase().includes('art')) ||
-                          message.toLowerCase().includes('create') && (message.toLowerCase().includes('visual') || message.toLowerCase().includes('art'));
+    // Detect if this is an image GENERATION request (not analysis)
+    const lower = message.toLowerCase();
+    const wantsImageGeneration = !image && (
+      lower.includes('generate image') ||
+      lower.includes('create image') ||
+      lower.includes('draw') ||
+      lower.includes('make an image') ||
+      (lower.includes('image') && (lower.includes('make') || lower.includes('generate') || lower.includes('create')))
+    );
     
-    const modelToUse = isImageRequest ? "google/gemini-2.5-flash-image-preview" : (model || "google/gemini-2.5-flash");
+    const modelToUse = wantsImageGeneration ? "google/gemini-2.5-flash-image-preview" : (model || "google/gemini-2.5-flash");
     
-    console.log(`Image request detected: ${isImageRequest}, Model: ${modelToUse}`);
+    console.log(`wantsImageGeneration=${wantsImageGeneration}, hasInputImage=${Boolean(image)}, model=${modelToUse}`);
     
-    // Build user message content - can be text + image for vision
+    // Build user message content - can be text + image for vision or include file text
     let userContent: any = message;
-    
+
+    const parts: any[] = [];
+    parts.push({ type: "text", text: message });
+
+    if (fileText) {
+      parts.push({ type: "text", text: `Attached file (${fileName || 'file'}):\n${fileText}` });
+    }
+
     if (image) {
-      // Image provided - use vision capability
-      userContent = [
-        {
-          type: "text",
-          text: message,
-        },
-        {
-          type: "image_url",
-          image_url: {
-            url: image, // base64 data URL
-          },
-        },
-      ];
+      parts.push({
+        type: "image_url",
+        image_url: { url: image },
+      });
+    }
+
+    if (parts.length > 1) {
+      userContent = parts;
     }
 
     const requestBody: any = {
       model: modelToUse,
-      stream: !isImageRequest,
+      stream: !wantsImageGeneration,
       messages: [
         {
           role: "system",
-          content: isImageRequest 
+          content: wantsImageGeneration 
             ? "You are an AI that MUST generate an image when requested. When the user asks you to generate, create, draw, or make an image, you must produce an actual image file, not just describe it. Always generate the image first, then provide a brief description of what you created."
-            : "You are a helpful AI assistant that can engage in conversations on various topics. You can also analyze images when provided. Provide clear, informative, and engaging responses to user queries.",
+            : "You are a helpful AI assistant that can engage in conversations on various topics. You can also analyze images and attached text when provided. Provide clear, informative, and engaging responses to user queries.",
         },
         {
           role: "user",
@@ -81,9 +85,9 @@ serve(async (req) => {
     };
 
     // Add modalities for image generation
-    if (isImageRequest) {
+    if (wantsImageGeneration) {
       requestBody.modalities = ["image", "text"];
-      console.log("Added image modalities to request");
+      console.log("Added image modalities to request (generation)");
     }
 
     // Call the Lovable AI Gateway with streaming
@@ -113,7 +117,7 @@ serve(async (req) => {
     }
 
     // For image requests, use non-streaming gateway call and emit a simple SSE with images
-    if (isImageRequest) {
+    if (wantsImageGeneration) {
       const json = await response.json();
       const choice = json.choices?.[0] || {};
       const messageObj = choice.message || {};

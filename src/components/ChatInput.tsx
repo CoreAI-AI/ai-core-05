@@ -19,6 +19,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputPr
   const [message, setMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const anyFileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +52,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputPr
   };
 
   const openFileExplorer = () => {
-    fileInputRef.current?.click();
+    anyFileInputRef.current?.click();
   };
 
   return (
@@ -68,6 +69,12 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputPr
         type="file"
         accept="image/*"
         capture="environment"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      <input
+        ref={anyFileInputRef}
+        type="file"
         onChange={handleFileChange}
         className="hidden"
       />
