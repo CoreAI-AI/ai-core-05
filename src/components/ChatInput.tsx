@@ -1,15 +1,24 @@
-import { useState } from "react";
-import { Send, Paperclip } from "lucide-react";
+import { useState, useRef } from "react";
+import { Send, Paperclip, Image, File, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
+  onFileSelect?: (file: File) => void;
 }
 
-export const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputProps) => {
   const [message, setMessage] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,17 +35,69 @@ export const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onFileSelect) {
+      onFileSelect(file);
+    }
+  };
+
+  const openGallery = () => {
+    fileInputRef.current?.click();
+  };
+
+  const openCamera = () => {
+    cameraInputRef.current?.click();
+  };
+
+  const openFileExplorer = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="border-t border-border bg-background p-4">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileChange}
+        className="hidden"
+      />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleFileChange}
+        className="hidden"
+      />
       <form onSubmit={handleSubmit} className="flex items-end gap-2">
-        <Button 
-          type="button" 
-          size="icon" 
-          variant="ghost"
-          className="text-muted-foreground hover:text-foreground"
-        >
-          <Paperclip className="w-5 h-5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button 
+              type="button" 
+              size="icon" 
+              variant="ghost"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <Paperclip className="w-5 h-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuItem onClick={openGallery} className="cursor-pointer">
+              <Image className="w-4 h-4 mr-2" />
+              Gallery
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={openFileExplorer} className="cursor-pointer">
+              <File className="w-4 h-4 mr-2" />
+              File
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={openCamera} className="cursor-pointer">
+              <Camera className="w-4 h-4 mr-2" />
+              Camera
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         
         <div className="flex-1">
           <Textarea
