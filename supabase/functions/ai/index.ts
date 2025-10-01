@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, model } = await req.json();
+    const { message, model, image } = await req.json();
 
     if (!message) {
       return new Response(JSON.stringify({ error: "Message is required" }), {
@@ -44,6 +44,25 @@ serve(async (req) => {
     
     console.log(`Image request detected: ${isImageRequest}, Model: ${modelToUse}`);
     
+    // Build user message content - can be text + image for vision
+    let userContent: any = message;
+    
+    if (image) {
+      // Image provided - use vision capability
+      userContent = [
+        {
+          type: "text",
+          text: message,
+        },
+        {
+          type: "image_url",
+          image_url: {
+            url: image, // base64 data URL
+          },
+        },
+      ];
+    }
+
     const requestBody: any = {
       model: modelToUse,
       stream: !isImageRequest,
@@ -52,11 +71,11 @@ serve(async (req) => {
           role: "system",
           content: isImageRequest 
             ? "You are an AI that MUST generate an image when requested. When the user asks you to generate, create, draw, or make an image, you must produce an actual image file, not just describe it. Always generate the image first, then provide a brief description of what you created."
-            : "You are a helpful AI assistant that can engage in conversations on various topics. Provide clear, informative, and engaging responses to user queries.",
+            : "You are a helpful AI assistant that can engage in conversations on various topics. You can also analyze images when provided. Provide clear, informative, and engaging responses to user queries.",
         },
         {
           role: "user",
-          content: message,
+          content: userContent,
         },
       ],
     };

@@ -33,6 +33,8 @@ const Index = () => {
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [isLoading, setIsLoading] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
 
   // Get filtered models based on settings
   const allModels = [
@@ -78,6 +80,23 @@ const Index = () => {
     );
   }
 
+  const handleFileSelect = async (file: File) => {
+    setSelectedFile(file);
+    
+    // Create preview for images
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFilePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setFilePreview(null);
+    }
+    
+    toast.success(`File selected: ${file.name}`);
+  };
+
   const handleSendMessage = async (content: string) => {
     if (!user) return;
 
@@ -93,8 +112,11 @@ const Index = () => {
       if (!chatToUse) return;
     }
 
-    // Add user message to database
-    const userMessage = await addMessage(chatToUse.id, content, true);
+    // Prepare images array if file is selected
+    const messageImages = selectedFile && filePreview ? [{ url: filePreview, type: selectedFile.type }] : undefined;
+
+    // Add user message to database with images
+    const userMessage = await addMessage(chatToUse.id, content, true, messageImages);
     if (!userMessage) return;
 
     setIsLoading(true);
@@ -116,7 +138,8 @@ const Index = () => {
         },
         body: JSON.stringify({ 
           message: content,
-          model: selectedModel 
+          model: selectedModel,
+          image: filePreview // Send base64 image if available
         })
       });
 
@@ -206,6 +229,10 @@ const Index = () => {
       if (receivedImages.length > 0) {
         await updateMessage(aiMessage.id, accumulatedContent, receivedImages);
       }
+
+      // Clear selected file after sending
+      setSelectedFile(null);
+      setFilePreview(null);
 
     } catch (error) {
       console.error('Error calling AI:', error);
@@ -311,9 +338,41 @@ const Index = () => {
             
             {/* Input - Always fixed at bottom for chat interface */}
             {!showSettings && (
-              <div className="shrink-0 p-4 bg-background">
-                <div className="max-w-4xl mx-auto">
-                  <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
+              <div className="shrink-0 bg-background">
+                {/* File Preview */}
+                {selectedFile && (
+                  <div className="border-t border-border p-4">
+                    <div className="max-w-4xl mx-auto">
+                      <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                        {filePreview && (
+                          <img src={filePreview} alt="Preview" className="w-16 h-16 object-cover rounded" />
+                        )}
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{selectedFile.name}</p>
+                          <p className="text-xs text-muted-foreground">{(selectedFile.size / 1024).toFixed(2)} KB</p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setFilePreview(null);
+                          }}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="p-4">
+                  <div className="max-w-4xl mx-auto">
+                    <ChatInput 
+                      onSendMessage={handleSendMessage} 
+                      disabled={isLoading}
+                      onFileSelect={handleFileSelect}
+                    />
+                  </div>
                 </div>
               </div>
             )}
