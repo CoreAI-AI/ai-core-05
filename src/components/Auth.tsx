@@ -5,6 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 
+const sb = supabase as any;
+
 interface AuthProps {
   onAuthSuccess: () => void;
 }
@@ -32,7 +34,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
 
         if (data.user) {
           // Create profile for the user
-          const { error: profileError } = await supabase
+          const { error: profileError } = await sb
             .from('profiles')
             .insert({
               user_id: data.user.id,

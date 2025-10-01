@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const sb = supabase as any;
+
 export interface Chat {
   id: string;
   title: string;
@@ -29,7 +31,7 @@ export const useChats = (userId: string | undefined) => {
     if (!userId) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from('chats')
         .select('*')
         .eq('user_id', userId)
@@ -46,7 +48,7 @@ export const useChats = (userId: string | undefined) => {
   // Load messages for a specific chat
   const loadMessages = async (chatId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from('messages')
         .select('*')
         .eq('chat_id', chatId)
@@ -65,7 +67,7 @@ export const useChats = (userId: string | undefined) => {
     if (!userId) return null;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from('chats')
         .insert({
           user_id: userId,
@@ -103,7 +105,7 @@ export const useChats = (userId: string | undefined) => {
         messageData.images = images;
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from('messages')
         .insert(messageData)
         .select()
@@ -115,7 +117,7 @@ export const useChats = (userId: string | undefined) => {
       setMessages(prev => [...prev, newMessage]);
 
       // Update chat's updated_at timestamp
-      await supabase
+      await sb
         .from('chats')
         .update({ updated_at: new Date().toISOString() })
         .eq('id', chatId);
@@ -138,7 +140,7 @@ export const useChats = (userId: string | undefined) => {
         updateData.images = images;
       }
 
-      const { error } = await supabase
+      const { error } = await sb
         .from('messages')
         .update(updateData)
         .eq('id', messageId);
@@ -173,7 +175,7 @@ export const useChats = (userId: string | undefined) => {
   const deleteChat = async (chatId: string) => {
     try {
       // Delete all messages in the chat first
-      const { error: messagesError } = await supabase
+      const { error: messagesError } = await sb
         .from('messages')
         .delete()
         .eq('chat_id', chatId);
@@ -181,7 +183,7 @@ export const useChats = (userId: string | undefined) => {
       if (messagesError) throw messagesError;
 
       // Delete the chat
-      const { error: chatError } = await supabase
+      const { error: chatError } = await sb
         .from('chats')
         .delete()
         .eq('id', chatId);
