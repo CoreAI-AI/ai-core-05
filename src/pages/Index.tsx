@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 import { toast } from "sonner";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { user, loading: authLoading, showAuth, signOut, setShowAuth } = useAuth();
@@ -103,12 +104,15 @@ const Index = () => {
       const aiMessage = await addMessage(chatToUse.id, "", false);
       if (!aiMessage) return;
 
-      const response = await fetch(`https://zevpgdoxlghrdaummzqb.supabase.co/functions/v1/ai`, {
+      const { data: session } = await supabase.auth.getSession();
+      const authToken = session?.session?.access_token;
+      
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpldnBnZG94bGdocmRhdW1tenFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NTEzNTksImV4cCI6MjA3NDIyNzM1OX0.Lk16L_LrSVtQ8Ga5ZV6Tl1dvdOM_5SnQaCKzjDjfrbI',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpldnBnZG94bGdocmRhdW1tenFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2NTEzNTksImV4cCI6MjA3NDIyNzM1OX0.Lk16L_LrSVtQ8Ga5ZV6Tl1dvdOM_5SnQaCKzjDjfrbI',
+          'Authorization': `Bearer ${authToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         },
         body: JSON.stringify({ 
           message: content,
