@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, model, image, fileText, fileName } = await req.json();
+    const { message, model, image, fileText, fileName, conversationHistory } = await req.json();
 
     if (!message) {
       return new Response(JSON.stringify({ error: "Message is required" }), {
@@ -75,21 +75,31 @@ serve(async (req) => {
       userContent = parts;
     }
 
+    // Build messages array with conversation history
+    const messagesArray: any[] = [
+      {
+        role: "system",
+        content: wantsImageGeneration 
+          ? "You are an AI that MUST generate an image when requested. When the user asks you to generate, create, draw, or make an image, you must produce an actual image file, not just describe it. Always generate the image first, then provide a brief description of what you created."
+          : "You are a helpful AI assistant that can engage in conversations on various topics. You can also analyze images and attached text when provided. Provide clear, informative, and engaging responses to user queries.",
+      }
+    ];
+
+    // Add conversation history if provided
+    if (conversationHistory && Array.isArray(conversationHistory) && conversationHistory.length > 0) {
+      messagesArray.push(...conversationHistory);
+    }
+
+    // Add current user message
+    messagesArray.push({
+      role: "user",
+      content: userContent,
+    });
+
     const requestBody: any = {
       model: modelToUse,
       stream: !wantsImageGeneration,
-      messages: [
-        {
-          role: "system",
-          content: wantsImageGeneration 
-            ? "You are an AI that MUST generate an image when requested. When the user asks you to generate, create, draw, or make an image, you must produce an actual image file, not just describe it. Always generate the image first, then provide a brief description of what you created."
-            : "You are a helpful AI assistant that can engage in conversations on various topics. You can also analyze images and attached text when provided. Provide clear, informative, and engaging responses to user queries.",
-        },
-        {
-          role: "user",
-          content: userContent,
-        },
-      ],
+      messages: messagesArray,
     };
 
     // Add modalities for image generation

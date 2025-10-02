@@ -142,6 +142,12 @@ const Index = () => {
         }
       }
       
+      // Build conversation history for context
+      const conversationHistory = messages.map(msg => ({
+        role: msg.is_user ? 'user' : 'assistant',
+        content: msg.content
+      }));
+      
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
         method: 'POST',
         headers: {
@@ -152,9 +158,10 @@ const Index = () => {
         body: JSON.stringify({ 
           message: content,
           model: selectedModel,
-          image: filePreview, // Send base64 image if available
+          image: filePreview,
           fileText: fileTextToSend,
           fileName: fileNameToSend,
+          conversationHistory: conversationHistory, // Send full chat history
         })
       });
 
