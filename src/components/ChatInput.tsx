@@ -8,6 +8,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
+import { toast } from "sonner";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -47,8 +49,35 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputPr
     fileInputRef.current?.click();
   };
 
-  const openCamera = () => {
-    cameraInputRef.current?.click();
+  const openCamera = async () => {
+    try {
+      const image = await CapCamera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.DataUrl,
+        source: CameraSource.Camera
+      });
+
+      if (image.dataUrl && onFileSelect) {
+        // Convert base64 to Blob then to File
+        const response = await fetch(image.dataUrl);
+        const blob = await response.blob();
+        const timestamp = Date.now();
+        const fileObj = Object.assign(blob, {
+          name: `camera-${timestamp}.jpg`,
+          lastModified: timestamp,
+        }) as File;
+        onFileSelect(fileObj);
+      }
+    } catch (error: any) {
+      console.error('Camera error:', error);
+      // Fallback to HTML input if Capacitor camera fails (web browser)
+      if (error.message?.includes('not implemented') || error.message?.includes('not available')) {
+        cameraInputRef.current?.click();
+      } else {
+        toast.error('Camera access denied or not available');
+      }
+    }
   };
 
   const openFileExplorer = () => {
