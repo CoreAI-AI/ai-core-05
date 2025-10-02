@@ -32,15 +32,23 @@ serve(async (req) => {
       });
     }
 
-    // Detect if this is an image GENERATION request (not analysis)
+    // Detect if this is an image GENERATION request (multi-language, not analysis)
     const lower = message.toLowerCase();
-    const wantsImageGeneration = !image && (
-      lower.includes('generate image') ||
-      lower.includes('create image') ||
-      lower.includes('draw') ||
-      lower.includes('make an image') ||
-      (lower.includes('image') && (lower.includes('make') || lower.includes('generate') || lower.includes('create')))
-    );
+
+    // Common keywords across English + Hindi/Hinglish + Devanagari
+    const genKeywords = [
+      // English
+      'generate image', 'create image', 'make an image', 'make image', 'draw', 'generate a photo', 'create a photo', 'generate picture', 'create picture',
+      // Hinglish
+      'photo banao', 'photo bana do', 'photo bana de', 'image banao', 'tasveer banao', 'tasvir banao', 'chitra banao', 'tasveer bana do',
+      // Devanagari
+      'फोटो', 'चित्र', 'तस्वीर', 'बनाओ', 'बनाइए', 'बनाना'
+    ];
+
+    const hasMediaWord = ['image','photo','picture','tasveer','tasvir','chitra','फोटो','चित्र','तस्वीर'].some(w => lower.includes(w));
+    const hasMakeWord = ['generate','create','make','banao','bana do','bana de','banaye','bnana','bna','बनाओ','बनाइए','बनाना'].some(w => lower.includes(w));
+
+    const wantsImageGeneration = !image && (genKeywords.some(k => lower.includes(k)) || (hasMediaWord && hasMakeWord));
     
     const modelToUse = wantsImageGeneration ? "google/gemini-2.5-flash-image-preview" : (model || "google/gemini-2.5-flash");
     
