@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, model, image, fileText, fileName, conversationHistory } = await req.json();
+    const { message, model, image, fileText, fileName, conversationHistory = [] } = await req.json();
 
     if (!message) {
       return new Response(JSON.stringify({ error: "Message is required" }), {
@@ -85,9 +85,35 @@ serve(async (req) => {
       }
     ];
 
-    // Add conversation history if provided
+    // Add conversation history with images support
     if (conversationHistory && Array.isArray(conversationHistory) && conversationHistory.length > 0) {
-      messagesArray.push(...conversationHistory);
+      for (const histMsg of conversationHistory) {
+        const msgContent: any[] = [];
+        
+        // Add text content
+        if (histMsg.content) {
+          msgContent.push({ type: "text", text: histMsg.content });
+        }
+        
+        // Add images from history if present
+        if (histMsg.images && Array.isArray(histMsg.images)) {
+          for (const img of histMsg.images) {
+            if (img.url) {
+              msgContent.push({
+                type: "image_url",
+                image_url: { url: img.url }
+              });
+            }
+          }
+        }
+        
+        messagesArray.push({
+          role: histMsg.role,
+          content: msgContent.length === 1 && msgContent[0].type === "text" 
+            ? msgContent[0].text 
+            : msgContent
+        });
+      }
     }
 
     // Add current user message

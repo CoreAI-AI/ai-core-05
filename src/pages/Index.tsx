@@ -142,11 +142,20 @@ const Index = () => {
         }
       }
       
-      // Build conversation history for context
-      const conversationHistory = messages.map(msg => ({
-        role: msg.is_user ? 'user' : 'assistant',
-        content: msg.content
-      }));
+      // Build conversation history with images for context
+      const conversationHistory = messages.map(msg => {
+        const historyItem: any = {
+          role: msg.is_user ? 'user' : 'assistant',
+          content: msg.content
+        };
+        
+        // Include images from previous messages
+        if (msg.images && msg.images.length > 0) {
+          historyItem.images = msg.images;
+        }
+        
+        return historyItem;
+      });
       
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
         method: 'POST',
