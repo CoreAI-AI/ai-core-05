@@ -85,9 +85,11 @@ serve(async (req) => {
       }
     ];
 
-    // Add conversation history with images support
+    // Limit conversation history to last 15 messages for performance
     if (conversationHistory && Array.isArray(conversationHistory) && conversationHistory.length > 0) {
-      for (const histMsg of conversationHistory) {
+      const recentHistory = conversationHistory.slice(-15);
+      
+      for (const histMsg of recentHistory) {
         const msgContent: any[] = [];
         
         // Add text content
@@ -95,9 +97,10 @@ serve(async (req) => {
           msgContent.push({ type: "text", text: histMsg.content });
         }
         
-        // Add images from history if present
+        // Add images from history if present (limit to 2 most recent images)
         if (histMsg.images && Array.isArray(histMsg.images)) {
-          for (const img of histMsg.images) {
+          const recentImages = histMsg.images.slice(-2);
+          for (const img of recentImages) {
             if (img.url) {
               msgContent.push({
                 type: "image_url",

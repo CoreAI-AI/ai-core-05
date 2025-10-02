@@ -142,8 +142,10 @@ const Index = () => {
         }
       }
       
-      // Build conversation history with images for context
-      const conversationHistory = messages.map(msg => {
+      // Limit conversation history to last 20 messages for better performance
+      const recentMessages = messages.slice(-20);
+      
+      const conversationHistory = recentMessages.map(msg => {
         const historyItem: any = {
           role: msg.is_user ? 'user' : 'assistant',
           content: msg.content

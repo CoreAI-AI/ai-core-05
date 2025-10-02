@@ -51,15 +51,17 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputPr
 
   const openCamera = async () => {
     try {
+      // Check if we're on a platform that supports Capacitor Camera
       const image = await CapCamera.getPhoto({
-        quality: 90,
+        quality: 80, // Reduced for better performance
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera
+        source: CameraSource.Camera, // Force camera, not gallery
+        saveToGallery: false,
+        correctOrientation: true
       });
 
       if (image.dataUrl && onFileSelect) {
-        // Convert base64 to Blob then to File
         const response = await fetch(image.dataUrl);
         const blob = await response.blob();
         const timestamp = Date.now();
@@ -71,12 +73,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputPr
       }
     } catch (error: any) {
       console.error('Camera error:', error);
-      // Fallback to HTML input if Capacitor camera fails (web browser)
-      if (error.message?.includes('not implemented') || error.message?.includes('not available')) {
-        cameraInputRef.current?.click();
-      } else {
-        toast.error('Camera access denied or not available');
-      }
+      toast.error('Camera access denied. Please allow camera permissions.');
     }
   };
 
