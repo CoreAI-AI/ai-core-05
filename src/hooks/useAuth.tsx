@@ -9,9 +9,27 @@ export const useAuth = () => {
   const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
+    // Listen for auth changes first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.id);
+        setUser(session?.user ?? null);
+        
+        if (event === 'SIGNED_IN') {
+          setShowAuth(false);
+        } else if (event === 'SIGNED_OUT') {
+          setShowAuth(true);
+        }
+        
+        setLoading(false);
+      }
+    );
+
     // Get initial session
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      
+      console.log('Initial session:', session?.user?.id);
       
       if (session?.user) {
         setUser(session.user);
@@ -24,21 +42,6 @@ export const useAuth = () => {
     };
 
     getSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null);
-        
-        if (event === 'SIGNED_IN') {
-          setShowAuth(false);
-        } else if (event === 'SIGNED_OUT') {
-          setShowAuth(true);
-        }
-        
-        setLoading(false);
-      }
-    );
 
     return () => subscription.unsubscribe();
   }, []);
