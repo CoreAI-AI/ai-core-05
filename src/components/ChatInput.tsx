@@ -1,27 +1,42 @@
 import { useState, useRef } from "react";
-import { Send, Paperclip, Image, File, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus } from "lucide-react";
+import { toast } from "sonner";
+import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
-import { toast } from "sonner";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   onFileSelect?: (file: File) => void;
+  onModeChange?: (mode: 'normal' | 'deep-search' | 'study' | 'photo') => void;
 }
 
-export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange }: ChatInputProps) => {
   const [message, setMessage] = useState("");
+  const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo'>('normal');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo') => {
+    setCurrentMode(mode);
+    if (onModeChange) {
+      onModeChange(mode);
+    }
+    const modeNames = {
+      'normal': 'Normal Mode',
+      'deep-search': 'Deep Search Mode',
+      'study': 'Study Mode',
+      'photo': 'Photo Generation Mode'
+    };
+    toast.success(`${modeNames[mode]} activated!`);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,12 +66,11 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputPr
 
   const openCamera = async () => {
     try {
-      // Check if we're on a platform that supports Capacitor Camera
       const image = await CapCamera.getPhoto({
-        quality: 80, // Reduced for better performance
+        quality: 80,
         allowEditing: false,
         resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera, // Force camera, not gallery
+        source: CameraSource.Camera,
         saveToGallery: false,
         correctOrientation: true
       });
@@ -81,20 +95,25 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputPr
     anyFileInputRef.current?.click();
   };
 
+  const getModeIcon = () => {
+    switch (currentMode) {
+      case 'deep-search':
+        return <Search className="h-4 w-4 text-blue-500" />;
+      case 'study':
+        return <GraduationCap className="h-4 w-4 text-green-500" />;
+      case 'photo':
+        return <ImagePlus className="h-4 w-4 text-purple-500" />;
+      default:
+        return <Paperclip className="h-4 w-4" />;
+    }
+  };
+
   return (
     <div className="border-t border-border bg-background p-4">
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        onChange={handleFileChange}
-        className="hidden"
-      />
-      <input
-        ref={cameraInputRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
         onChange={handleFileChange}
         className="hidden"
       />
@@ -113,10 +132,26 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputPr
               variant="ghost"
               className="text-muted-foreground hover:text-foreground"
             >
-              <Paperclip className="w-5 h-5" />
+              {getModeIcon()}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48">
+          <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuItem onClick={() => handleModeSelect('normal')} className="cursor-pointer">
+              <Paperclip className="w-4 h-4 mr-2" />
+              Normal Mode
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('deep-search')} className="cursor-pointer">
+              <Search className="w-4 h-4 mr-2 text-blue-500" />
+              🔍 Deep Search Mode
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('study')} className="cursor-pointer">
+              <GraduationCap className="w-4 h-4 mr-2 text-green-500" />
+              📚 Study Mode
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('photo')} className="cursor-pointer">
+              <ImagePlus className="w-4 h-4 mr-2 text-purple-500" />
+              🎨 Photo Generation Mode
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={openGallery} className="cursor-pointer">
               <Image className="w-4 h-4 mr-2" />
               Gallery
@@ -137,7 +172,15 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect }: ChatInputPr
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={disabled ? "AI is thinking..." : "Message..."}
+            placeholder={
+              currentMode === 'photo' 
+                ? "Describe the image you want to generate..." 
+                : currentMode === 'study'
+                ? "Ask me to explain any topic in detail..."
+                : currentMode === 'deep-search'
+                ? "Ask me anything for in-depth research..."
+                : disabled ? "AI is thinking..." : "Message..."
+            }
             disabled={disabled}
             className="min-h-[40px] max-h-32 resize-none bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-primary"
             rows={1}

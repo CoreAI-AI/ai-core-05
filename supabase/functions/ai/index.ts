@@ -12,7 +12,15 @@ serve(async (req) => {
   }
 
   try {
-    const { message, model, image, fileText, fileName, conversationHistory = [] } = await req.json();
+    const { 
+      message, 
+      model = "google/gemini-2.5-flash",
+      mode = "normal",
+      image,
+      fileText,
+      fileName,
+      conversationHistory = []
+    } = await req.json();
 
     if (!message) {
       return new Response(JSON.stringify({ error: "Message is required" }), {
@@ -48,11 +56,11 @@ serve(async (req) => {
     const hasMediaWord = ['image','photo','picture','tasveer','tasvir','chitra','फोटो','चित्र','तस्वीर'].some(w => lower.includes(w));
     const hasMakeWord = ['generate','create','make','banao','bana do','bana de','banaye','bnana','bna','बनाओ','बनाइए','बनाना'].some(w => lower.includes(w));
 
-    const wantsImageGeneration = !image && (genKeywords.some(k => lower.includes(k)) || (hasMediaWord && hasMakeWord));
+    const wantsImageGeneration = mode === 'photo' || (!image && (genKeywords.some(k => lower.includes(k)) || (hasMediaWord && hasMakeWord)));
     
     const modelToUse = wantsImageGeneration ? "google/gemini-2.5-flash-image-preview" : (model || "google/gemini-2.5-flash");
     
-    console.log(`wantsImageGeneration=${wantsImageGeneration}, hasInputImage=${Boolean(image)}, model=${modelToUse}`);
+    console.log(`mode=${mode}, wantsImageGeneration=${wantsImageGeneration}, hasInputImage=${Boolean(image)}, model=${modelToUse}`);
     
     // Build user message content - can be text + image for vision or include file text
     let userContent: any = message;
@@ -79,8 +87,12 @@ serve(async (req) => {
     const messagesArray: any[] = [
       {
         role: "system",
-        content: wantsImageGeneration 
+        content: mode === 'photo' || wantsImageGeneration 
           ? "You are an AI that MUST generate an image when requested. When the user asks you to generate, create, draw, or make an image, you must produce an actual image file, not just describe it. Always generate the image first, then provide a brief description of what you created."
+          : mode === 'deep-search'
+          ? "You are an advanced AI research assistant with deep search capabilities. Provide comprehensive, well-researched answers with detailed explanations. Break down complex topics into understandable parts. Use multiple perspectives and cite reasoning. Go beyond surface-level information. Think deeply and provide thorough analysis."
+          : mode === 'study'
+          ? "You are an expert AI tutor focused on helping students learn effectively. Explain concepts step-by-step with clear examples. Use analogies and real-world applications. Break complex ideas into simple, digestible parts. Encourage understanding over memorization. Ask follow-up questions to ensure comprehension. Be patient and thorough in your explanations."
           : "You are a helpful AI assistant that can engage in conversations on various topics. You can also analyze images and attached text when provided. Provide clear, informative, and engaging responses to user queries.",
       }
     ];

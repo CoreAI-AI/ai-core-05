@@ -35,6 +35,7 @@ const Index = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo'>('normal');
 
   // Get filtered models based on settings
   const allModels = [
@@ -159,6 +160,9 @@ const Index = () => {
         return historyItem;
       });
       
+      // Use image generation model if in photo mode
+      const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
+      
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
         method: 'POST',
         headers: {
@@ -168,11 +172,12 @@ const Index = () => {
         },
         body: JSON.stringify({ 
           message: content,
-          model: selectedModel,
+          model: modelToUse,
+          mode: chatMode,
           image: filePreview,
           fileText: fileTextToSend,
           fileName: fileNameToSend,
-          conversationHistory: conversationHistory, // Send full chat history
+          conversationHistory: conversationHistory,
         })
       });
 
@@ -404,6 +409,7 @@ const Index = () => {
                       onSendMessage={handleSendMessage} 
                       disabled={isLoading}
                       onFileSelect={handleFileSelect}
+                      onModeChange={setChatMode}
                     />
                   </div>
                 </div>
