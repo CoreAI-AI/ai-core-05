@@ -39,13 +39,48 @@ const Index = () => {
 
   // Get filtered models based on settings
   const allModels = [
-    { id: "openai/gpt-5", name: "GPT-5", provider: "OpenAI" },
-    { id: "openai/gpt-5-mini", name: "GPT-5 Mini", provider: "OpenAI" },
-    { id: "openai/gpt-5-nano", name: "GPT-5 Nano", provider: "OpenAI" },
-    { id: "google/gemini-2.5-pro", name: "Gemini 2.5 Pro", provider: "Google" },
-    { id: "google/gemini-2.5-flash", name: "Gemini 2.5 Flash", provider: "Google" },
-    { id: "google/gemini-2.5-flash-lite", name: "Gemini 2.5 Flash Lite", provider: "Google" },
-    { id: "google/gemini-2.5-flash-image-preview", name: "Gemini 2.5 Flash Image", provider: "Google" },
+    { 
+      id: "openai/gpt-5", 
+      name: "GPT-5", 
+      provider: "OpenAI",
+      description: "Most powerful OpenAI model with excellent reasoning and multimodal capabilities"
+    },
+    { 
+      id: "openai/gpt-5-mini", 
+      name: "GPT-5 Mini", 
+      provider: "OpenAI",
+      description: "Faster and cost-efficient with strong reasoning capabilities"
+    },
+    { 
+      id: "openai/gpt-5-nano", 
+      name: "GPT-5 Nano", 
+      provider: "OpenAI",
+      description: "Fastest and cheapest for simple tasks and high-volume workloads"
+    },
+    { 
+      id: "google/gemini-2.5-pro", 
+      name: "Gemini 2.5 Pro", 
+      provider: "Google",
+      description: "Top-tier Gemini with best image-text, big context, and complex reasoning"
+    },
+    { 
+      id: "google/gemini-2.5-flash", 
+      name: "Gemini 2.5 Flash", 
+      provider: "Google",
+      description: "Balanced performance with good multimodal and reasoning at lower cost"
+    },
+    { 
+      id: "google/gemini-2.5-flash-lite", 
+      name: "Gemini 2.5 Flash Lite", 
+      provider: "Google",
+      description: "Fastest Gemini for classification and summarization tasks"
+    },
+    { 
+      id: "google/gemini-2.5-flash-image-preview", 
+      name: "Gemini Image Generation", 
+      provider: "Google",
+      description: "Specialized model for generating high-quality images from text"
+    },
   ];
   
   const availableModels = settings?.enabledModels?.length > 0 

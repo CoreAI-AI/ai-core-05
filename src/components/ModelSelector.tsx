@@ -5,6 +5,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +14,7 @@ interface Model {
   id: string;
   name: string;
   provider: string;
+  description: string;
 }
 
 interface ModelSelectorProps {
@@ -28,6 +31,10 @@ export const ModelSelector = ({ selectedModel, onModelChange, availableModels }:
     onModelChange(currentModel.id);
   }
 
+  // Group models by provider
+  const googleModels = availableModels.filter(m => m.provider === 'Google');
+  const openaiModels = availableModels.filter(m => m.provider === 'OpenAI');
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -39,19 +46,47 @@ export const ModelSelector = ({ selectedModel, onModelChange, availableModels }:
           <ChevronDown className="w-4 h-4 ml-2" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        {availableModels.map((model) => (
-          <DropdownMenuItem 
-            key={model.id}
-            onClick={() => onModelChange(model.id)}
-            className={selectedModel === model.id ? "bg-accent" : ""}
-          >
-            <div className="flex flex-col">
-              <span className="font-medium">{model.name}</span>
-              <span className="text-xs text-muted-foreground">{model.provider}</span>
-            </div>
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent align="end" className="w-80">
+        {googleModels.length > 0 && (
+          <>
+            <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground">
+              Google Models
+            </DropdownMenuLabel>
+            {googleModels.map((model) => (
+              <DropdownMenuItem 
+                key={model.id}
+                onClick={() => onModelChange(model.id)}
+                className={selectedModel === model.id ? "bg-accent" : ""}
+              >
+                <div className="flex flex-col gap-1">
+                  <span className="font-medium">{model.name}</span>
+                  <span className="text-xs text-muted-foreground">{model.description}</span>
+                </div>
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+          </>
+        )}
+        
+        {openaiModels.length > 0 && (
+          <>
+            <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground">
+              OpenAI Models
+            </DropdownMenuLabel>
+            {openaiModels.map((model) => (
+              <DropdownMenuItem 
+                key={model.id}
+                onClick={() => onModelChange(model.id)}
+                className={selectedModel === model.id ? "bg-accent" : ""}
+              >
+                <div className="flex flex-col gap-1">
+                  <span className="font-medium">{model.name}</span>
+                  <span className="text-xs text-muted-foreground">{model.description}</span>
+                </div>
+              </DropdownMenuItem>
+            ))}
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
