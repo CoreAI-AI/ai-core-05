@@ -10,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { chatMessageSchema, validateFile, sanitizeInput } from "@/lib/validation";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -40,9 +41,20 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (message.trim() && !disabled) {
-      onSendMessage(message.trim());
+    if (!message.trim() || disabled) return;
+
+    // Validate and sanitize message
+    try {
+      const sanitized = sanitizeInput(message);
+      chatMessageSchema.parse({ content: sanitized });
+      onSendMessage(sanitized);
       setMessage("");
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Invalid message");
+      }
     }
   };
 
@@ -56,7 +68,16 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && onFileSelect) {
-      onFileSelect(file);
+      try {
+        validateFile(file);
+        onFileSelect(file);
+      } catch (error) {
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("Invalid file");
+        }
+      }
     }
   };
 

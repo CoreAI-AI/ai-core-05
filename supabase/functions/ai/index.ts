@@ -6,6 +6,41 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Input validation
+const validateInput = (message: string, fileText?: string, fileName?: string) => {
+  // Validate message
+  if (!message || typeof message !== 'string') {
+    throw new Error("Invalid message");
+  }
+  if (message.length > 50000) {
+    throw new Error("Message too long");
+  }
+  
+  // Validate fileText if present
+  if (fileText !== undefined) {
+    if (typeof fileText !== 'string') {
+      throw new Error("Invalid file text");
+    }
+    if (fileText.length > 100000) {
+      throw new Error("File text too long");
+    }
+  }
+  
+  // Validate fileName if present
+  if (fileName !== undefined) {
+    if (typeof fileName !== 'string') {
+      throw new Error("Invalid file name");
+    }
+    if (fileName.length > 255) {
+      throw new Error("File name too long");
+    }
+    // Check for path traversal
+    if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
+      throw new Error("Invalid file name");
+    }
+  }
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -22,8 +57,38 @@ serve(async (req) => {
       conversationHistory = []
     } = await req.json();
 
+    // Validate inputs
+    try {
+      validateInput(message, fileText, fileName);
+    } catch (validationError) {
+      const errorMessage = validationError instanceof Error ? validationError.message : "Invalid input";
+      console.error("Input validation error:", errorMessage);
+      return new Response(JSON.stringify({ error: errorMessage }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (!message) {
       return new Response(JSON.stringify({ error: "Message is required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Validate model parameter to prevent injection
+    const allowedModels = [
+      "google/gemini-2.5-flash",
+      "google/gemini-2.5-flash-image-preview",
+      "google/gemini-2.5-pro",
+      "google/gemini-2.5-flash-lite",
+      "openai/gpt-5",
+      "openai/gpt-5-mini",
+      "openai/gpt-5-nano"
+    ];
+    
+    if (!allowedModels.includes(model)) {
+      return new Response(JSON.stringify({ error: "Invalid model" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -33,7 +98,6 @@ serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
 
     if (!apiKey) {
-      console.error("LOVABLE_API_KEY not found in environment, please enable the AI gateway");
       return new Response(JSON.stringify({ error: "AI service unavailable" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -160,11 +224,19 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      console.error("AI Gateway error:", await response.text());
+      const errorText = await response.text();
+      console.error("AI Gateway error:", response.status);
+      
       if (response.status === 429) {
-        console.error("Rate limit exceeded");
-        return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
           status: 429,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ error: "Payment required. Please check your credits." }), {
+          status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
