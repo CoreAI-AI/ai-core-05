@@ -58,11 +58,9 @@ export const ModelSelector = ({ selectedModel, onModelChange, availableModels }:
                 onClick={() => onModelChange(model.id)}
                 className={selectedModel === model.id ? "bg-accent" : ""}
               >
-                <div className="flex flex-col gap-1.5 py-1">
-                  <span className="font-medium text-sm">{model.name}</span>
-                  <span className="text-xs text-muted-foreground leading-relaxed whitespace-normal">
-                    {model.description}
-                  </span>
+                <div className="flex flex-col gap-1">
+                  <span className="font-medium">{model.name}</span>
+                  <span className="text-xs text-muted-foreground">{model.description}</span>
                 </div>
               </DropdownMenuItem>
             ))}
@@ -81,11 +79,9 @@ export const ModelSelector = ({ selectedModel, onModelChange, availableModels }:
                 onClick={() => onModelChange(model.id)}
                 className={selectedModel === model.id ? "bg-accent" : ""}
               >
-                <div className="flex flex-col gap-1.5 py-1">
-                  <span className="font-medium text-sm">{model.name}</span>
-                  <span className="text-xs text-muted-foreground leading-relaxed whitespace-normal">
-                    {model.description}
-                  </span>
+                <div className="flex flex-col gap-1">
+                  <span className="font-medium">{model.name}</span>
+                  <span className="text-xs text-muted-foreground">{model.description}</span>
                 </div>
               </DropdownMenuItem>
             ))}
