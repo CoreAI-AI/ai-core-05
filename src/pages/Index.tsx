@@ -77,9 +77,9 @@ const Index = () => {
     },
     { 
       id: "google/gemini-2.5-flash-image-preview", 
-      name: "Gemini Image Generation", 
+      name: "Nano Banana", 
       provider: "Google",
-      description: "Specialized model for generating high-quality images from text"
+      description: "Image generation model that creates visuals from text prompts"
     },
   ];
   
