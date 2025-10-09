@@ -1,14 +1,20 @@
-import { Search, MessageSquare, Users, Settings, LogOut, Plus, Trash2 } from "lucide-react";
+import { Search, MessageSquare, Users, Settings, LogOut, Plus, Trash2, Image } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Chat } from "@/hooks/useChats";
 import { User } from "@supabase/supabase-js";
+import { useNavigate } from "react-router-dom";
+
 const sidebarItems = [{
   icon: MessageSquare,
   label: "New Chat",
   active: true,
   action: 'newChat'
+}, {
+  icon: Image,
+  label: "Photos",
+  action: 'photos'
 }, {
   icon: Settings,
   label: "Settings",
@@ -34,6 +40,18 @@ export const ChatSidebar = ({
   onDeleteChat,
   user
 }: ChatSidebarProps) => {
+  const navigate = useNavigate();
+
+  const handleAction = (action: string) => {
+    if (action === 'newChat') {
+      onNewChat();
+    } else if (action === 'settings') {
+      onOpenSettings();
+    } else if (action === 'photos') {
+      navigate('/photos');
+    }
+  };
+
   return <div className="w-full h-full bg-sidebar border-r border-sidebar-border flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-sidebar-border">
@@ -56,7 +74,7 @@ export const ChatSidebar = ({
       {/* Navigation */}
       <div className="p-4 border-b border-sidebar-border">
         <nav className="space-y-1">
-          {sidebarItems.map(item => <Button key={item.label} variant={item.active ? "default" : "ghost"} className={`w-full justify-start ${item.active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}`} onClick={item.action === 'newChat' ? onNewChat : item.action === 'settings' ? onOpenSettings : undefined}>
+          {sidebarItems.map(item => <Button key={item.label} variant={item.active ? "default" : "ghost"} className={`w-full justify-start ${item.active ? "bg-primary text-primary-foreground" : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"}`} onClick={() => handleAction(item.action)}>
               <item.icon className="w-4 h-4 mr-3" />
               {item.label}
             </Button>)}

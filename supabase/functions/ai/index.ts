@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,6 +48,21 @@ serve(async (req) => {
   }
 
   try {
+    // Initialize Supabase client for saving images
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Get user from auth header
+    const authHeader = req.headers.get('Authorization');
+    let userId: string | null = null;
+    
+    if (authHeader) {
+      const token = authHeader.replace('Bearer ', '');
+      const { data: { user } } = await supabase.auth.getUser(token);
+      userId = user?.id || null;
+    }
+
     const { 
       message, 
       model = "google/gemini-2.5-flash",
@@ -256,6 +272,24 @@ serve(async (req) => {
       const images = messageObj.images || [];
 
       console.log(`Image generation response - content length: ${contentText.length}, images: ${images?.length || 0}`);
+
+      // Save generated images to database if user is authenticated
+      if (userId && images && images.length > 0) {
+        for (const img of images) {
+          if (img?.image_url?.url) {
+            try {
+              await supabase.from('generated_images').insert({
+                user_id: userId,
+                image_url: img.image_url.url,
+                prompt: message
+              });
+              console.log('Saved generated image to database');
+            } catch (error) {
+              console.error('Failed to save image to database:', error);
+            }
+          }
+        }
+      }
 
       const stream = new ReadableStream({
         start(controller) {
