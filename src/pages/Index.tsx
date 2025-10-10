@@ -35,7 +35,7 @@ const Index = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo'>('normal');
+  const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
 
   // Get filtered models based on settings
   const allModels = [

@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import {
@@ -16,25 +16,28 @@ interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   onFileSelect?: (file: File) => void;
-  onModeChange?: (mode: 'normal' | 'deep-search' | 'study' | 'photo') => void;
+  onModeChange?: (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze') => void;
 }
 
 export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange }: ChatInputProps) => {
   const [message, setMessage] = useState("");
-  const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo'>('normal');
+  const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo') => {
+  const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze') => {
     setCurrentMode(mode);
     if (onModeChange) {
       onModeChange(mode);
     }
     const modeNames = {
-      'normal': 'Normal Mode',
-      'deep-search': 'Deep Search Mode',
-      'study': 'Study Mode',
-      'photo': 'Photo Generation Mode'
+      'normal': 'Normal Chat',
+      'deep-search': 'Deep Research',
+      'study': 'Study Tutor',
+      'photo': 'Image Generator',
+      'code': 'Code Assistant',
+      'creative': 'Creative Writer',
+      'analyze': 'Data Analyst'
     };
     toast.success(`${modeNames[mode]} activated!`);
   };
@@ -124,6 +127,12 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
         return <GraduationCap className="h-4 w-4 text-green-500" />;
       case 'photo':
         return <ImagePlus className="h-4 w-4 text-purple-500" />;
+      case 'code':
+        return <Code className="h-4 w-4 text-orange-500" />;
+      case 'creative':
+        return <Lightbulb className="h-4 w-4 text-yellow-500" />;
+      case 'analyze':
+        return <BarChart3 className="h-4 w-4 text-cyan-500" />;
       default:
         return <Paperclip className="h-4 w-4" />;
     }
@@ -156,34 +165,46 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
               {getModeIcon()}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
+          <DropdownMenuContent align="start" className="w-64">
             <DropdownMenuItem onClick={() => handleModeSelect('normal')} className="cursor-pointer">
               <Paperclip className="w-4 h-4 mr-2" />
-              Normal Mode
+              💬 Normal Chat
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleModeSelect('deep-search')} className="cursor-pointer">
               <Search className="w-4 h-4 mr-2 text-blue-500" />
-              🔍 Deep Search Mode
+              🔍 Deep Research
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleModeSelect('study')} className="cursor-pointer">
               <GraduationCap className="w-4 h-4 mr-2 text-green-500" />
-              📚 Study Mode
+              📚 Study Tutor
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('code')} className="cursor-pointer">
+              <Code className="w-4 h-4 mr-2 text-orange-500" />
+              💻 Code Assistant
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('creative')} className="cursor-pointer">
+              <Lightbulb className="w-4 h-4 mr-2 text-yellow-500" />
+              ✨ Creative Writer
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('analyze')} className="cursor-pointer">
+              <BarChart3 className="w-4 h-4 mr-2 text-cyan-500" />
+              📊 Data Analyst
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleModeSelect('photo')} className="cursor-pointer">
               <ImagePlus className="w-4 h-4 mr-2 text-purple-500" />
-              🎨 Photo Generation Mode
+              🎨 Image Generator
             </DropdownMenuItem>
             <DropdownMenuItem onClick={openGallery} className="cursor-pointer">
               <Image className="w-4 h-4 mr-2" />
-              Gallery
+              📷 Gallery
             </DropdownMenuItem>
             <DropdownMenuItem onClick={openFileExplorer} className="cursor-pointer">
               <File className="w-4 h-4 mr-2" />
-              File
+              📎 File
             </DropdownMenuItem>
             <DropdownMenuItem onClick={openCamera} className="cursor-pointer">
               <Camera className="w-4 h-4 mr-2" />
-              Camera
+              📸 Camera
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -197,9 +218,15 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
               currentMode === 'photo' 
                 ? "Describe the image you want to generate..." 
                 : currentMode === 'study'
-                ? "Ask me to explain any topic in detail..."
+                ? "Ask me to explain any topic..."
                 : currentMode === 'deep-search'
-                ? "Ask me anything for in-depth research..."
+                ? "Ask for in-depth research..."
+                : currentMode === 'code'
+                ? "Ask for coding help..."
+                : currentMode === 'creative'
+                ? "Let's create something amazing..."
+                : currentMode === 'analyze'
+                ? "Share data or info to analyze..."
                 : disabled ? "AI is thinking..." : "Message..."
             }
             disabled={disabled}
