@@ -25,20 +25,23 @@ interface GeneratedImage {
 }
 
 const Photos = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user) {
-      navigate("/");
-      return;
-    }
+  // Redirect if not authenticated
+  if (!authLoading && !user) {
+    navigate("/");
+    return null;
+  }
 
-    loadImages();
-  }, [user, navigate]);
+  useEffect(() => {
+    if (user) {
+      loadImages();
+    }
+  }, [user]);
 
   const loadImages = async () => {
     try {
