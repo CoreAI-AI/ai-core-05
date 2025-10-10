@@ -21,17 +21,10 @@ const defaultSettings: UserSettings = {
     'openai/gpt-5',
     'openai/gpt-5-mini',
     'openai/gpt-5-nano',
-    'openai/gpt-4o',
-    'openai/gpt-4.1-mini',
-    'openai/whisper',
-    'openai/gpt-oss',
     'google/gemini-2.5-pro',
     'google/gemini-2.5-flash',
     'google/gemini-2.5-flash-lite',
     'google/gemini-2.5-flash-image-preview',
-    'google/gemma',
-    'google/imagen-4',
-    'google/veo-3',
   ],
 };
 
