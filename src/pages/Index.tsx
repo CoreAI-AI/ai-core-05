@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { ModelSelector } from "@/components/ModelSelector";
 import { Auth } from "@/components/Auth";
 import { Settings } from "@/components/Settings";
+import { TypingIndicator } from "@/components/TypingIndicator";
 import { useAuth } from "@/hooks/useAuth";
 import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
@@ -32,10 +33,12 @@ const Index = () => {
   
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [isLoading, setIsLoading] = useState(false);
+  const [isAITyping, setIsAITyping] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Get filtered models based on settings
   const allModels = [
@@ -86,6 +89,18 @@ const Index = () => {
   const availableModels = settings?.enabledModels?.length > 0 
     ? allModels.filter(model => settings.enabledModels.includes(model.id))
     : allModels; // Fallback to all models if settings not loaded
+
+  // Auto-scroll to bottom when messages or typing indicator changes
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        requestAnimationFrame(() => {
+          viewport.scrollTop = viewport.scrollHeight;
+        });
+      }
+    }
+  }, [messages, isAITyping]);
 
   // If loading, show loading state
   if (authLoading) {
@@ -156,6 +171,7 @@ const Index = () => {
     if (!userMessage) return;
 
     setIsLoading(true);
+    setIsAITyping(true);
 
     try {
       // Create AI message placeholder
@@ -231,6 +247,9 @@ const Index = () => {
       let receivedImages: any[] = [];
       let buffer = "";
       let sawDone = false;
+      
+      // Hide typing indicator once streaming starts
+      setIsAITyping(false);
 
       while (true) {
         const { done, value } = await reader.read();
@@ -312,6 +331,7 @@ const Index = () => {
       toast.error("Failed to get AI response. Please try again.");
     } finally {
       setIsLoading(false);
+      setIsAITyping(false);
     }
   };
 
@@ -377,7 +397,7 @@ const Index = () => {
                 
                 {/* Messages - scrollable area with fixed height */}
                 <div className="flex-1 overflow-hidden">
-                  <ScrollArea className="h-full">
+                  <ScrollArea className="h-full" ref={scrollAreaRef}>
                     <div className="p-6 pb-4">
                       <div className="max-w-4xl mx-auto">
                         {messages.length === 0 ? (
@@ -388,19 +408,22 @@ const Index = () => {
                             </div>
                           </div>
                         ) : (
-                          messages.map((message, index) => (
-                            <ChatMessage
-                              key={message.id}
-                              message={message.content}
-                              isUser={message.is_user}
-                              timestamp={new Date(message.created_at).toLocaleTimeString([], { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                              })}
-                              images={message.images}
-                              isLoading={!message.is_user && !message.content && isLoading && index === messages.length - 1}
-                            />
-                          ))
+                          <>
+                            {messages.map((message, index) => (
+                              <ChatMessage
+                                key={message.id}
+                                message={message.content}
+                                isUser={message.is_user}
+                                timestamp={new Date(message.created_at).toLocaleTimeString([], { 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                                images={message.images}
+                                isLoading={!message.is_user && !message.content && isLoading && index === messages.length - 1}
+                              />
+                            ))}
+                            <TypingIndicator show={isAITyping} />
+                          </>
                         )}
                       </div>
                     </div>
