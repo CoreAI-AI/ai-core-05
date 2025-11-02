@@ -4,6 +4,12 @@ export interface Model {
   provider: string;
   description: string;
   category?: 'text' | 'image' | 'video' | 'audio';
+  type?: 'open-weight' | 'speech-to-text' | 'standard';
+  runtime?: {
+    requiresLocalWeights: boolean;
+    localPath?: string;
+    recommendedMemoryGB?: number;
+  };
 }
 
 export const AVAILABLE_MODELS: Model[] = [
@@ -48,14 +54,25 @@ export const AVAILABLE_MODELS: Model[] = [
     name: 'Whisper',
     provider: 'OpenAI',
     description: 'Speech-to-text transcription for multiple languages',
-    category: 'audio'
+    category: 'audio',
+    type: 'speech-to-text',
+    runtime: {
+      requiresLocalWeights: false,
+      recommendedMemoryGB: 4
+    }
   },
   {
     id: 'openai/gpt-oss',
     name: 'GPT-OSS',
     provider: 'OpenAI',
     description: 'Open-weight model for customization and local deployment',
-    category: 'text'
+    category: 'text',
+    type: 'open-weight',
+    runtime: {
+      requiresLocalWeights: true,
+      localPath: '/models/gpt-oss',
+      recommendedMemoryGB: 16
+    }
   },
   
   // Google Models
@@ -92,7 +109,13 @@ export const AVAILABLE_MODELS: Model[] = [
     name: 'Gemma',
     provider: 'Google',
     description: 'Lightweight open-source model for text tasks',
-    category: 'text'
+    category: 'text',
+    type: 'open-weight',
+    runtime: {
+      requiresLocalWeights: true,
+      localPath: '/models/gemma',
+      recommendedMemoryGB: 8
+    }
   },
   {
     id: 'google/imagen-4',

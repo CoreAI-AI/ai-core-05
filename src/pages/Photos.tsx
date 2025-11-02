@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Download, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, Trash2, Copy, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import {
@@ -41,6 +41,33 @@ const Photos = () => {
     if (user) {
       loadImages();
     }
+  }, [user]);
+
+  // Real-time subscription for new images
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('generated_images_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'generated_images',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('New image generated:', payload);
+          setImages((prev) => [payload.new as GeneratedImage, ...prev]);
+          toast.success("New image generated!");
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const loadImages = async () => {
@@ -81,6 +108,37 @@ const Photos = () => {
     }
   };
 
+  const handleCopyLink = async (imageUrl: string) => {
+    try {
+      await navigator.clipboard.writeText(imageUrl);
+      toast.success("Image link copied to clipboard");
+    } catch (error) {
+      console.error("Error copying link:", error);
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleShare = async (imageUrl: string, prompt: string) => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'CoreAI Generated Image',
+          text: prompt,
+          url: imageUrl
+        });
+      } else {
+        // Fallback to copy link
+        await handleCopyLink(imageUrl);
+        toast.success("Link copied (sharing not supported on this device)");
+      }
+    } catch (error) {
+      console.error("Error sharing:", error);
+      if (error instanceof Error && error.name !== 'AbortError') {
+        toast.error("Failed to share image");
+      }
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       const { error } = await supabase
@@ -113,7 +171,7 @@ const Photos = () => {
           <ArrowLeft className="w-4 h-4" />
           Back
         </Button>
-        <h1 className="text-2xl font-semibold text-foreground">Photos</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Image Studio</h1>
       </div>
 
       {/* Content */}
@@ -148,20 +206,40 @@ const Photos = () => {
                       alt={image.prompt}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <Button
                         variant="secondary"
                         size="sm"
                         onClick={() => handleDownload(image.image_url, image.prompt)}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-1"
+                        title="Download"
                       >
                         <Download className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleCopyLink(image.image_url)}
+                        className="flex items-center gap-1"
+                        title="Copy Link"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleShare(image.image_url, image.prompt)}
+                        className="flex items-center gap-1"
+                        title="Share"
+                      >
+                        <Share2 className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="destructive"
                         size="sm"
                         onClick={() => setDeleteId(image.id)}
-                        className="flex items-center gap-2"
+                        className="flex items-center gap-1"
+                        title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>

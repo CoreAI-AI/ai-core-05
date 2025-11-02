@@ -13,8 +13,12 @@ const sidebarItems = [{
   action: 'newChat'
 }, {
   icon: Image,
-  label: "Photos",
+  label: "Image Studio",
   action: 'photos'
+}, {
+  icon: Users,
+  label: "Model Manager",
+  action: 'models'
 }, {
   icon: Settings,
   label: "Settings",
@@ -49,6 +53,8 @@ export const ChatSidebar = ({
       onOpenSettings();
     } else if (action === 'photos') {
       navigate('/photos');
+    } else if (action === 'models') {
+      navigate('/models');
     }
   };
 
@@ -60,7 +66,7 @@ export const ChatSidebar = ({
             <div className="w-6 h-6 bg-primary rounded-md flex items-center justify-center">
               <div className="w-3 h-3 bg-primary-foreground rounded-sm"></div>
             </div>
-            <span className="font-semibold text-sidebar-foreground">CoreAI</span>
+            <span className="font-semibold text-sidebar-foreground">CoreAI – Smart Chat + Image Studio</span>
           </div>
           <ThemeToggle />
         </div>

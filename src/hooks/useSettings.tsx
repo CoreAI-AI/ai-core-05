@@ -8,6 +8,9 @@ export interface UserSettings {
     google: boolean;
   };
   enabledModels: string[];
+  activeModelId?: string;
+  preferredImageModel?: string;
+  autoSaveImages?: boolean;
 }
 
 const defaultSettings: UserSettings = {
@@ -33,6 +36,9 @@ const defaultSettings: UserSettings = {
     'google/imagen-4',
     'google/veo-3',
   ],
+  activeModelId: 'google/gemini-2.5-flash',
+  preferredImageModel: 'google/gemini-2.5-flash-image-preview',
+  autoSaveImages: true,
 };
 
 export const useSettings = (userId?: string) => {
