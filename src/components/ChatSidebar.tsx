@@ -5,6 +5,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Chat } from "@/hooks/useChats";
 import { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
+
 const sidebarItems = [{
   icon: MessageSquare,
   label: "New Chat",
@@ -44,6 +45,7 @@ export const ChatSidebar = ({
   user
 }: ChatSidebarProps) => {
   const navigate = useNavigate();
+
   const handleAction = (action: string) => {
     if (action === 'newChat') {
       onNewChat();
@@ -55,6 +57,7 @@ export const ChatSidebar = ({
       navigate('/models');
     }
   };
+
   return <div className="w-full h-full bg-sidebar border-r border-sidebar-border flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-sidebar-border">
@@ -63,7 +66,7 @@ export const ChatSidebar = ({
             <div className="w-6 h-6 bg-primary rounded-md flex items-center justify-center">
               <div className="w-3 h-3 bg-primary-foreground rounded-sm"></div>
             </div>
-            <span className="font-semibold text-sidebar-foreground">CoreAI </span>
+            <span className="font-semibold text-sidebar-foreground">CoreAI – Smart Chat + Image Studio</span>
           </div>
           <ThemeToggle />
         </div>
