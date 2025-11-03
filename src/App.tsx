@@ -7,6 +7,10 @@ import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Photos from "./pages/Photos";
 import ModelManager from "./pages/ModelManager";
+import Documents from "./pages/Documents";
+import Notes from "./pages/Notes";
+import Privacy from "./pages/Privacy";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +31,10 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/photos" element={<Photos />} />
             <Route path="/models" element={<ModelManager />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="/notes" element={<Notes />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/admin" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

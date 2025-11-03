@@ -62,16 +62,68 @@ export const AVAILABLE_MODELS: Model[] = [
     }
   },
   {
-    id: 'openai/gpt-oss',
-    name: 'GPT-OSS',
-    provider: 'OpenAI',
-    description: 'Open-weight model for customization and local deployment',
+    id: 'gpt-oss',
+    name: 'GPT-OSS (Open-Weight)',
+    provider: 'Open-Source',
+    description: 'Open-weight LLM for local use',
     category: 'text',
     type: 'open-weight',
     runtime: {
       requiresLocalWeights: true,
       localPath: '/models/gpt-oss',
       recommendedMemoryGB: 16
+    }
+  },
+  {
+    id: 'whisper-local',
+    name: 'Whisper (Local)',
+    provider: 'Open-Source',
+    description: 'Local speech-to-text',
+    category: 'audio',
+    type: 'speech-to-text',
+    runtime: {
+      requiresLocalWeights: true,
+      localPath: '/models/whisper',
+      recommendedMemoryGB: 4
+    }
+  },
+  {
+    id: 'gemma-local',
+    name: 'Gemma (Local)',
+    provider: 'Open-Source',
+    description: 'Lightweight local text model',
+    category: 'text',
+    type: 'open-weight',
+    runtime: {
+      requiresLocalWeights: true,
+      localPath: '/models/gemma',
+      recommendedMemoryGB: 8
+    }
+  },
+  {
+    id: 'stable-diffusion',
+    name: 'Stable Diffusion (Local)',
+    provider: 'Open-Source',
+    description: 'Local text-to-image generation',
+    category: 'image',
+    type: 'open-weight',
+    runtime: {
+      requiresLocalWeights: true,
+      localPath: '/models/stable-diffusion',
+      recommendedMemoryGB: 12
+    }
+  },
+  {
+    id: 'sdxl-local',
+    name: 'SDXL (Local)',
+    provider: 'Open-Source',
+    description: 'High-quality local image generation',
+    category: 'image',
+    type: 'open-weight',
+    runtime: {
+      requiresLocalWeights: true,
+      localPath: '/models/sdxl',
+      recommendedMemoryGB: 24
     }
   },
   
