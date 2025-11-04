@@ -11,6 +11,7 @@ import Documents from "./pages/Documents";
 import Notes from "./pages/Notes";
 import Privacy from "./pages/Privacy";
 import Admin from "./pages/Admin";
+import Tools from "./pages/Tools";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/photos" element={<Photos />} />
+            <Route path="/tools" element={<Tools />} />
             <Route path="/models" element={<ModelManager />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/notes" element={<Notes />} />
