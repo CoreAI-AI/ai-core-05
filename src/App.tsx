@@ -6,7 +6,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Photos from "./pages/Photos";
-import ModelManager from "./pages/ModelManager";
 import Documents from "./pages/Documents";
 import Notes from "./pages/Notes";
 import Privacy from "./pages/Privacy";
@@ -32,7 +31,6 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/photos" element={<Photos />} />
             <Route path="/tools" element={<Tools />} />
-            <Route path="/models" element={<ModelManager />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/privacy" element={<Privacy />} />
