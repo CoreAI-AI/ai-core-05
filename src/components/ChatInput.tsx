@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3 } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square } from "lucide-react";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import {
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { chatMessageSchema, validateFile, sanitizeInput } from "@/lib/validation";
+import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -24,6 +25,15 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
   const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
+  
+  const {
+    isRecording,
+    transcribing,
+    startRecording,
+    stopRecording,
+    transcribe,
+    reset,
+  } = useVoiceRecorder();
 
   const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze') => {
     setCurrentMode(mode);
@@ -117,6 +127,20 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
 
   const openFileExplorer = () => {
     anyFileInputRef.current?.click();
+  };
+
+  const handleVoiceRecording = async () => {
+    if (isRecording) {
+      stopRecording();
+      const text = await transcribe();
+      if (text) {
+        setMessage(text);
+        toast.success("Voice transcribed!");
+      }
+      reset();
+    } else {
+      await startRecording();
+    }
   };
 
   const getModeIcon = () => {
@@ -235,6 +259,18 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
           />
         </div>
         
+        <Button 
+          type="button" 
+          size="icon"
+          onClick={handleVoiceRecording}
+          disabled={disabled || transcribing}
+          variant="ghost"
+          className={isRecording ? "text-destructive hover:bg-destructive/10" : "text-muted-foreground hover:text-foreground"}
+          title={isRecording ? "Stop recording" : "Start voice recording"}
+        >
+          {isRecording ? <Square className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4" />}
+        </Button>
+
         <Button 
           type="submit" 
           size="icon"
