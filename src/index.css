@@ -8,45 +8,45 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* CoreAI Light Theme */
-    --background: 0 0% 100%;
-    --foreground: 216 12% 84%;
-    --card: 0 0% 100%;
-    --card-foreground: 216 12% 84%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 216 12% 84%;
-    --primary: 207 90% 54%;
+    /* CoreAI Light Theme - Premium Muted Colors */
+    --background: 220 15% 96%;
+    --foreground: 220 15% 20%;
+    --card: 0 0% 98%;
+    --card-foreground: 220 15% 20%;
+    --popover: 0 0% 98%;
+    --popover-foreground: 220 15% 20%;
+    --primary: 207 75% 48%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 211 13% 9%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 216 12% 64%;
-    --accent: 207 90% 54%;
+    --secondary: 220 15% 92%;
+    --secondary-foreground: 220 15% 20%;
+    --muted: 220 15% 92%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 207 75% 48%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 98%;
-    --border: 217 9% 23%;
-    --input: 217 9% 23%;
-    --ring: 207 90% 54%;
+    --border: 220 15% 85%;
+    --input: 220 15% 85%;
+    --ring: 207 75% 48%;
     --radius: 0.75rem;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 216 12% 84%;
-    --sidebar-primary: 207 90% 54%;
+    --sidebar-background: 220 15% 94%;
+    --sidebar-foreground: 220 15% 20%;
+    --sidebar-primary: 207 75% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 211 13% 9%;
-    --sidebar-border: 217 9% 23%;
-    --sidebar-ring: 207 90% 54%;
-    --chat-user-bg: 207 90% 54%;
+    --sidebar-accent: 220 15% 90%;
+    --sidebar-accent-foreground: 220 15% 20%;
+    --sidebar-border: 220 15% 85%;
+    --sidebar-ring: 207 75% 48%;
+    --chat-user-bg: 207 75% 48%;
     --chat-user-fg: 0 0% 100%;
-    --chat-ai-bg: 240 4.8% 95.9%;
-    --chat-ai-fg: 211 13% 9%;
+    --chat-ai-bg: 220 15% 92%;
+    --chat-ai-fg: 220 15% 20%;
     
     /* CoreAI Design Tokens */
-    --core-bg: 211 13% 9%;
-    --core-accent: 207 90% 54%;
-    --core-text: 216 12% 84%;
-    --core-glow: 207 90% 54%;
+    --core-bg: 220 15% 96%;
+    --core-accent: 207 75% 48%;
+    --core-text: 220 15% 20%;
+    --core-glow: 207 75% 48%;
   }
 
   .dark {
