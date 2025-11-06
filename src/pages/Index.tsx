@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
-import { ModelSelector } from "@/components/ModelSelector";
 import { Auth } from "@/components/Auth";
 import { Settings } from "@/components/Settings";
 import { TypingIndicator } from "@/components/TypingIndicator";
@@ -40,55 +39,6 @@ const Index = () => {
   const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
-  // Get filtered models based on settings
-  const allModels = [
-    { 
-      id: "openai/gpt-5", 
-      name: "GPT-5", 
-      provider: "OpenAI",
-      description: "Most powerful OpenAI model with excellent reasoning and multimodal capabilities"
-    },
-    { 
-      id: "openai/gpt-5-mini", 
-      name: "GPT-5 Mini", 
-      provider: "OpenAI",
-      description: "Faster and cost-efficient with strong reasoning capabilities"
-    },
-    { 
-      id: "openai/gpt-5-nano", 
-      name: "GPT-5 Nano", 
-      provider: "OpenAI",
-      description: "Fastest and cheapest for simple tasks and high-volume workloads"
-    },
-    { 
-      id: "google/gemini-2.5-pro", 
-      name: "Gemini 2.5 Pro", 
-      provider: "Google",
-      description: "Top-tier Gemini with best image-text, big context, and complex reasoning"
-    },
-    { 
-      id: "google/gemini-2.5-flash", 
-      name: "Gemini 2.5 Flash", 
-      provider: "Google",
-      description: "Balanced performance with good multimodal and reasoning at lower cost"
-    },
-    { 
-      id: "google/gemini-2.5-flash-lite", 
-      name: "Gemini 2.5 Flash Lite", 
-      provider: "Google",
-      description: "Fastest Gemini for classification and summarization tasks"
-    },
-    { 
-      id: "google/gemini-2.5-flash-image-preview", 
-      name: "Nano Banana", 
-      provider: "Google",
-      description: "Image generation model that creates visuals from text prompts"
-    },
-  ];
-  
-  const availableModels = settings?.enabledModels?.length > 0 
-    ? allModels.filter(model => settings.enabledModels.includes(model.id))
-    : allModels; // Fallback to all models if settings not loaded
 
   // Auto-scroll to bottom when messages or typing indicator changes
   useEffect(() => {
@@ -385,13 +335,6 @@ const Index = () => {
                     <h1 className="text-lg font-medium text-foreground">
                       {currentChat ? currentChat.title : "New conversation"}
                     </h1>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ModelSelector 
-                      selectedModel={selectedModel}
-                      onModelChange={setSelectedModel}
-                      availableModels={availableModels}
-                    />
                   </div>
                 </div>
                 
