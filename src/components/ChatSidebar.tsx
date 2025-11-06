@@ -1,10 +1,16 @@
-import { Search, MessageSquare, Settings, LogOut, Trash2, Image } from "lucide-react";
+import { Search, MessageSquare, Settings, LogOut, Trash2, Image, MoreVertical, FileText, FileDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Chat } from "@/hooks/useChats";
 import { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const sidebarItems = [{
   icon: MessageSquare,
@@ -29,6 +35,7 @@ interface ChatSidebarProps {
   onSignOut: () => void;
   onOpenSettings: () => void;
   onDeleteChat: (chatId: string) => void;
+  onExportChat: (chatId: string, format: 'text' | 'pdf') => void;
   user: User | null;
 }
 
@@ -40,6 +47,7 @@ export const ChatSidebar = ({
   onSignOut,
   onOpenSettings,
   onDeleteChat,
+  onExportChat,
   user
 }: ChatSidebarProps) => {
   const navigate = useNavigate();
@@ -118,17 +126,40 @@ export const ChatSidebar = ({
                 >
                   {chat.title}
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="opacity-0 group-hover:opacity-100 p-1 h-auto w-auto text-muted-foreground hover:text-destructive"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteChat(chat.id);
-                  }}
-                >
-                  <Trash2 className="w-3 h-3" />
-                </Button>
+                <div className="opacity-0 group-hover:opacity-100 flex items-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="p-1 h-auto w-auto text-muted-foreground"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="w-3 h-3" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => onExportChat(chat.id, 'text')}>
+                        <FileText className="w-4 h-4 mr-2" />
+                        Export as Text
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onExportChat(chat.id, 'pdf')}>
+                        <FileDown className="w-4 h-4 mr-2" />
+                        Export as PDF
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteChat(chat.id);
+                        }}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete Chat
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
             ))
           )}

@@ -14,6 +14,7 @@ import { X } from "lucide-react";
 import { toast } from "sonner";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { supabase } from "@/integrations/supabase/client";
+import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
 
 const Index = () => {
   const { user, loading: authLoading, showAuth, signOut, setShowAuth } = useAuth();
@@ -285,6 +286,41 @@ const Index = () => {
     }
   };
 
+  const handleExportChat = async (chatId: string, format: 'text' | 'pdf') => {
+    try {
+      const chat = chats.find(c => c.id === chatId);
+      if (!chat) {
+        toast.error("Chat not found");
+        return;
+      }
+
+      // Load messages for the chat
+      const { data: chatMessages, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('chat_id', chatId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (!chatMessages || chatMessages.length === 0) {
+        toast.error("No messages to export");
+        return;
+      }
+
+      if (format === 'text') {
+        exportChatAsText(chat.title, chatMessages);
+        toast.success("Chat exported as text file");
+      } else {
+        await exportChatAsPDF(chat.title, chatMessages);
+        toast.success("Chat exported as PDF");
+      }
+    } catch (error) {
+      console.error('Error exporting chat:', error);
+      toast.error("Failed to export chat");
+    }
+  };
+
   return (
     <div className="flex h-screen bg-background">
       <ResizablePanelGroup direction="horizontal" className="w-full">
@@ -297,6 +333,7 @@ const Index = () => {
             onSignOut={signOut}
             onOpenSettings={() => setShowSettings(true)}
             onDeleteChat={deleteChat}
+            onExportChat={handleExportChat}
             user={user}
           />
         </ResizablePanel>
