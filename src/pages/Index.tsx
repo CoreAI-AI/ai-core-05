@@ -332,7 +332,7 @@ const Index = () => {
           // Main Chat Interface
           <>
                 {/* Header */}
-                <div className="border-b border-border p-4 flex justify-between items-center shrink-0">
+                <div className="border-b p-4 shrink-0 bg-zinc-200 text-secondary flex items-start justify-between border border-muted rounded-sm shadow-md opacity-100">
                   <div className="flex items-center gap-4">
                     <h1 className="text-lg font-medium text-foreground">
                       {currentChat ? currentChat.title : "New conversation"}
