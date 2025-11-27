@@ -1,3 +1,6 @@
+@import url("https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -9,85 +12,118 @@ All colors MUST be HSL.
 @layer base {
   :root {
     /* CoreAI Light Theme - Premium Muted Colors */
-    --background: 220 15% 96%;
-    --foreground: 220 15% 20%;
+    --background: 0 0% 96%;
+    --foreground: 0 0% 9%;
     --card: 0 0% 98%;
-    --card-foreground: 220 15% 20%;
-    --popover: 0 0% 98%;
-    --popover-foreground: 220 15% 20%;
-    --primary: 207 75% 48%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 15% 92%;
-    --secondary-foreground: 220 15% 20%;
-    --muted: 220 15% 92%;
-    --muted-foreground: 220 10% 45%;
-    --accent: 207 75% 48%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 70% 55%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 220 15% 85%;
-    --input: 220 15% 85%;
-    --ring: 207 75% 48%;
-    --radius: 0.75rem;
+    --card-foreground: 0 0% 9%;
+    --popover: 0 0% 89%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 243 75% 58%;
+    --primary-foreground: 225 100% 96%;
+    --secondary: 0 0% 32%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 63%;
+    --muted-foreground: 0 0% 9%;
+    --accent: 250 100% 97%;
+    --accent-foreground: 258 89% 66%;
+    --destructive: 0 72% 50%;
+    --destructive-foreground: 0 85% 97%;
+    --border: 0 0% 83%;
+    --input: 0 0% 83%;
+    --ring: 243 75% 58%;
+    --radius: 1.25rem;
     --sidebar-background: 220 15% 94%;
-    --sidebar-foreground: 220 15% 20%;
-    --sidebar-primary: 207 75% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 90%;
-    --sidebar-accent-foreground: 220 15% 20%;
-    --sidebar-border: 220 15% 85%;
-    --sidebar-ring: 207 75% 48%;
+    --sidebar-foreground: 0 0% 9%;
+    --sidebar-primary: 243 75% 58%;
+    --sidebar-primary-foreground: 225 100% 96%;
+    --sidebar-accent: 0 0% 32%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 0 0% 83%;
+    --sidebar-ring: 243 75% 58%;
     --chat-user-bg: 207 75% 48%;
     --chat-user-fg: 0 0% 100%;
     --chat-ai-bg: 220 15% 92%;
     --chat-ai-fg: 220 15% 20%;
-    
+
     /* CoreAI Design Tokens */
     --core-bg: 220 15% 96%;
     --core-accent: 207 75% 48%;
     --core-text: 220 15% 20%;
     --core-glow: 207 75% 48%;
+    --chart-1: 234 89% 73%;
+    --chart-2: 255 91% 76%;
+    --chart-3: 270 95% 75%;
+    --chart-4: 238 83% 66%;
+    --chart-5: 0 0% 45%;
+    --sidebar: 0 0% 98%;
+    --font-sans: 'Lato', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+    --font-serif: 'EB Garamond', ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+    --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
+    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+    --tracking-normal: 0em;
+    --spacing: 0.25rem;
   }
 
   .dark {
     /* CoreAI Dark Theme (Default) */
-    --background: 211 13% 9%;
-    --foreground: 216 12% 84%;
-    --card: 217 9% 12%;
-    --card-foreground: 216 12% 84%;
-    --popover: 217 9% 12%;
-    --popover-foreground: 216 12% 84%;
-    --primary: 207 90% 54%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 9% 17%;
-    --secondary-foreground: 216 12% 84%;
-    --muted: 217 9% 17%;
-    --muted-foreground: 216 12% 64%;
-    --accent: 207 90% 54%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62.8% 50.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 217 9% 23%;
-    --input: 217 9% 23%;
-    --ring: 207 90% 54%;
+    --background: 0 0% 9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 14%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 25%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 234 89% 73%;
+    --primary-foreground: 243 47% 20%;
+    --secondary: 0 0% 45%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 45%;
+    --muted-foreground: 0 0% 98%;
+    --accent: 261 72% 22%;
+    --accent-foreground: 255 91% 76%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 85% 97%;
+    --border: 0 0% 32%;
+    --input: 0 0% 32%;
+    --ring: 234 89% 73%;
     --sidebar-background: 217 9% 10%;
-    --sidebar-foreground: 216 12% 84%;
-    --sidebar-primary: 207 90% 54%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 9% 17%;
-    --sidebar-accent-foreground: 216 12% 84%;
-    --sidebar-border: 217 9% 23%;
-    --sidebar-ring: 207 90% 54%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 234 89% 73%;
+    --sidebar-primary-foreground: 243 47% 20%;
+    --sidebar-accent: 255 91% 76%;
+    --sidebar-accent-foreground: 261 72% 22%;
+    --sidebar-border: 0 0% 32%;
+    --sidebar-ring: 234 89% 73%;
     --chat-user-bg: 207 90% 54%;
     --chat-user-fg: 0 0% 100%;
     --chat-ai-bg: 217 9% 17%;
     --chat-ai-fg: 216 12% 84%;
-    
+
     /* CoreAI Design Tokens */
     --core-bg: 211 13% 9%;
     --core-accent: 207 90% 54%;
     --core-text: 216 12% 84%;
     --core-glow: 207 90% 54%;
+    --chart-1: 229 93% 81%;
+    --chart-2: 252 94% 85%;
+    --chart-3: 269 97% 85%;
+    --chart-4: 234 89% 73%;
+    --chart-5: 0 0% 45%;
+    --sidebar: 0 0% 14%;
+    --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+    --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
+    --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
   }
 }
 
@@ -105,26 +141,26 @@ All colors MUST be HSL.
   .core-glow {
     box-shadow: 0 0 40px hsl(207 90% 54% / 0.3);
   }
-  
+
   .glass-effect {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
-  
+
   .hover-lift {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
   .hover-lift:hover {
     transform: translateY(-4px);
     box-shadow: 0 0 40px hsl(207 90% 54% / 0.3);
   }
-  
+
   .animate-pulse-glow {
     animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
-  
+
   @keyframes pulse-glow {
     0%, 100% {
       box-shadow: 0 0 20px hsl(207 90% 54% / 0.4);
