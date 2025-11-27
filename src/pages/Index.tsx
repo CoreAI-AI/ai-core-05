@@ -345,7 +345,7 @@ const Index = () => {
                   <ScrollArea className="h-full" ref={scrollAreaRef}>
                     <div className="p-6 pb-4">
                       <div className="max-w-4xl border-2 border-muted border-solid rounded-none shadow-md opacity-100 px-0 my-0 mx-0 bg-zinc-300 text-primary-foreground">
-                        {messages.length === 0 ? <div className="min-h-[60vh] text-center mx-[120px] my-[18px] px-[24px] py-[32px] items-center justify-center flex flex-col gap-[120px] border-muted border-solid shadow-md rounded-sm opacity-100 border bg-zinc-300 text-secondary">
+                        {messages.length === 0 ? <div className="min-h-[60vh] text-center bg-muted text-secondary-foreground mx-[120px] my-[18px] px-[24px] py-[32px] items-center justify-center flex flex-col gap-[120px] border-muted border-solid shadow-md rounded-sm opacity-100 border">
                             <div className="text-foreground">
                               <h2 className="text-2xl font-semibold mb-2">Start a new conversation</h2>
                               <p>Type a message below to begin chatting with AI</p>
