@@ -3,10 +3,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Download, Trash2, Copy, Share2 } from "lucide-react";
+import { ArrowLeft, Download, Trash2, Copy, Share2, Bot, Brain, Rocket } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { PremiumModelCard } from "@/components/PremiumModelCard";
+import { motion } from "framer-motion";
 interface GeneratedImage {
   id: string;
   image_url: string;
@@ -22,6 +24,39 @@ const Photos = () => {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Premium AI Models
+  const premiumModels = [
+    {
+      icon: Bot,
+      title: "Chat-Bot",
+      description: "Smart conversational AI assistant",
+      features: ["Natural conversations", "Context awareness", "Quick responses"],
+      isLocked: true
+    },
+    {
+      icon: Brain,
+      title: "Core-AI",
+      description: "Advanced A to Z AI model",
+      features: ["Full automation", "Advanced reasoning", "Multi-task capable"],
+      isLocked: true
+    },
+    {
+      icon: Rocket,
+      title: "Chat-Pro",
+      description: "Ultra advanced AI model",
+      features: [
+        "Image Prompt",
+        "Video Prompt", 
+        "Web Prompt",
+        "App Prompt",
+        "Image Generator Expert",
+        "A to Z Automation",
+        "Ultra Smart Chat"
+      ],
+      isLocked: true
+    }
+  ];
 
   // Redirect if not authenticated
   if (!authLoading && !user) {
@@ -183,6 +218,39 @@ const Photos = () => {
                   </div>
                 </div>)}
             </div>}
+
+          {/* Features Section - Premium AI Models */}
+          <div className="mt-12 mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8"
+            >
+              <h2 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
+                <div className="w-1 h-10 bg-primary rounded-full" />
+                Premium AI Models
+              </h2>
+              <p className="text-muted-foreground ml-6">
+                Unlock advanced AI capabilities with our premium models
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {premiumModels.map((model, index) => (
+                <motion.div
+                  key={model.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <PremiumModelCard 
+                    {...model}
+                    onClick={() => toast.info("Click to unlock with subscription")}
+                  />
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </div>
       </ScrollArea>
 
