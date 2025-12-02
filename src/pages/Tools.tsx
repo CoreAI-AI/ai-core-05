@@ -2,35 +2,39 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { 
   Sparkles, FileText, Image, Mic, Code, Lightbulb, 
-  Wand2, Eye, Music, Bug, BookOpen, Zap, Bot, Brain, Rocket
+  Wand2, Eye, Music, Bug, BookOpen, Zap, Bot, Brain, Rocket, CheckCircle
 } from "lucide-react";
 import { AIToolCard } from "@/components/AIToolCard";
 import { PremiumModelCard } from "@/components/PremiumModelCard";
 import { SubscriptionPopup } from "@/components/SubscriptionPopup";
+import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
 
 const Tools = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isPremium, activatePremium } = useSubscription();
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  const [showPaymentSelector, setShowPaymentSelector] = useState(false);
   const [selectedModel, setSelectedModel] = useState<string>("");
 
-  // Premium models - all locked by default
+  // Premium models - locked based on subscription status
   const premiumModels = [
     {
       icon: Bot,
       title: "Chat-Bot",
       description: "Smart conversational AI assistant",
       features: ["Natural conversations", "Context awareness", "Quick responses"],
-      isLocked: true
+      isLocked: !isPremium
     },
     {
       icon: Brain,
       title: "Core-AI",
       description: "Advanced A to Z AI model",
       features: ["Full automation", "Advanced reasoning", "Multi-task capable"],
-      isLocked: true
+      isLocked: !isPremium
     },
     {
       icon: Rocket,
@@ -45,20 +49,32 @@ const Tools = () => {
         "A to Z Automation",
         "Ultra Smart Chat"
       ],
-      isLocked: true
+      isLocked: !isPremium
     }
   ];
 
   const handlePremiumModelClick = (modelTitle: string) => {
-    setSelectedModel(modelTitle);
-    setShowSubscriptionPopup(true);
+    if (isPremium) {
+      toast({
+        title: "Premium Active",
+        description: `${modelTitle} is ready to use!`,
+      });
+    } else {
+      setSelectedModel(modelTitle);
+      setShowSubscriptionPopup(true);
+    }
   };
 
   const handleUpgrade = () => {
     setShowSubscriptionPopup(false);
+    setShowPaymentSelector(true);
+  };
+
+  const handlePaymentComplete = () => {
+    activatePremium();
     toast({
-      title: "Payment Integration Coming Soon",
-      description: "Stripe payment will be integrated next.",
+      title: "Premium Activated! ✓",
+      description: "All premium AI models are now unlocked.",
     });
   };
 
@@ -122,6 +138,18 @@ const Tools = () => {
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,hsl(207_90%_54%_/_0.1),transparent_50%)]" />
         <div className="relative container mx-auto px-4 py-16 text-center">
+          {/* Premium Status Badge */}
+          {isPremium && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-4"
+            >
+              <CheckCircle className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Premium Activated ✓</span>
+            </motion.div>
+          )}
+          
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
@@ -214,6 +242,13 @@ const Tools = () => {
         open={showSubscriptionPopup}
         onOpenChange={setShowSubscriptionPopup}
         onUpgrade={handleUpgrade}
+      />
+
+      {/* Payment Method Selector */}
+      <PaymentMethodSelector
+        open={showPaymentSelector}
+        onOpenChange={setShowPaymentSelector}
+        onPaymentComplete={handlePaymentComplete}
       />
     </div>
   );
