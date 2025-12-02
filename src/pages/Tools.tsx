@@ -1,13 +1,66 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { 
   Sparkles, FileText, Image, Mic, Code, Lightbulb, 
-  Wand2, Eye, Music, Bug, BookOpen, Zap 
+  Wand2, Eye, Music, Bug, BookOpen, Zap, Bot, Brain, Rocket
 } from "lucide-react";
 import { AIToolCard } from "@/components/AIToolCard";
+import { PremiumModelCard } from "@/components/PremiumModelCard";
+import { SubscriptionPopup } from "@/components/SubscriptionPopup";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const Tools = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>("");
+
+  // Premium models - all locked by default
+  const premiumModels = [
+    {
+      icon: Bot,
+      title: "Chat-Bot",
+      description: "Smart conversational AI assistant",
+      features: ["Natural conversations", "Context awareness", "Quick responses"],
+      isLocked: true
+    },
+    {
+      icon: Brain,
+      title: "Core-AI",
+      description: "Advanced A to Z AI model",
+      features: ["Full automation", "Advanced reasoning", "Multi-task capable"],
+      isLocked: true
+    },
+    {
+      icon: Rocket,
+      title: "Chat-Pro",
+      description: "Ultra advanced AI model",
+      features: [
+        "Image Prompt",
+        "Video Prompt", 
+        "Web Prompt",
+        "App Prompt",
+        "Image Generator Expert",
+        "A to Z Automation",
+        "Ultra Smart Chat"
+      ],
+      isLocked: true
+    }
+  ];
+
+  const handlePremiumModelClick = (modelTitle: string) => {
+    setSelectedModel(modelTitle);
+    setShowSubscriptionPopup(true);
+  };
+
+  const handleUpgrade = () => {
+    setShowSubscriptionPopup(false);
+    toast({
+      title: "Payment Integration Coming Soon",
+      description: "Stripe payment will be integrated next.",
+    });
+  };
 
   const toolCategories = [
     {
@@ -88,8 +141,41 @@ const Tools = () => {
         </div>
       </motion.div>
 
-      {/* Tools Grid */}
+      {/* Premium Models Section */}
       <div className="container mx-auto px-4 py-12">
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="mb-16"
+        >
+          <motion.h2 
+            variants={itemVariants}
+            className="text-3xl font-bold text-foreground mb-6 flex items-center gap-3"
+          >
+            <div className="w-1 h-10 bg-primary rounded-full" />
+            Premium AI Models
+          </motion.h2>
+          <motion.div 
+            variants={containerVariants}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {premiumModels.map((model, index) => (
+              <motion.div
+                key={model.title}
+                variants={itemVariants}
+                custom={index}
+              >
+                <PremiumModelCard 
+                  {...model}
+                  onClick={() => handlePremiumModelClick(model.title)}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
+        </motion.div>
+
+        {/* Tools Grid */}
         {toolCategories.map((category, categoryIndex) => (
           <motion.div
             key={category.title}
@@ -122,6 +208,13 @@ const Tools = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Subscription Popup */}
+      <SubscriptionPopup
+        open={showSubscriptionPopup}
+        onOpenChange={setShowSubscriptionPopup}
+        onUpgrade={handleUpgrade}
+      />
     </div>
   );
 };
