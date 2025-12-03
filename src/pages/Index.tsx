@@ -10,7 +10,7 @@ import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import { X, PanelLeft } from "lucide-react";
 import { toast } from "sonner";
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,6 +38,7 @@ const Index = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
 
@@ -324,20 +325,25 @@ const Index = () => {
   return (
     <div className="flex h-screen bg-background">
       <ResizablePanelGroup direction="horizontal" className="w-full">
-        <ResizablePanel defaultSize={22} minSize={14} maxSize={40}>
-          <ChatSidebar 
-            chats={chats}
-            currentChat={currentChat}
-            onSelectChat={selectChat}
-            onNewChat={startNewChat}
-            onSignOut={signOut}
-            onOpenSettings={() => setShowSettings(true)}
-            onDeleteChat={deleteChat}
-            onExportChat={handleExportChat}
-            user={user}
-          />
-        </ResizablePanel>
-        <ResizableHandle withHandle />
+        {!sidebarCollapsed && (
+          <>
+            <ResizablePanel defaultSize={22} minSize={14} maxSize={40}>
+              <ChatSidebar 
+                chats={chats}
+                currentChat={currentChat}
+                onSelectChat={selectChat}
+                onNewChat={startNewChat}
+                onSignOut={signOut}
+                onOpenSettings={() => setShowSettings(true)}
+                onDeleteChat={deleteChat}
+                onExportChat={handleExportChat}
+                user={user}
+                onCollapse={() => setSidebarCollapsed(true)}
+              />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+          </>
+        )}
         <ResizablePanel>
           <div className="flex flex-col h-full relative">
             {showSettings ? (
@@ -369,6 +375,16 @@ const Index = () => {
                 {/* Header */}
                 <div className="border-b border-border p-4 flex justify-between items-center shrink-0">
                   <div className="flex items-center gap-4">
+                    {sidebarCollapsed && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSidebarCollapsed(false)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <PanelLeft className="h-4 w-4" />
+                      </Button>
+                    )}
                     <h1 className="text-lg font-medium text-foreground">
                       {currentChat ? currentChat.title : "New conversation"}
                     </h1>

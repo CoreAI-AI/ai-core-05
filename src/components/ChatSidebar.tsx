@@ -1,4 +1,4 @@
-import { Search, MessageSquare, Settings, LogOut, Trash2, Image, MoreVertical, FileText, FileDown } from "lucide-react";
+import { Search, MessageSquare, Settings, LogOut, Trash2, Image, MoreVertical, FileText, FileDown, PanelLeftClose } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -37,6 +37,7 @@ interface ChatSidebarProps {
   onDeleteChat: (chatId: string) => void;
   onExportChat: (chatId: string, format: 'text' | 'pdf') => void;
   user: User | null;
+  onCollapse?: () => void;
 }
 
 export const ChatSidebar = ({
@@ -48,7 +49,8 @@ export const ChatSidebar = ({
   onOpenSettings,
   onDeleteChat,
   onExportChat,
-  user
+  user,
+  onCollapse
 }: ChatSidebarProps) => {
   const navigate = useNavigate();
   
@@ -73,7 +75,19 @@ export const ChatSidebar = ({
             </div>
             <span className="font-semibold text-sidebar-foreground">CoreAI</span>
           </div>
-          <ThemeToggle />
+        </div>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            {onCollapse && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onCollapse}
+                className="h-8 w-8 p-0 text-sidebar-foreground hover:bg-sidebar-accent"
+              >
+                <PanelLeftClose className="h-4 w-4" />
+              </Button>
+            )}
         </div>
         
         <div className="relative">
