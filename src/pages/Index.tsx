@@ -54,6 +54,18 @@ const Index = () => {
     }
   }, [messages, isAITyping]);
 
+  // Keyboard shortcut: Ctrl+B to toggle sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        setSidebarCollapsed(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // If loading, show loading state
   if (authLoading) {
     return (
