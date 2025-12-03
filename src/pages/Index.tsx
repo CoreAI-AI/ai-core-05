@@ -12,9 +12,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { X, PanelLeft } from "lucide-react";
 import { toast } from "sonner";
-import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Index = () => {
   const { user, loading: authLoading, showAuth, signOut, setShowAuth } = useAuth();
@@ -324,27 +324,31 @@ const Index = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <ResizablePanelGroup direction="horizontal" className="w-full">
+      <AnimatePresence mode="wait">
         {!sidebarCollapsed && (
-          <>
-            <ResizablePanel defaultSize={22} minSize={14} maxSize={40}>
-              <ChatSidebar 
-                chats={chats}
-                currentChat={currentChat}
-                onSelectChat={selectChat}
-                onNewChat={startNewChat}
-                onSignOut={signOut}
-                onOpenSettings={() => setShowSettings(true)}
-                onDeleteChat={deleteChat}
-                onExportChat={handleExportChat}
-                user={user}
-                onCollapse={() => setSidebarCollapsed(true)}
-              />
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-          </>
+          <motion.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: "280px", opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="h-full overflow-hidden shrink-0"
+          >
+            <ChatSidebar 
+              chats={chats}
+              currentChat={currentChat}
+              onSelectChat={selectChat}
+              onNewChat={startNewChat}
+              onSignOut={signOut}
+              onOpenSettings={() => setShowSettings(true)}
+              onDeleteChat={deleteChat}
+              onExportChat={handleExportChat}
+              user={user}
+              onCollapse={() => setSidebarCollapsed(true)}
+            />
+          </motion.div>
         )}
-        <ResizablePanel>
+      </AnimatePresence>
+      <div className="flex-1 flex flex-col h-full">
           <div className="flex flex-col h-full relative">
             {showSettings ? (
               // Settings Panel
@@ -470,8 +474,7 @@ const Index = () => {
               </div>
             )}
           </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+      </div>
     </div>
   );
 };
