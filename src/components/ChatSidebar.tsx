@@ -75,7 +75,6 @@ export const ChatSidebar = ({
             </div>
             <span className="font-semibold text-sidebar-foreground">CoreAI</span>
           </div>
-        </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
             {onCollapse && (
@@ -88,6 +87,7 @@ export const ChatSidebar = ({
                 <PanelLeftClose className="h-4 w-4" />
               </Button>
             )}
+          </div>
         </div>
         
         <div className="relative">
