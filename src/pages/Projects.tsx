@@ -107,6 +107,7 @@ const Projects = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
+                onClick={() => navigate(`/projects/${project.id}`)}
                 className="bg-card border border-border rounded-lg p-4 hover:border-primary/50 transition-colors cursor-pointer group"
               >
                 <div className="flex items-start justify-between mb-3">
