@@ -10,7 +10,7 @@ import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft } from "lucide-react";
+import { X, PanelLeft, Users, Timer } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
@@ -39,6 +39,7 @@ const Index = () => {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [temporaryMessages, setTemporaryMessages] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
 
@@ -404,6 +405,29 @@ const Index = () => {
                     <h1 className="text-lg font-medium text-foreground">
                       {currentChat ? currentChat.title : "New conversation"}
                     </h1>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toast.info("Group chat feature coming soon!")}
+                      className="gap-2 text-muted-foreground hover:text-foreground"
+                    >
+                      <Users className="h-4 w-4" />
+                      <span className="hidden sm:inline">Group Chat</span>
+                    </Button>
+                    <Button
+                      variant={temporaryMessages ? "secondary" : "ghost"}
+                      size="sm"
+                      onClick={() => {
+                        setTemporaryMessages(!temporaryMessages);
+                        toast.success(temporaryMessages ? "Temporary messages off" : "Temporary messages on");
+                      }}
+                      className="gap-2 text-muted-foreground hover:text-foreground"
+                    >
+                      <Timer className="h-4 w-4" />
+                      <span className="hidden sm:inline">Temporary</span>
+                    </Button>
                   </div>
                 </div>
                 
