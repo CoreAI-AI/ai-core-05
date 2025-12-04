@@ -15,8 +15,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
+  const navigate = useNavigate();
   const { user, loading: authLoading, showAuth, signOut, setShowAuth } = useAuth();
   const { settings } = useSettings(user?.id);
   const { 
@@ -410,7 +412,7 @@ const Index = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => toast.info("Group chat feature coming soon!")}
+                      onClick={() => navigate('/group-chats')}
                       className="gap-2 text-muted-foreground hover:text-foreground"
                     >
                       <Users className="h-4 w-4" />
