@@ -442,8 +442,9 @@ const Index = () => {
                         {messages.length === 0 ? (
                           <div className="flex flex-col items-center justify-center min-h-[60vh]">
                             <AnimatePresence mode="wait">
-                              {showQuickActions && (
+                              {showQuickActions ? (
                                 <motion.div 
+                                  key="cards"
                                   className="w-full max-w-xl"
                                   initial={{ opacity: 0, y: -20 }}
                                   animate={{ opacity: 1, y: 0 }}
@@ -454,6 +455,24 @@ const Index = () => {
                                     onAction={handleSendMessage} 
                                     onSkip={() => setShowQuickActions(false)}
                                   />
+                                </motion.div>
+                              ) : (
+                                <motion.div
+                                  key="show-btn"
+                                  initial={{ opacity: 0, scale: 0.9 }}
+                                  animate={{ opacity: 1, scale: 1 }}
+                                  exit={{ opacity: 0, scale: 0.9 }}
+                                  transition={{ duration: 0.2 }}
+                                  className="mb-6"
+                                >
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowQuickActions(true)}
+                                    className="text-xs text-muted-foreground hover:text-foreground"
+                                  >
+                                    Show quick actions
+                                  </Button>
                                 </motion.div>
                               )}
                             </AnimatePresence>
