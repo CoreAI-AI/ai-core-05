@@ -441,18 +441,30 @@ const Index = () => {
                       <div className="max-w-4xl mx-auto">
                         {messages.length === 0 ? (
                           <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                            {showQuickActions && (
-                              <div className="w-full max-w-xl">
-                                <QuickActionCards 
-                                  onAction={handleSendMessage} 
-                                  onSkip={() => setShowQuickActions(false)}
-                                />
-                              </div>
-                            )}
-                            <div className="text-center text-foreground">
+                            <AnimatePresence mode="wait">
+                              {showQuickActions && (
+                                <motion.div 
+                                  className="w-full max-w-xl"
+                                  initial={{ opacity: 0, y: -20 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                  transition={{ duration: 0.3, ease: "easeOut" }}
+                                >
+                                  <QuickActionCards 
+                                    onAction={handleSendMessage} 
+                                    onSkip={() => setShowQuickActions(false)}
+                                  />
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                            <motion.div 
+                              className="text-center text-foreground"
+                              layout
+                              transition={{ duration: 0.3 }}
+                            >
                               <h2 className="text-2xl font-semibold mb-2">Start a new conversation</h2>
                               <p>Type a message below{showQuickActions ? " or try one of the actions above" : ""}</p>
-                            </div>
+                            </motion.div>
                           </div>
                         ) : (
                           <>
