@@ -4,7 +4,6 @@ import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { Auth } from "@/components/Auth";
 import { Settings } from "@/components/Settings";
-import { TypingIndicator } from "@/components/TypingIndicator";
 import { QuickActionCards } from "@/components/QuickActionCards";
 import { useAuth } from "@/hooks/useAuth";
 import { useChats } from "@/hooks/useChats";
@@ -43,6 +42,7 @@ const Index = () => {
   const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [temporaryMessages, setTemporaryMessages] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
 
@@ -441,12 +441,17 @@ const Index = () => {
                       <div className="max-w-4xl mx-auto">
                         {messages.length === 0 ? (
                           <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                            <div className="w-full max-w-xl">
-                              <QuickActionCards onAction={handleSendMessage} />
-                            </div>
+                            {showQuickActions && (
+                              <div className="w-full max-w-xl">
+                                <QuickActionCards 
+                                  onAction={handleSendMessage} 
+                                  onSkip={() => setShowQuickActions(false)}
+                                />
+                              </div>
+                            )}
                             <div className="text-center text-foreground">
                               <h2 className="text-2xl font-semibold mb-2">Start a new conversation</h2>
-                              <p>Type a message below or try one of the actions above</p>
+                              <p>Type a message below{showQuickActions ? " or try one of the actions above" : ""}</p>
                             </div>
                           </div>
                         ) : (
@@ -461,10 +466,9 @@ const Index = () => {
                                   minute: '2-digit' 
                                 })}
                                 images={message.images}
-                                isLoading={!message.is_user && !message.content && isLoading && index === messages.length - 1}
+                                isLoading={!message.is_user && !message.content && isAITyping && index === messages.length - 1}
                               />
                             ))}
-                            <TypingIndicator show={isAITyping} />
                           </>
                         )}
                       </div>
