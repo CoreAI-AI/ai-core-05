@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
-import { ShoppingCart, Search, TrendingUp, Newspaper } from "lucide-react";
+import { ShoppingCart, Search, TrendingUp, Newspaper, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 interface QuickActionCardsProps {
   onAction: (prompt: string) => void;
+  onSkip?: () => void;
 }
 
 const actions = [
@@ -38,9 +39,21 @@ const actions = [
   }
 ];
 
-export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
+export const QuickActionCards = ({ onAction, onSkip }: QuickActionCardsProps) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+    <div className="relative">
+      {onSkip && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onSkip}
+          className="absolute -top-8 right-0 text-muted-foreground hover:text-foreground gap-1 text-xs"
+        >
+          <X className="w-3 h-3" />
+          Skip
+        </Button>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
       {actions.map((action, index) => (
         <motion.div
           key={action.id}
@@ -69,6 +82,7 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
           </Card>
         </motion.div>
       ))}
+      </div>
     </div>
   );
 };
