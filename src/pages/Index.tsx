@@ -5,6 +5,7 @@ import { ChatInput } from "@/components/ChatInput";
 import { Auth } from "@/components/Auth";
 import { Settings } from "@/components/Settings";
 import { TypingIndicator } from "@/components/TypingIndicator";
+import { QuickActionCards } from "@/components/QuickActionCards";
 import { useAuth } from "@/hooks/useAuth";
 import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
@@ -439,10 +440,13 @@ const Index = () => {
                     <div className="p-6 pb-4">
                       <div className="max-w-4xl mx-auto">
                         {messages.length === 0 ? (
-                          <div className="flex items-center justify-center min-h-[60vh] text-center">
-                            <div className="text-foreground">
+                          <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                            <div className="w-full max-w-xl">
+                              <QuickActionCards onAction={handleSendMessage} />
+                            </div>
+                            <div className="text-center text-foreground">
                               <h2 className="text-2xl font-semibold mb-2">Start a new conversation</h2>
-                              <p>Type a message below to begin chatting with AI</p>
+                              <p>Type a message below or try one of the actions above</p>
                             </div>
                           </div>
                         ) : (
