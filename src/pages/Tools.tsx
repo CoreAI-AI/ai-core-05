@@ -169,39 +169,8 @@ const Tools = () => {
         </div>
       </motion.div>
 
-      {/* Premium Models Section */}
+      {/* Premium Models Section - Hidden */}
       <div className="container mx-auto px-4 py-12">
-        <motion.div
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="mb-16"
-        >
-          <motion.h2 
-            variants={itemVariants}
-            className="text-3xl font-bold text-foreground mb-6 flex items-center gap-3"
-          >
-            <div className="w-1 h-10 bg-primary rounded-full" />
-            Premium AI Models
-          </motion.h2>
-          <motion.div 
-            variants={containerVariants}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {premiumModels.map((model, index) => (
-              <motion.div
-                key={model.title}
-                variants={itemVariants}
-                custom={index}
-              >
-                <PremiumModelCard 
-                  {...model}
-                  onClick={() => handlePremiumModelClick(model.title)}
-                />
-              </motion.div>
-            ))}
-          </motion.div>
-        </motion.div>
 
         {/* Tools Grid */}
         {toolCategories.map((category, categoryIndex) => (
