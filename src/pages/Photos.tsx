@@ -3,18 +3,19 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowLeft, Download, Trash2, Copy, Share2, Bot, Brain, Rocket } from "lucide-react";
+import { ArrowLeft, Download, Trash2, Copy, Wand2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { PremiumModelCard } from "@/components/PremiumModelCard";
-import { motion } from "framer-motion";
+import { ImageEditor } from "@/components/ImageEditor";
+
 interface GeneratedImage {
   id: string;
   image_url: string;
   prompt: string;
   created_at: string;
 }
+
 const Photos = () => {
   const {
     user,
@@ -24,39 +25,7 @@ const Photos = () => {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  // Premium AI Models
-  const premiumModels = [
-    {
-      icon: Bot,
-      title: "Chat-Bot",
-      description: "Smart conversational AI assistant",
-      features: ["Natural conversations", "Context awareness", "Quick responses"],
-      isLocked: true
-    },
-    {
-      icon: Brain,
-      title: "Core-AI",
-      description: "Advanced A to Z AI model",
-      features: ["Full automation", "Advanced reasoning", "Multi-task capable"],
-      isLocked: true
-    },
-    {
-      icon: Rocket,
-      title: "Chat-Pro",
-      description: "Ultra advanced AI model",
-      features: [
-        "Image Prompt",
-        "Video Prompt", 
-        "Web Prompt",
-        "App Prompt",
-        "Image Generator Expert",
-        "A to Z Automation",
-        "Ultra Smart Chat"
-      ],
-      isLocked: true
-    }
-  ];
+  const [editingImage, setEditingImage] = useState<GeneratedImage | null>(null);
 
   // Redirect if not authenticated
   if (!authLoading && !user) {
@@ -196,13 +165,15 @@ const Photos = () => {
                   <div className="aspect-square relative">
                     <img src={image.image_url} alt={image.prompt} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <Button variant="secondary" size="sm" onClick={() => setEditingImage(image)} className="flex items-center gap-1" title="Edit">
+                        <Wand2 className="w-4 h-4" />
+                      </Button>
                       <Button variant="secondary" size="sm" onClick={() => handleDownload(image.image_url, image.prompt)} className="flex items-center gap-1" title="Download">
                         <Download className="w-4 h-4" />
                       </Button>
                       <Button variant="secondary" size="sm" onClick={() => handleCopyLink(image.image_url)} className="flex items-center gap-1" title="Copy Link">
                         <Copy className="w-4 h-4" />
                       </Button>
-                      
                       <Button variant="destructive" size="sm" onClick={() => setDeleteId(image.id)} className="flex items-center gap-1" title="Delete">
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -241,6 +212,16 @@ const Photos = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Image Editor Dialog */}
+      {editingImage && (
+        <ImageEditor
+          open={!!editingImage}
+          onOpenChange={(open) => !open && setEditingImage(null)}
+          imageUrl={editingImage.image_url}
+          prompt={editingImage.prompt}
+        />
+      )}
     </div>;
 };
 export default Photos;
