@@ -219,38 +219,7 @@ const Photos = () => {
                 </div>)}
             </div>}
 
-          {/* Features Section - Premium AI Models */}
-          <div className="mt-12 mb-8">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-8"
-            >
-              <h2 className="text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
-                <div className="w-1 h-10 bg-primary rounded-full" />
-                Premium AI Models
-              </h2>
-              <p className="text-muted-foreground ml-6">
-                Unlock advanced AI capabilities with our premium models
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {premiumModels.map((model, index) => (
-                <motion.div
-                  key={model.title}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <PremiumModelCard 
-                    {...model}
-                    onClick={() => toast.info("Click to unlock with subscription")}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          </div>
+          {/* Features Section - Premium AI Models - HIDDEN */}
         </div>
       </ScrollArea>
 
