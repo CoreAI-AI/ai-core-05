@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 export const useSubscription = () => {
-  const [isPremium, setIsPremium] = useState(false);
+  const [isPremium, setIsPremium] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
