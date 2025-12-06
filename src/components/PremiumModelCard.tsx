@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { LucideIcon, Lock, Diamond } from "lucide-react";
+import { LucideIcon, Lock, Diamond, CheckCircle } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 interface PremiumModelCardProps {
@@ -29,18 +29,20 @@ export const PremiumModelCard = ({
         className="relative overflow-hidden p-6 cursor-pointer group bg-card hover:bg-card/80 border-border hover:border-primary/50 transition-all duration-300"
         onClick={onClick}
       >
-        {/* Diamond icon for locked models */}
-        {isLocked && (
-          <div className="absolute top-4 right-4">
+        {/* Status icon - Diamond for locked, CheckCircle for unlocked */}
+        <div className="absolute top-4 right-4">
+          {isLocked ? (
             <Diamond className="w-6 h-6 text-primary fill-primary/20" />
-          </div>
-        )}
+          ) : (
+            <CheckCircle className="w-6 h-6 text-green-500 fill-green-500/20" />
+          )}
+        </div>
 
         {/* Glow effect on hover */}
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         
         <div className="relative z-10">
-          {/* Icon with lock overlay */}
+          {/* Icon without lock overlay when unlocked */}
           <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:core-glow transition-all duration-300 relative">
             <Icon className="w-8 h-8 text-primary" />
             {isLocked && (
@@ -50,10 +52,14 @@ export const PremiumModelCard = ({
             )}
           </div>
           
-          {/* Title */}
+          {/* Title with status badge */}
           <h3 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
             {title}
-            {isLocked && <span className="text-sm ml-2 text-muted-foreground">(Locked)</span>}
+            {isLocked ? (
+              <span className="text-sm ml-2 text-muted-foreground">(Locked)</span>
+            ) : (
+              <span className="text-sm ml-2 text-green-500">(Unlocked)</span>
+            )}
           </h3>
           
           {/* Description */}
@@ -70,9 +76,14 @@ export const PremiumModelCard = ({
             ))}
           </div>
 
-          {isLocked && (
+          {/* Status message */}
+          {isLocked ? (
             <div className="mt-4 text-xs text-primary font-medium">
               Tap to unlock with subscription
+            </div>
+          ) : (
+            <div className="mt-4 text-xs text-green-500 font-medium">
+              ✓ Ready to use!
             </div>
           )}
         </div>

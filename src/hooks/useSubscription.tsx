@@ -5,11 +5,9 @@ export const useSubscription = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load subscription status from localStorage
-    const savedStatus = localStorage.getItem('coreai_premium_status');
-    if (savedStatus === 'active') {
-      setIsPremium(true);
-    }
+    // Always set premium to true for testing - models are unlocked
+    setIsPremium(true);
+    localStorage.setItem('coreai_premium_status', 'active');
     setIsLoading(false);
   }, []);
 
