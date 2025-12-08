@@ -37,8 +37,17 @@ export const ImageEditor = ({ open, onOpenChange, imageUrl, prompt }: ImageEdito
   const [cropStart, setCropStart] = useState({ x: 0, y: 0 });
   const [cropEnd, setCropEnd] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+
+  const aspectRatioPresets = [
+    { label: "Free", value: null },
+    { label: "1:1", value: 1 },
+    { label: "16:9", value: 16 / 9 },
+    { label: "9:16", value: 9 / 16 },
+    { label: "4:3", value: 4 / 3 },
+  ];
 
   const resetFilters = () => {
     setBrightness(100);
@@ -51,6 +60,7 @@ export const ImageEditor = ({ open, onOpenChange, imageUrl, prompt }: ImageEdito
     setIsCropping(false);
     setCropStart({ x: 0, y: 0 });
     setCropEnd({ x: 0, y: 0 });
+    setAspectRatio(null);
   };
 
   // Crop handlers
@@ -70,8 +80,31 @@ export const ImageEditor = ({ open, onOpenChange, imageUrl, prompt }: ImageEdito
     if (!isDragging || !isCropping || !imageContainerRef.current) return;
     
     const rect = imageContainerRef.current.getBoundingClientRect();
-    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-    const y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+    let x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    let y = Math.max(0, Math.min(e.clientY - rect.top, rect.height));
+    
+    // Apply aspect ratio constraint
+    if (aspectRatio !== null) {
+      const width = Math.abs(x - cropStart.x);
+      const height = Math.abs(y - cropStart.y);
+      
+      // Calculate which dimension to constrain based on aspect ratio
+      const currentRatio = width / height;
+      
+      if (currentRatio > aspectRatio) {
+        // Width is too large, constrain it
+        const newWidth = height * aspectRatio;
+        x = cropStart.x + (x > cropStart.x ? newWidth : -newWidth);
+      } else {
+        // Height is too large, constrain it
+        const newHeight = width / aspectRatio;
+        y = cropStart.y + (y > cropStart.y ? newHeight : -newHeight);
+      }
+      
+      // Clamp to container bounds
+      x = Math.max(0, Math.min(x, rect.width));
+      y = Math.max(0, Math.min(y, rect.height));
+    }
     
     setCropEnd({ x, y });
   };
@@ -369,6 +402,28 @@ export const ImageEditor = ({ open, onOpenChange, imageUrl, prompt }: ImageEdito
                     <Crop className="w-4 h-4" />
                     Crop Image
                   </Label>
+                  
+                  {/* Aspect Ratio Presets */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Aspect Ratio</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {aspectRatioPresets.map((preset) => (
+                        <Button
+                          key={preset.label}
+                          variant={aspectRatio === preset.value ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => {
+                            setAspectRatio(preset.value);
+                            setCropStart({ x: 0, y: 0 });
+                            setCropEnd({ x: 0, y: 0 });
+                          }}
+                        >
+                          {preset.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
                   <p className="text-sm text-muted-foreground">
                     {isCropping 
                       ? "Click and drag on the image to select the area you want to keep."
