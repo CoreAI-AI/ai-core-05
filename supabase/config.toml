@@ -11,3 +11,9 @@ verify_jwt = true
 
 [functions.local-image-gen]
 verify_jwt = true
+
+[functions.image-edit]
+verify_jwt = true
+
+[functions.style-transform]
+verify_jwt = true
