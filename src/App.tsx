@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import Index from "./pages/Index";
 import Photos from "./pages/Photos";
+import ImagesSection from "./pages/ImagesSection";
 import Documents from "./pages/Documents";
 import Notes from "./pages/Notes";
 import Privacy from "./pages/Privacy";
@@ -33,6 +34,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/photos" element={<Photos />} />
+            <Route path="/images" element={<ImagesSection />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/documents" element={<Documents />} />
             <Route path="/notes" element={<Notes />} />
