@@ -10,7 +10,7 @@ import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft, Users, Timer } from "lucide-react";
+import { X, PanelLeft, Users, Timer, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
@@ -410,6 +410,15 @@ const Index = () => {
                     </h1>
                   </div>
                   <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate('/images')}
+                      className="gap-2 text-muted-foreground hover:text-foreground"
+                    >
+                      <ImageIcon className="h-4 w-4" />
+                      <span className="hidden sm:inline">Images</span>
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
