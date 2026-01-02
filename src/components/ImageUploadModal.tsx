@@ -1,6 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Upload, X, ImagePlus, Sparkles, Download, Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,8 +27,32 @@ const ImageUploadModal = ({
   const [celebrityImage, setCelebrityImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transformedImage, setTransformedImage] = useState<string | null>(null);
+  const [progress, setProgress] = useState(0);
   const userInputRef = useRef<HTMLInputElement>(null);
   const celebrityInputRef = useRef<HTMLInputElement>(null);
+
+  // Animate progress bar during processing
+  useEffect(() => {
+    if (!isProcessing) {
+      setProgress(0);
+      return;
+    }
+
+    // Start at 10% immediately
+    setProgress(10);
+    
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        // Slow down as we approach 90%
+        if (prev >= 90) return prev;
+        if (prev >= 70) return prev + 1;
+        if (prev >= 50) return prev + 2;
+        return prev + 3;
+      });
+    }, 300);
+
+    return () => clearInterval(interval);
+  }, [isProcessing]);
 
   const handleImageUpload = (
     e: React.ChangeEvent<HTMLInputElement>, 
@@ -97,6 +122,7 @@ const ImageUploadModal = ({
       const data = await response.json();
       
       if (data.transformedImageUrl) {
+        setProgress(100);
         setTransformedImage(data.transformedImageUrl);
         toast.success("Style applied successfully!");
       } else {
@@ -304,24 +330,28 @@ const ImageUploadModal = ({
                 </div>
               )}
 
-              {/* Apply Button */}
-              <Button 
-                onClick={handleApplyStyle}
-                disabled={!userImage || (isCelebrityStyle && !celebrityImage) || isProcessing}
-                className="w-full h-12 text-base font-medium"
-              >
-                {isProcessing ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" />
-                    Applying Style...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-5 h-5 mr-2" />
-                    Apply Style
-                  </>
-                )}
-              </Button>
+              {/* Apply Button with Progress */}
+              {isProcessing ? (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Applying style...</span>
+                    <span className="text-primary font-medium">{progress}%</span>
+                  </div>
+                  <Progress value={progress} className="h-2" />
+                  <p className="text-xs text-muted-foreground text-center">
+                    AI is transforming your image, please wait...
+                  </p>
+                </div>
+              ) : (
+                <Button 
+                  onClick={handleApplyStyle}
+                  disabled={!userImage || (isCelebrityStyle && !celebrityImage)}
+                  className="w-full h-12 text-base font-medium"
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Apply Style
+                </Button>
+              )}
             </>
           )}
         </div>
