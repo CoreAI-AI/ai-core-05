@@ -40,7 +40,7 @@ const Index = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 768);
   const [temporaryMessages, setTemporaryMessages] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -339,29 +339,50 @@ const Index = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-[100dvh] bg-background overflow-hidden">
+      {/* Sidebar - Hidden on mobile by default */}
       <AnimatePresence mode="wait">
         {!sidebarCollapsed && (
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{ width: "280px", opacity: 1 }}
-            exit={{ width: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="h-full overflow-hidden shrink-0"
-          >
-            <ChatSidebar 
-              chats={chats}
-              currentChat={currentChat}
-              onSelectChat={selectChat}
-              onNewChat={startNewChat}
-              onSignOut={signOut}
-              onOpenSettings={() => setShowSettings(true)}
-              onDeleteChat={deleteChat}
-              onExportChat={handleExportChat}
-              user={user}
-              onCollapse={() => setSidebarCollapsed(true)}
+          <>
+            {/* Mobile Overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setSidebarCollapsed(true)}
             />
-          </motion.div>
+            <motion.div
+              initial={{ x: -280, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -280, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="fixed md:relative h-full w-[280px] z-50 md:z-auto shrink-0"
+            >
+              <ChatSidebar 
+                chats={chats}
+                currentChat={currentChat}
+                onSelectChat={(chat) => {
+                  selectChat(chat);
+                  // Auto-close sidebar on mobile after selection
+                  if (window.innerWidth < 768) setSidebarCollapsed(true);
+                }}
+                onNewChat={() => {
+                  startNewChat();
+                  if (window.innerWidth < 768) setSidebarCollapsed(true);
+                }}
+                onSignOut={signOut}
+                onOpenSettings={() => {
+                  setShowSettings(true);
+                  if (window.innerWidth < 768) setSidebarCollapsed(true);
+                }}
+                onDeleteChat={deleteChat}
+                onExportChat={handleExportChat}
+                user={user}
+                onCollapse={() => setSidebarCollapsed(true)}
+              />
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
       <div className="flex-1 flex flex-col h-full">
@@ -393,40 +414,40 @@ const Index = () => {
               // Main Chat Interface
               <>
                 {/* Header */}
-                <div className="border-b border-border p-4 flex justify-between items-center shrink-0">
-                  <div className="flex items-center gap-4">
+                <div className="border-b border-border px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2">
+                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     {sidebarCollapsed && (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setSidebarCollapsed(false)}
-                        className="h-8 w-8 p-0"
+                        className="h-8 w-8 p-0 shrink-0"
                       >
                         <PanelLeft className="h-4 w-4" />
                       </Button>
                     )}
-                    <h1 className="text-lg font-medium text-foreground">
+                    <h1 className="text-sm sm:text-lg font-medium text-foreground truncate">
                       {currentChat ? currentChat.title : "New conversation"}
                     </h1>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => navigate('/images')}
-                      className="gap-2 text-muted-foreground hover:text-foreground"
+                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
                     >
                       <ImageIcon className="h-4 w-4" />
-                      <span className="hidden sm:inline">Images</span>
+                      <span className="hidden sm:inline ml-2">Images</span>
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => navigate('/group-chats')}
-                      className="gap-2 text-muted-foreground hover:text-foreground"
+                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
                     >
                       <Users className="h-4 w-4" />
-                      <span className="hidden sm:inline">Group Chat</span>
+                      <span className="hidden sm:inline ml-2">Group</span>
                     </Button>
                     <Button
                       variant={temporaryMessages ? "secondary" : "ghost"}
@@ -435,10 +456,10 @@ const Index = () => {
                         setTemporaryMessages(!temporaryMessages);
                         toast.success(temporaryMessages ? "Temporary messages off" : "Temporary messages on");
                       }}
-                      className="gap-2 text-muted-foreground hover:text-foreground"
+                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
                     >
                       <Timer className="h-4 w-4" />
-                      <span className="hidden sm:inline">Temporary</span>
+                      <span className="hidden lg:inline ml-2">Temporary</span>
                     </Button>
                   </div>
                 </div>
@@ -446,10 +467,10 @@ const Index = () => {
                 {/* Messages - scrollable area with fixed height */}
                 <div className="flex-1 overflow-hidden">
                   <ScrollArea className="h-full" ref={scrollAreaRef}>
-                    <div className="p-6 pb-4">
+                    <div className="p-3 sm:p-6 pb-4">
                       <div className="max-w-4xl mx-auto">
                         {messages.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                          <div className="flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[60vh] px-2">
                             <AnimatePresence mode="wait">
                               {showQuickActions ? (
                                 <motion.div 
@@ -490,8 +511,8 @@ const Index = () => {
                               layout
                               transition={{ duration: 0.3 }}
                             >
-                              <h2 className="text-2xl font-semibold mb-2">Start a new conversation</h2>
-                              <p>Type a message below{showQuickActions ? " or try one of the actions above" : ""}</p>
+                              <h2 className="text-xl sm:text-2xl font-semibold mb-2 px-4">Start a new conversation</h2>
+                              <p className="text-sm sm:text-base text-muted-foreground px-4">Type a message below{showQuickActions ? " or try one of the actions above" : ""}</p>
                             </motion.div>
                           </div>
                         ) : (

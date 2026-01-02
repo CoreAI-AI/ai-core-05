@@ -41,7 +41,7 @@ const actions = [
 
 export const QuickActionCards = ({ onAction, onSkip }: QuickActionCardsProps) => {
   return (
-    <div className="relative">
+    <div className="relative w-full">
       {onSkip && (
         <Button
           variant="ghost"
@@ -53,7 +53,7 @@ export const QuickActionCards = ({ onAction, onSkip }: QuickActionCardsProps) =>
           Skip
         </Button>
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-6 sm:mb-8">
       {actions.map((action, index) => (
         <motion.div
           key={action.id}
@@ -61,20 +61,20 @@ export const QuickActionCards = ({ onAction, onSkip }: QuickActionCardsProps) =>
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1, duration: 0.3 }}
         >
-          <Card className="p-4 bg-card hover:bg-card/80 border-border hover:border-primary/50 transition-all duration-300 group">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                <action.icon className="w-5 h-5 text-primary" />
+          <Card className="p-3 sm:p-4 bg-card hover:bg-card/80 border-border hover:border-primary/50 transition-all duration-300 group">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                <action.icon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-foreground text-sm mb-1">{action.title}</h3>
-                <p className="text-xs text-muted-foreground line-clamp-2">{action.description}</p>
+                <h3 className="font-medium text-foreground text-xs sm:text-sm mb-0.5 sm:mb-1">{action.title}</h3>
+                <p className="text-xs text-muted-foreground line-clamp-2 hidden sm:block">{action.description}</p>
               </div>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => onAction(action.prompt)}
-                className="shrink-0 text-xs h-7 px-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
+                className="shrink-0 text-xs h-6 sm:h-7 px-2 border-primary/30 text-primary hover:bg-primary hover:text-primary-foreground"
               >
                 Try it
               </Button>

@@ -163,7 +163,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
   };
 
   return (
-    <div className="border-t border-border bg-background p-4">
+    <div className="border-t border-border bg-background p-2 sm:p-4">
       <input
         ref={fileInputRef}
         type="file"
@@ -177,7 +177,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
         onChange={handleFileChange}
         className="hidden"
       />
-      <form onSubmit={handleSubmit} className="flex items-end gap-2">
+      <form onSubmit={handleSubmit} className="flex items-end gap-1.5 sm:gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button 
@@ -254,7 +254,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
                 : disabled ? "AI is thinking..." : "Message..."
             }
             disabled={disabled}
-            className="min-h-[40px] max-h-32 resize-none bg-input border-border text-foreground placeholder:text-muted-foreground focus:ring-primary"
+            className="min-h-[40px] max-h-24 sm:max-h-32 resize-none bg-input border-border text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:ring-primary"
             rows={1}
           />
         </div>
