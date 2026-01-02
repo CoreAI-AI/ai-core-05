@@ -465,20 +465,32 @@ const Index = () => {
                 </div>
                 
                 {/* Messages - scrollable area with fixed height */}
-                <div className="flex-1 overflow-hidden">
-                  <ScrollArea className="h-full" ref={scrollAreaRef}>
-                    <div className="p-3 sm:p-6 pb-4">
-                      <div className="max-w-4xl mx-auto">
+                <div className="flex-1 overflow-hidden flex flex-col">
+                  <ScrollArea className="h-full flex-1" ref={scrollAreaRef}>
+                    <div className="p-3 sm:p-6 pb-4 min-h-full flex flex-col">
+                      <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
                         {messages.length === 0 ? (
-                          <div className="flex flex-col items-center justify-center min-h-[50vh] sm:min-h-[60vh] px-2">
+                          <div className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12">
+                            {/* Title first */}
+                            <motion.div 
+                              className="text-center text-foreground mb-6 sm:mb-8"
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.3 }}
+                            >
+                              <h2 className="text-xl sm:text-2xl font-semibold mb-2">Start a new conversation</h2>
+                              <p className="text-sm sm:text-base text-muted-foreground">Type a message below or try quick actions</p>
+                            </motion.div>
+
+                            {/* Quick Actions */}
                             <AnimatePresence mode="wait">
                               {showQuickActions ? (
                                 <motion.div 
                                   key="cards"
-                                  className="w-full max-w-xl"
-                                  initial={{ opacity: 0, y: -20 }}
+                                  className="w-full max-w-xl px-2"
+                                  initial={{ opacity: 0, y: 20 }}
                                   animate={{ opacity: 1, y: 0 }}
-                                  exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                  exit={{ opacity: 0, scale: 0.95 }}
                                   transition={{ duration: 0.3, ease: "easeOut" }}
                                 >
                                   <QuickActionCards 
@@ -493,27 +505,18 @@ const Index = () => {
                                   animate={{ opacity: 1, scale: 1 }}
                                   exit={{ opacity: 0, scale: 0.9 }}
                                   transition={{ duration: 0.2 }}
-                                  className="mb-6"
                                 >
                                   <Button
                                     variant="outline"
-                                    size="sm"
+                                    size="default"
                                     onClick={() => setShowQuickActions(true)}
-                                    className="text-xs text-muted-foreground hover:text-foreground"
+                                    className="text-sm font-medium"
                                   >
                                     Show quick actions
                                   </Button>
                                 </motion.div>
                               )}
                             </AnimatePresence>
-                            <motion.div 
-                              className="text-center text-foreground"
-                              layout
-                              transition={{ duration: 0.3 }}
-                            >
-                              <h2 className="text-xl sm:text-2xl font-semibold mb-2 px-4">Start a new conversation</h2>
-                              <p className="text-sm sm:text-base text-muted-foreground px-4">Type a message below{showQuickActions ? " or try one of the actions above" : ""}</p>
-                            </motion.div>
                           </div>
                         ) : (
                           <>
