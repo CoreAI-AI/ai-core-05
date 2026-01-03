@@ -3,11 +3,35 @@ import { useState, useEffect } from 'react';
 export interface UserSettings {
   displayName: string;
   profilePicture?: string;
+  // Appearance
+  fontSize: 'small' | 'medium' | 'large';
+  chatDensity: 'comfortable' | 'compact';
+  // AI Preferences
+  defaultModel: string;
+  responseLength: 'short' | 'balanced' | 'detailed';
+  creativityLevel: number;
+  // Voice & Audio
+  voiceInputEnabled: boolean;
+  textToSpeechEnabled: boolean;
+  selectedVoice: string;
+  speechRate: number;
+  // Data & History
+  autoSaveConversations: boolean;
 }
 
 const defaultSettings: UserSettings = {
   displayName: '',
   profilePicture: '',
+  fontSize: 'medium',
+  chatDensity: 'comfortable',
+  defaultModel: 'gpt-4',
+  responseLength: 'balanced',
+  creativityLevel: 50,
+  voiceInputEnabled: false,
+  textToSpeechEnabled: false,
+  selectedVoice: '',
+  speechRate: 1,
+  autoSaveConversations: true,
 };
 
 export const useSettings = (userId?: string) => {
@@ -17,7 +41,6 @@ export const useSettings = (userId?: string) => {
   const settingsKey = userId ? `user_settings_${userId}` : 'user_settings_demo';
 
   useEffect(() => {
-    // Load settings from localStorage
     const savedSettings = localStorage.getItem(settingsKey);
     if (savedSettings) {
       try {
