@@ -467,10 +467,10 @@ const Index = () => {
                 {/* Messages - scrollable area with fixed height */}
                 <div className="flex-1 overflow-hidden flex flex-col">
                   <ScrollArea className="h-full flex-1" ref={scrollAreaRef}>
-                    <div className="min-h-full flex flex-col">
-                      {messages.length === 0 ? (
-                        <div className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12 px-4">
-                          <div className="max-w-xl w-full flex flex-col items-center">
+                    <div className="p-3 sm:p-6 pb-4 min-h-full flex flex-col">
+                      <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
+                        {messages.length === 0 ? (
+                          <div className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12">
                             {/* Title first */}
                             <motion.div 
                               className="text-center text-foreground mb-6 sm:mb-8"
@@ -518,11 +518,8 @@ const Index = () => {
                               )}
                             </AnimatePresence>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="flex-1">
-                          {/* ChatGPT-style message list */}
-                          <div className="divide-y divide-border/50">
+                        ) : (
+                          <>
                             {messages.map((message, index) => (
                               <ChatMessage
                                 key={message.id}
@@ -534,15 +531,11 @@ const Index = () => {
                                 })}
                                 images={message.images}
                                 isLoading={!message.is_user && !message.content && isAITyping && index === messages.length - 1}
-                                fontSize={settings.fontSize}
-                                density={settings.chatDensity}
                               />
                             ))}
-                          </div>
-                          {/* Bottom padding for scroll */}
-                          <div className="h-4" />
-                        </div>
-                      )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </ScrollArea>
                 </div>

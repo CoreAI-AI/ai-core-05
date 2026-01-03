@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { chatMessageSchema, validateFile, sanitizeInput } from "@/lib/validation";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
-import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -164,7 +163,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
   };
 
   return (
-    <div className="bg-background pb-4 pt-2 px-2 sm:px-4">
+    <div className="border-t border-border bg-background p-2 sm:p-4">
       <input
         ref={fileInputRef}
         type="file"
@@ -178,126 +177,109 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
         onChange={handleFileChange}
         className="hidden"
       />
-      {/* ChatGPT-style input container */}
-      <div className="max-w-3xl mx-auto">
-        <div className="relative flex items-end gap-2 bg-muted/50 border border-border rounded-2xl p-2 sm:p-3 shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 transition-all">
-          {/* Mode/Attachment button */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                type="button" 
-                size="icon" 
-                variant="ghost"
-                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground rounded-lg"
-              >
-                {getModeIcon()}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-64">
-              <DropdownMenuItem onClick={() => handleModeSelect('normal')} className="cursor-pointer">
-                <Paperclip className="w-4 h-4 mr-2" />
-                💬 Normal Chat
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleModeSelect('deep-search')} className="cursor-pointer">
-                <Search className="w-4 h-4 mr-2 text-blue-500" />
-                🔍 Deep Research
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleModeSelect('study')} className="cursor-pointer">
-                <GraduationCap className="w-4 h-4 mr-2 text-green-500" />
-                📚 Study Tutor
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleModeSelect('code')} className="cursor-pointer">
-                <Code className="w-4 h-4 mr-2 text-orange-500" />
-                💻 Code Assistant
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleModeSelect('creative')} className="cursor-pointer">
-                <Lightbulb className="w-4 h-4 mr-2 text-yellow-500" />
-                ✨ Creative Writer
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleModeSelect('analyze')} className="cursor-pointer">
-                <BarChart3 className="w-4 h-4 mr-2 text-cyan-500" />
-                📊 Data Analyst
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleModeSelect('photo')} className="cursor-pointer">
-                <ImagePlus className="w-4 h-4 mr-2 text-purple-500" />
-                🎨 Image Generator
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={openGallery} className="cursor-pointer">
-                <Image className="w-4 h-4 mr-2" />
-                📷 Gallery
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={openFileExplorer} className="cursor-pointer">
-                <File className="w-4 h-4 mr-2" />
-                📎 File
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={openCamera} className="cursor-pointer">
-                <Camera className="w-4 h-4 mr-2" />
-                📸 Camera
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          {/* Textarea */}
-          <form onSubmit={handleSubmit} className="flex-1 flex items-end gap-2">
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                currentMode === 'photo' 
-                  ? "Describe the image you want to generate..." 
-                  : currentMode === 'study'
-                  ? "Ask me to explain any topic..."
-                  : currentMode === 'deep-search'
-                  ? "Ask for in-depth research..."
-                  : currentMode === 'code'
-                  ? "Ask for coding help..."
-                  : currentMode === 'creative'
-                  ? "Let's create something amazing..."
-                  : currentMode === 'analyze'
-                  ? "Share data or info to analyze..."
-                  : disabled ? "AI is thinking..." : "Message..."
-              }
-              disabled={disabled}
-              className="min-h-[24px] max-h-32 resize-none bg-transparent border-0 text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
-              rows={1}
-            />
-            
-            {/* Voice button */}
+      <form onSubmit={handleSubmit} className="flex items-end gap-1.5 sm:gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button 
               type="button" 
-              size="icon"
-              onClick={handleVoiceRecording}
-              disabled={disabled || transcribing}
+              size="icon" 
               variant="ghost"
-              className={cn(
-                "h-8 w-8 shrink-0 rounded-lg",
-                isRecording ? "text-destructive hover:bg-destructive/10" : "text-muted-foreground hover:text-foreground"
-              )}
-              title={isRecording ? "Stop recording" : "Start voice recording"}
+              className="text-muted-foreground hover:text-foreground"
             >
-              {isRecording ? <Square className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4" />}
+              {getModeIcon()}
             </Button>
-
-            {/* Send button */}
-            <Button 
-              type="submit" 
-              size="icon"
-              disabled={disabled || !message.trim()}
-              className="h-8 w-8 shrink-0 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground disabled:opacity-40"
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          </form>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-64">
+            <DropdownMenuItem onClick={() => handleModeSelect('normal')} className="cursor-pointer">
+              <Paperclip className="w-4 h-4 mr-2" />
+              💬 Normal Chat
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('deep-search')} className="cursor-pointer">
+              <Search className="w-4 h-4 mr-2 text-blue-500" />
+              🔍 Deep Research
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('study')} className="cursor-pointer">
+              <GraduationCap className="w-4 h-4 mr-2 text-green-500" />
+              📚 Study Tutor
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('code')} className="cursor-pointer">
+              <Code className="w-4 h-4 mr-2 text-orange-500" />
+              💻 Code Assistant
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('creative')} className="cursor-pointer">
+              <Lightbulb className="w-4 h-4 mr-2 text-yellow-500" />
+              ✨ Creative Writer
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('analyze')} className="cursor-pointer">
+              <BarChart3 className="w-4 h-4 mr-2 text-cyan-500" />
+              📊 Data Analyst
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleModeSelect('photo')} className="cursor-pointer">
+              <ImagePlus className="w-4 h-4 mr-2 text-purple-500" />
+              🎨 Image Generator
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={openGallery} className="cursor-pointer">
+              <Image className="w-4 h-4 mr-2" />
+              📷 Gallery
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={openFileExplorer} className="cursor-pointer">
+              <File className="w-4 h-4 mr-2" />
+              📎 File
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={openCamera} className="cursor-pointer">
+              <Camera className="w-4 h-4 mr-2" />
+              📸 Camera
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        <div className="flex-1">
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={
+              currentMode === 'photo' 
+                ? "Describe the image you want to generate..." 
+                : currentMode === 'study'
+                ? "Ask me to explain any topic..."
+                : currentMode === 'deep-search'
+                ? "Ask for in-depth research..."
+                : currentMode === 'code'
+                ? "Ask for coding help..."
+                : currentMode === 'creative'
+                ? "Let's create something amazing..."
+                : currentMode === 'analyze'
+                ? "Share data or info to analyze..."
+                : disabled ? "AI is thinking..." : "Message..."
+            }
+            disabled={disabled}
+            className="min-h-[40px] max-h-24 sm:max-h-32 resize-none bg-input border-border text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:ring-primary"
+            rows={1}
+          />
         </div>
         
-        {/* Mode indicator */}
-        {currentMode !== 'normal' && (
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            Mode: <span className="font-medium capitalize">{currentMode.replace('-', ' ')}</span>
-          </p>
-        )}
-      </div>
+        <Button 
+          type="button" 
+          size="icon"
+          onClick={handleVoiceRecording}
+          disabled={disabled || transcribing}
+          variant="ghost"
+          className={isRecording ? "text-destructive hover:bg-destructive/10" : "text-muted-foreground hover:text-foreground"}
+          title={isRecording ? "Stop recording" : "Start voice recording"}
+        >
+          {isRecording ? <Square className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4" />}
+        </Button>
+
+        <Button 
+          type="submit" 
+          size="icon"
+          disabled={disabled || !message.trim()}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <Send className="w-4 h-4" />
+        </Button>
+      </form>
     </div>
   );
 };
