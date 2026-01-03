@@ -1,4 +1,6 @@
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { cn } from '@/lib/utils';
+import { Bot, User } from 'lucide-react';
 
 interface ChatMessageProps {
   message: string;
@@ -6,73 +8,128 @@ interface ChatMessageProps {
   timestamp?: string;
   images?: any[];
   isLoading?: boolean;
+  fontSize?: 'small' | 'medium' | 'large';
+  density?: 'comfortable' | 'compact';
 }
 
-export const ChatMessage = ({ message, isUser, timestamp, images, isLoading }: ChatMessageProps) => {
-  if (isUser) {
-    return (
-      <div className="flex justify-end mb-3 sm:mb-4">
-        <div className="max-w-[85%] sm:max-w-[70%] bg-chat-user-bg text-chat-user-fg rounded-2xl px-3 py-2 sm:px-4 sm:py-3">
-          <p className="text-sm leading-relaxed break-words">{message}</p>
+const fontSizeClasses = {
+  small: 'text-xs',
+  medium: 'text-sm',
+  large: 'text-base'
+};
+
+const densityClasses = {
+  comfortable: {
+    wrapper: 'py-6',
+    gap: 'gap-4',
+    avatar: 'w-8 h-8',
+    iconSize: 'w-4 h-4'
+  },
+  compact: {
+    wrapper: 'py-3',
+    gap: 'gap-3',
+    avatar: 'w-6 h-6',
+    iconSize: 'w-3 h-3'
+  }
+};
+
+export const ChatMessage = ({ 
+  message, 
+  isUser, 
+  timestamp, 
+  images, 
+  isLoading,
+  fontSize = 'medium',
+  density = 'comfortable'
+}: ChatMessageProps) => {
+  const fontClass = fontSizeClasses[fontSize];
+  const densityConfig = densityClasses[density];
+
+  // ChatGPT-style: full-width rows with subtle background alternation
+  return (
+    <div 
+      className={cn(
+        "w-full",
+        densityConfig.wrapper,
+        !isUser && "bg-muted/30"
+      )}
+    >
+      <div className={cn(
+        "max-w-3xl mx-auto flex",
+        densityConfig.gap,
+        "px-4"
+      )}>
+        {/* Avatar */}
+        <div className="shrink-0 pt-0.5">
+          <div 
+            className={cn(
+              densityConfig.avatar,
+              "rounded-sm flex items-center justify-center",
+              isUser 
+                ? "bg-primary text-primary-foreground" 
+                : "bg-emerald-600 text-white"
+            )}
+          >
+            {isUser ? (
+              <User className={densityConfig.iconSize} />
+            ) : (
+              <Bot className={densityConfig.iconSize} />
+            )}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0 space-y-2">
+          {/* Sender label */}
+          <p className="text-sm font-semibold text-foreground">
+            {isUser ? 'You' : 'Assistant'}
+          </p>
+
+          {/* Images */}
+          {images && images.length > 0 && (
+            <div className="space-y-2">
+              {images.map((image: any, index: number) => (
+                <div key={index} className="rounded-lg overflow-hidden">
+                  <img
+                    src={image.image_url?.url || image.url}
+                    alt={`Generated image ${index + 1}`}
+                    className="max-w-full sm:max-w-md h-auto rounded-lg"
+                    onError={(e) => {
+                      console.error('Error loading image:', e);
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Message content or loading */}
+          {isLoading ? (
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <div className="flex gap-1">
+                <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]" />
+                <span className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.15s]" />
+                <span className="w-2 h-2 bg-current rounded-full animate-bounce" />
+              </div>
+            </div>
+          ) : message ? (
+            <div className={cn(fontClass, "text-foreground leading-relaxed")}>
+              {isUser ? (
+                <p className="whitespace-pre-wrap break-words">{message}</p>
+              ) : (
+                <MarkdownRenderer content={message} />
+              )}
+            </div>
+          ) : null}
+
+          {/* Timestamp */}
           {timestamp && (
-            <p className="text-xs opacity-70 mt-1">{timestamp}</p>
+            <p className="text-xs text-muted-foreground/60 mt-1">
+              {timestamp}
+            </p>
           )}
         </div>
-        <div className="ml-2 flex items-end shrink-0">
-          <div className="w-6 h-6 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs sm:text-sm font-medium">
-            U
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex mb-3 sm:mb-4">
-      <div className="mr-2 sm:mr-3 flex items-start shrink-0">
-        <div className="w-6 h-6 sm:w-8 sm:h-8 bg-muted rounded-full flex items-center justify-center text-muted-foreground text-xs font-medium">
-          AI
-        </div>
-      </div>
-      <div className="max-w-[85%] sm:max-w-[70%] bg-chat-ai-bg text-chat-ai-fg rounded-2xl px-3 py-2 sm:px-4 sm:py-3">
-        {/* Display images if present */}
-        {images && images.length > 0 && (
-          <div className="mb-3 space-y-2">
-            {images.map((image: any, index: number) => (
-              <div key={index} className="rounded-lg overflow-hidden">
-                <img
-                  src={image.image_url?.url || image.url}
-                  alt={`Generated image ${index + 1}`}
-                  className="w-full h-auto max-w-sm rounded-lg"
-                  onError={(e) => {
-                    console.error('Error loading image:', e);
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-        
-        {/* Display text content or loading indicator */}
-        {isLoading ? (
-          <div className="flex items-center space-x-1 text-muted-foreground">
-            <div className="flex space-x-1">
-              <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce-high [animation-delay:-0.3s]"></div>
-              <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce-high [animation-delay:-0.15s]"></div>
-              <div className="w-1.5 h-1.5 bg-current rounded-full animate-bounce-high"></div>
-            </div>
-            <span className="text-xs">AI is thinking...</span>
-          </div>
-        ) : message ? (
-          <div className="text-sm">
-            <MarkdownRenderer content={message} />
-          </div>
-        ) : null}
-        
-        {timestamp && (
-          <p className="text-xs opacity-70 mt-2">{timestamp}</p>
-        )}
       </div>
     </div>
   );
