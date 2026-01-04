@@ -184,7 +184,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
               type="button" 
               size="icon" 
               variant="ghost"
-              className="text-muted-foreground hover:text-foreground"
+              className="text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
             >
               {getModeIcon()}
             </Button>
@@ -265,7 +265,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
           onClick={handleVoiceRecording}
           disabled={disabled || transcribing}
           variant="ghost"
-          className={isRecording ? "text-destructive hover:bg-destructive/10" : "text-muted-foreground hover:text-foreground"}
+          className={`active:scale-95 transition-transform ${isRecording ? "text-destructive hover:bg-destructive/10" : "text-muted-foreground hover:text-foreground"}`}
           title={isRecording ? "Stop recording" : "Start voice recording"}
         >
           {isRecording ? <Square className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4" />}
@@ -275,7 +275,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
           type="submit" 
           size="icon"
           disabled={disabled || !message.trim()}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground active:scale-95 transition-transform shadow-sm"
         >
           <Send className="w-4 h-4" />
         </Button>
