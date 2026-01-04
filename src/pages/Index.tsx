@@ -1,10 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { Auth } from "@/components/Auth";
 import { Settings } from "@/components/Settings";
 import { QuickActionCards } from "@/components/QuickActionCards";
+import { ScrollToBottom } from "@/components/ScrollToBottom";
+import { SplashScreen } from "@/components/SplashScreen";
+import { PageSkeleton } from "@/components/SkeletonLoader";
 import { useAuth } from "@/hooks/useAuth";
 import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
@@ -43,8 +46,8 @@ const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 768);
   const [temporaryMessages, setTemporaryMessages] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-
 
   // Auto-scroll to bottom when messages or typing indicator changes
   useEffect(() => {
@@ -70,16 +73,14 @@ const Index = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // If loading, show loading state
+  // Show splash screen on initial load
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
+
+  // If loading, show skeleton
   if (authLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <div>Loading...</div>
-        </div>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   // Show auth page only if user has logged out or there's an auth error
@@ -89,14 +90,7 @@ const Index = () => {
 
   // If no user but not showing auth, we're in the process of auto-logging in
   if (!user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <div>Setting up demo account...</div>
-        </div>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   const handleFileSelect = async (file: File) => {
@@ -465,8 +459,11 @@ const Index = () => {
                 </div>
                 
                 {/* Messages - scrollable area with fixed height */}
-                <div className="flex-1 overflow-hidden flex flex-col">
+                <div className="flex-1 overflow-hidden flex flex-col relative">
                   <ScrollArea className="h-full flex-1" ref={scrollAreaRef}>
+                  
+                  {/* Scroll to bottom button */}
+                  <ScrollToBottom scrollAreaRef={scrollAreaRef} />
                     <div className="p-3 sm:p-6 pb-4 min-h-full flex flex-col">
                       <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
                         {messages.length === 0 ? (
