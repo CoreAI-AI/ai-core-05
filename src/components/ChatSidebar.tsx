@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Search, MessageSquare, Settings, LogOut, Trash2, Image, MoreVertical, FileText, FileDown, PanelLeftClose, FolderKanban, Pin, PinOff } from "lucide-react";
+import coreaiLogo from '@/assets/coreai-logo.png';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -183,9 +184,7 @@ export const ChatSidebar = ({
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-foreground rounded-lg flex items-center justify-center shadow-sm">
-              <div className="w-3.5 h-3.5 bg-background rounded" />
-            </div>
+            <img src={coreaiLogo} alt="CoreAI Logo" className="w-7 h-7 rounded-lg shadow-sm" />
             <span className="font-semibold text-sidebar-foreground">CoreAI</span>
           </div>
           <div className="flex items-center gap-1">
