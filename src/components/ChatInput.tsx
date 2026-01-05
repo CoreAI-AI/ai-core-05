@@ -1,7 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X } from "lucide-react";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import {
@@ -18,10 +18,19 @@ interface ChatInputProps {
   disabled?: boolean;
   onFileSelect?: (file: File) => void;
   onModeChange?: (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze') => void;
+  editingMessage?: { id: string; content: string; index: number } | null;
+  onCancelEdit?: () => void;
 }
 
-export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange }: ChatInputProps) => {
+export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange, editingMessage, onCancelEdit }: ChatInputProps) => {
   const [message, setMessage] = useState("");
+  
+  // Populate message when editing
+  useEffect(() => {
+    if (editingMessage) {
+      setMessage(editingMessage.content);
+    }
+  }, [editingMessage]);
   const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
@@ -234,12 +243,19 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
         </DropdownMenu>
         
         <div className="flex-1">
+          {editingMessage && (
+            <div className="text-xs text-primary mb-1 font-medium">
+              Editing message...
+            </div>
+          )}
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={
-              currentMode === 'photo' 
+              editingMessage
+                ? "Edit your message..."
+                : currentMode === 'photo' 
                 ? "Describe the image you want to generate..." 
                 : currentMode === 'study'
                 ? "Ask me to explain any topic..."
@@ -259,11 +275,28 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange 
           />
         </div>
         
+        {/* Cancel edit button */}
+        {editingMessage && onCancelEdit && (
+          <Button 
+            type="button" 
+            size="icon"
+            onClick={() => {
+              onCancelEdit();
+              setMessage("");
+            }}
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
+            title="Cancel edit"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        )}
+        
         <Button 
           type="button" 
           size="icon"
           onClick={handleVoiceRecording}
-          disabled={disabled || transcribing}
+          disabled={disabled || transcribing || !!editingMessage}
           variant="ghost"
           className={`active:scale-95 transition-transform ${isRecording ? "text-destructive hover:bg-destructive/10" : "text-muted-foreground hover:text-foreground"}`}
           title={isRecording ? "Stop recording" : "Start voice recording"}
