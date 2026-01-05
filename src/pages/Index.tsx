@@ -236,6 +236,111 @@ const Index = () => {
     }
   };
 
+  // Handle regenerating the last AI response
+  const handleRegenerateResponse = async (aiMessageId: string, aiMessageIndex: number) => {
+    if (!user || !currentChat || isLoading) return;
+
+    // Find the user message before this AI message
+    const userMessageIndex = aiMessageIndex - 1;
+    if (userMessageIndex < 0) return;
+    
+    const userMessage = messages[userMessageIndex];
+    if (!userMessage || !userMessage.is_user) return;
+
+    setIsLoading(true);
+    setIsAITyping(true);
+
+    try {
+      // Clear the AI message content first
+      await updateMessage(aiMessageId, "");
+
+      const { data: session } = await supabase.auth.getSession();
+      const authToken = session?.session?.access_token;
+      
+      // Get conversation history up to (but not including) the AI message being regenerated
+      const conversationHistory = messages.slice(0, aiMessageIndex).slice(-20).map(msg => ({
+        role: msg.is_user ? 'user' : 'assistant',
+        content: msg.content,
+        ...(msg.images && msg.images.length > 0 ? { images: msg.images } : {})
+      }));
+      
+      const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
+      
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ 
+          message: userMessage.content,
+          model: modelToUse,
+          mode: chatMode,
+          conversationHistory: conversationHistory,
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error("No response body");
+      }
+
+      let accumulatedContent = "";
+      let receivedImages: any[] = [];
+      let buffer = "";
+      
+      setIsAITyping(false);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.trim() || !line.startsWith('data: ')) continue;
+          
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+          
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.content) {
+              accumulatedContent += parsed.content;
+              await updateMessage(aiMessageId, accumulatedContent);
+            }
+            if (parsed.images?.length > 0) {
+              receivedImages = parsed.images;
+              await updateMessage(aiMessageId, accumulatedContent, parsed.images);
+            }
+          } catch {}
+        }
+      }
+
+      if (receivedImages.length > 0) {
+        await updateMessage(aiMessageId, accumulatedContent, receivedImages);
+      }
+
+      toast.success("Response regenerated");
+
+    } catch (error) {
+      console.error('Error regenerating response:', error);
+      toast.error("Failed to regenerate response");
+    } finally {
+      setIsLoading(false);
+      setIsAITyping(false);
+    }
+  };
+
   const handleSendMessage = async (content: string) => {
     // If we're editing, handle differently
     if (editingMessage) {
@@ -661,6 +766,7 @@ const Index = () => {
                                 images={message.images}
                                 isLoading={!message.is_user && !message.content && isAITyping && index === messages.length - 1}
                                 onEdit={message.is_user ? () => handleEditMessage(message.id, message.content, index) : undefined}
+                                onRegenerate={!message.is_user ? () => handleRegenerateResponse(message.id, index) : undefined}
                               />
                             ))}
                           </>
