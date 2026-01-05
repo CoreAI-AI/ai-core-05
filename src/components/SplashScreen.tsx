@@ -1,5 +1,4 @@
 import { motion } from 'framer-motion';
-import coreaiLogo from '@/assets/coreai-logo.png';
 
 interface SplashScreenProps {
   onComplete?: () => void;
@@ -21,14 +20,14 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
         transition={{ duration: 0.3 }}
       >
         {/* Logo */}
-        <motion.img 
-          src={coreaiLogo}
-          alt="CoreAI Logo"
-          className="w-16 h-16 rounded-2xl shadow-lg"
+        <motion.div 
+          className="w-16 h-16 bg-foreground rounded-2xl flex items-center justify-center shadow-lg"
           initial={{ rotate: -10 }}
           animate={{ rotate: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-        />
+        >
+          <div className="w-8 h-8 bg-background rounded-lg" />
+        </motion.div>
         
         {/* Brand name */}
         <motion.h1
