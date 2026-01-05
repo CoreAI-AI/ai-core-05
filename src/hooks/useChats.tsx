@@ -159,6 +159,22 @@ export const useChats = (userId: string | undefined) => {
     }
   };
 
+  // Delete a message
+  const deleteMessage = async (messageId: string) => {
+    try {
+      const { error } = await sb
+        .from('messages')
+        .delete()
+        .eq('id', messageId);
+
+      if (error) throw error;
+
+      setMessages(prev => prev.filter(msg => msg.id !== messageId));
+    } catch (error: any) {
+      console.error('Error deleting message:', error);
+    }
+  };
+
   // Start a new chat session
   const startNewChat = () => {
     setCurrentChat(null);
@@ -220,6 +236,7 @@ export const useChats = (userId: string | undefined) => {
     createChat,
     addMessage,
     updateMessage,
+    deleteMessage,
     startNewChat,
     selectChat,
     loadChats,

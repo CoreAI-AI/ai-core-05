@@ -30,7 +30,8 @@ const Index = () => {
     messages, 
     createChat, 
     addMessage, 
-    updateMessage, 
+    updateMessage,
+    deleteMessage,
     startNewChat, 
     selectChat,
     deleteChat
@@ -47,6 +48,7 @@ const Index = () => {
   const [temporaryMessages, setTemporaryMessages] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
+  const [editingMessage, setEditingMessage] = useState<{ id: string; content: string; index: number } | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when messages or typing indicator changes
@@ -110,7 +112,137 @@ const Index = () => {
     toast.success(`File selected: ${file.name}`);
   };
 
+  // Handle editing a user message
+  const handleEditMessage = (messageId: string, content: string, index: number) => {
+    setEditingMessage({ id: messageId, content, index });
+  };
+
+  // Handle sending edited message (deletes AI response after it and regenerates)
+  const handleSendEditedMessage = async (content: string) => {
+    if (!user || !editingMessage || !currentChat) return;
+
+    // Find the index of the message being edited
+    const editIndex = editingMessage.index;
+    
+    // Get all messages after the edited message (including AI responses)
+    const messagesToDelete = messages.slice(editIndex + 1);
+    
+    // Delete messages after the edited one
+    for (const msg of messagesToDelete) {
+      await deleteMessage(msg.id);
+    }
+    
+    // Update the edited message content
+    await updateMessage(editingMessage.id, content);
+    
+    // Clear editing state
+    setEditingMessage(null);
+    
+    // Now regenerate the AI response
+    setIsLoading(true);
+    setIsAITyping(true);
+
+    try {
+      // Create AI message placeholder
+      const aiMessage = await addMessage(currentChat.id, "", false);
+      if (!aiMessage) return;
+
+      const { data: session } = await supabase.auth.getSession();
+      const authToken = session?.session?.access_token;
+      
+      // Get updated messages (after deletion)
+      const updatedMessages = messages.slice(0, editIndex + 1).map(msg => 
+        msg.id === editingMessage.id ? { ...msg, content } : msg
+      );
+      
+      const conversationHistory = updatedMessages.slice(-20).map(msg => ({
+        role: msg.is_user ? 'user' : 'assistant',
+        content: msg.id === editingMessage.id ? content : msg.content,
+        ...(msg.images && msg.images.length > 0 ? { images: msg.images } : {})
+      }));
+      
+      const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
+      
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ 
+          message: content,
+          model: modelToUse,
+          mode: chatMode,
+          conversationHistory: conversationHistory,
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error("No response body");
+      }
+
+      let accumulatedContent = "";
+      let receivedImages: any[] = [];
+      let buffer = "";
+      
+      setIsAITyping(false);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.trim() || !line.startsWith('data: ')) continue;
+          
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+          
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.content) {
+              accumulatedContent += parsed.content;
+              await updateMessage(aiMessage.id, accumulatedContent);
+            }
+            if (parsed.images?.length > 0) {
+              receivedImages = parsed.images;
+              await updateMessage(aiMessage.id, accumulatedContent, parsed.images);
+            }
+          } catch {}
+        }
+      }
+
+      if (receivedImages.length > 0) {
+        await updateMessage(aiMessage.id, accumulatedContent, receivedImages);
+      }
+
+    } catch (error) {
+      console.error('Error regenerating AI response:', error);
+      toast.error("Failed to regenerate response. Please try again.");
+    } finally {
+      setIsLoading(false);
+      setIsAITyping(false);
+    }
+  };
+
   const handleSendMessage = async (content: string) => {
+    // If we're editing, handle differently
+    if (editingMessage) {
+      await handleSendEditedMessage(content);
+      return;
+    }
+    
     if (!user) return;
 
     let chatToUse = currentChat;
@@ -528,6 +660,7 @@ const Index = () => {
                                 })}
                                 images={message.images}
                                 isLoading={!message.is_user && !message.content && isAITyping && index === messages.length - 1}
+                                onEdit={message.is_user ? () => handleEditMessage(message.id, message.content, index) : undefined}
                               />
                             ))}
                           </>
@@ -575,6 +708,8 @@ const Index = () => {
                       disabled={isLoading}
                       onFileSelect={handleFileSelect}
                       onModeChange={setChatMode}
+                      editingMessage={editingMessage}
+                      onCancelEdit={() => setEditingMessage(null)}
                     />
                   </div>
                 </div>
