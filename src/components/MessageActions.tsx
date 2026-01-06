@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Copy, Check, RotateCcw, Pencil, ThumbsUp, ThumbsDown, MoreHorizontal, Volume2, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,9 +9,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MessageActionsProps {
   message: string;
+  messageId?: string;
   isUser: boolean;
   onRegenerate?: () => void;
   onEdit?: () => void;
@@ -21,6 +23,7 @@ interface MessageActionsProps {
 
 export const MessageActions = ({ 
   message, 
+  messageId,
   isUser, 
   onRegenerate, 
   onEdit,
@@ -29,6 +32,30 @@ export const MessageActions = ({
 }: MessageActionsProps) => {
   const [copied, setCopied] = useState(false);
   const [feedback, setFeedback] = useState<'good' | 'bad' | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Load existing feedback on mount
+  useEffect(() => {
+    const loadFeedback = async () => {
+      if (!messageId || isUser) return;
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('message_feedback')
+        .select('feedback_type')
+        .eq('message_id', messageId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (data) {
+        setFeedback(data.feedback_type as 'good' | 'bad');
+      }
+    };
+
+    loadFeedback();
+  }, [messageId, isUser]);
 
   const handleCopy = async () => {
     try {
@@ -41,21 +68,52 @@ export const MessageActions = ({
     }
   };
 
-  const handleGoodResponse = () => {
-    setFeedback('good');
-    toast.success('Thanks for your feedback!');
-  };
+  const handleFeedback = async (type: 'good' | 'bad') => {
+    if (!messageId || isSubmitting) return;
 
-  const handleBadResponse = () => {
-    setFeedback('bad');
-    toast.success('Thanks for your feedback!');
+    setIsSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please sign in to give feedback');
+        return;
+      }
+
+      // If clicking the same feedback, remove it
+      if (feedback === type) {
+        await supabase
+          .from('message_feedback')
+          .delete()
+          .eq('message_id', messageId)
+          .eq('user_id', user.id);
+        setFeedback(null);
+        toast.success('Feedback removed');
+      } else {
+        // Upsert feedback
+        await supabase
+          .from('message_feedback')
+          .upsert({
+            user_id: user.id,
+            message_id: messageId,
+            feedback_type: type
+          }, {
+            onConflict: 'user_id,message_id'
+          });
+        setFeedback(type);
+        toast.success('Thanks for your feedback!');
+      }
+    } catch (error) {
+      console.error('Error saving feedback:', error);
+      toast.error('Failed to save feedback');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleReadAloud = () => {
     if (onReadAloud) {
       onReadAloud();
     } else {
-      // Fallback to browser speech synthesis
       const utterance = new SpeechSynthesisUtterance(message);
       speechSynthesis.speak(utterance);
       toast.success('Reading aloud...');
@@ -92,7 +150,8 @@ export const MessageActions = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleGoodResponse}
+            onClick={() => handleFeedback('good')}
+            disabled={isSubmitting}
             className={cn(
               "h-7 w-7 p-0 text-muted-foreground hover:text-foreground active:scale-95 transition-transform",
               feedback === 'good' && "text-green-500 hover:text-green-500"
@@ -104,7 +163,8 @@ export const MessageActions = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={handleBadResponse}
+            onClick={() => handleFeedback('bad')}
+            disabled={isSubmitting}
             className={cn(
               "h-7 w-7 p-0 text-muted-foreground hover:text-foreground active:scale-95 transition-transform",
               feedback === 'bad' && "text-red-500 hover:text-red-500"

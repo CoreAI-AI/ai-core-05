@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 
 interface ChatMessageProps {
   message: string;
+  messageId?: string;
   isUser: boolean;
   timestamp?: string;
   images?: any[];
@@ -14,6 +15,7 @@ interface ChatMessageProps {
 
 export const ChatMessage = ({ 
   message, 
+  messageId,
   isUser, 
   timestamp, 
   images, 
@@ -28,6 +30,7 @@ export const ChatMessage = ({
           {/* Actions on hover */}
           <MessageActions 
             message={message} 
+            messageId={messageId}
             isUser={true} 
             onEdit={onEdit}
             className="mb-2"
@@ -107,6 +110,7 @@ export const ChatMessage = ({
         {!isLoading && message && (
           <MessageActions 
             message={message} 
+            messageId={messageId}
             isUser={false} 
             onRegenerate={onRegenerate}
             className="mt-1 ml-1"
