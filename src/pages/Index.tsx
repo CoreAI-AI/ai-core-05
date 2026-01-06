@@ -758,6 +758,7 @@ const Index = () => {
                               <ChatMessage
                                 key={message.id}
                                 message={message.content}
+                                messageId={message.id}
                                 isUser={message.is_user}
                                 timestamp={new Date(message.created_at).toLocaleTimeString([], { 
                                   hour: '2-digit', 
