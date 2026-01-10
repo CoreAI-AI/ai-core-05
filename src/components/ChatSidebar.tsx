@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, MessageSquare, Settings, LogOut, Trash2, Image, MoreVertical, FileText, FileDown, PanelLeftClose, FolderKanban, Pin, PinOff } from "lucide-react";
+import { Search, MessageSquare, Settings, LogOut, Trash2, Image, MoreVertical, FileText, FileDown, PanelLeftClose, FolderKanban, Pin, PinOff, Sparkles, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -108,17 +108,19 @@ export const ChatSidebar = ({
     <div 
       key={chat.id} 
       className={cn(
-        "flex items-center group rounded-lg transition-colors",
+        "flex items-center group rounded-xl transition-all duration-200",
         currentChat?.id === chat.id 
-          ? "bg-sidebar-accent/50" 
-          : "hover:bg-sidebar-accent/30"
+          ? "bg-primary/10 border border-primary/20" 
+          : "hover:bg-accent border border-transparent"
       )}
     >
       <Button
         variant="ghost"
         className={cn(
-          "flex-1 justify-start text-sm text-sidebar-foreground truncate h-9 px-3",
-          currentChat?.id === chat.id && "font-medium"
+          "flex-1 justify-start text-sm truncate h-10 px-3 hover:bg-transparent",
+          currentChat?.id === chat.id 
+            ? "text-primary font-medium" 
+            : "text-sidebar-foreground"
         )}
         onClick={() => onSelectChat(chat)}
       >
@@ -182,11 +184,11 @@ export const ChatSidebar = ({
       {/* Header */}
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-foreground rounded-lg flex items-center justify-center shadow-sm">
-              <div className="w-3.5 h-3.5 bg-background rounded" />
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 gradient-bg rounded-xl flex items-center justify-center shadow-md">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <span className="font-semibold text-sidebar-foreground">CoreAI</span>
+            <span className="font-bold text-lg text-sidebar-foreground">CoreAI</span>
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
@@ -195,7 +197,7 @@ export const ChatSidebar = ({
                 variant="ghost"
                 size="sm"
                 onClick={onCollapse}
-                className="h-8 w-8 p-0 text-sidebar-foreground hover:bg-sidebar-accent active:scale-95 transition-transform"
+                className="h-8 w-8 p-0 text-sidebar-foreground hover:bg-sidebar-accent btn-press"
               >
                 <PanelLeftClose className="h-4 w-4" />
               </Button>
@@ -210,25 +212,31 @@ export const ChatSidebar = ({
             placeholder="Search chats..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 bg-sidebar-accent/50 border-sidebar-border text-sidebar-foreground placeholder:text-muted-foreground focus:bg-sidebar-accent" 
+            className="pl-9 h-10 bg-accent/50 border-0 text-sidebar-foreground placeholder:text-muted-foreground focus:bg-accent rounded-xl" 
           />
         </div>
+      </div>
+
+      {/* New Chat Button */}
+      <div className="p-3 border-b border-sidebar-border">
+        <Button
+          onClick={() => handleAction('newChat')}
+          className="w-full h-11 gradient-bg text-white font-medium shadow-md hover:opacity-90 btn-press rounded-xl"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Chat
+        </Button>
       </div>
 
       {/* Navigation */}
       <div className="p-3 border-b border-sidebar-border">
         <nav className="space-y-1">
-          {sidebarItems.map((item) => (
+          {sidebarItems.slice(1).map((item) => (
             <Button
               key={item.label}
-              variant={item.active ? "default" : "ghost"}
+              variant="ghost"
               size="sm"
-              className={cn(
-                "w-full justify-start h-9 active:scale-[0.98] transition-transform",
-                item.active 
-                  ? "bg-primary text-primary-foreground shadow-sm" 
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              )}
+              className="w-full justify-start h-10 text-sidebar-foreground hover:bg-accent hover:text-sidebar-accent-foreground btn-press rounded-xl"
               onClick={() => handleAction(item.action)}
             >
               <item.icon className="w-4 h-4 mr-2.5" />
@@ -244,10 +252,10 @@ export const ChatSidebar = ({
           {/* Pinned Chats */}
           {pinnedList.length > 0 && (
             <div>
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 px-1">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
                 Pinned
               </h3>
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 {pinnedList.map((chat) => (
                   <ChatItem key={chat.id} chat={chat} isPinned={true} />
                 ))}
@@ -257,12 +265,13 @@ export const ChatSidebar = ({
           
           {/* Recent Chats */}
           <div>
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 px-1">
-              {pinnedList.length > 0 ? 'Recent' : 'Chats'}
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-1">
+              {pinnedList.length > 0 ? 'Recent' : 'History'}
             </h3>
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {regularList.length === 0 ? (
-                <div className="text-sm text-muted-foreground text-center py-6">
+                <div className="text-sm text-muted-foreground text-center py-8">
+                  <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-40" />
                   {searchQuery ? 'No matching chats' : 'No chats yet'}
                 </div>
               ) : (
@@ -275,13 +284,21 @@ export const ChatSidebar = ({
         </div>
       </div>
 
-      {/* Exit Demo / Sign Out Button */}
-      <div className="p-3 border-t border-sidebar-border">
+      {/* User Section & Sign Out */}
+      <div className="p-3 border-t border-sidebar-border space-y-2">
+        {user && (
+          <div className="px-3 py-2 rounded-xl bg-accent/50">
+            <p className="text-xs text-muted-foreground">Signed in as</p>
+            <p className="text-sm font-medium text-sidebar-foreground truncate">
+              {user.email === 'demo@example.com' ? 'Demo User' : user.email}
+            </p>
+          </div>
+        )}
         <Button
           variant="ghost"
           size="sm"
           onClick={onSignOut}
-          className="w-full justify-start h-9 text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive active:scale-[0.98] transition-transform"
+          className="w-full justify-start h-10 text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive btn-press rounded-xl"
         >
           <LogOut className="w-4 h-4 mr-2.5" />
           {user?.email === 'demo@example.com' ? 'Exit Demo' : 'Sign Out'}

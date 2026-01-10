@@ -113,18 +113,17 @@ export default {
   		},
 		fontFamily: {
   			sans: [
+  				'Plus Jakarta Sans',
   				'Inter',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
   				'BlinkMacSystemFont',
   				'Segoe UI',
-  				'Roboto',
-  				'Helvetica Neue',
-  				'Arial',
   				'sans-serif'
   			],
   			mono: [
+  				'JetBrains Mono',
   				'Fira Code',
   				'ui-monospace',
   				'SFMono-Regular',
