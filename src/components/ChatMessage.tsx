@@ -1,7 +1,7 @@
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MessageActions } from './MessageActions';
 import { cn } from '@/lib/utils';
-import { Sparkles } from 'lucide-react';
+import coreaiLogo from '@/assets/coreai-logo.png';
 
 interface ChatMessageProps {
   message: string;
@@ -61,9 +61,7 @@ export const ChatMessage = ({
     <div className="flex mb-6 group animate-fade-in">
       {/* AI avatar with premium styling */}
       <div className="mr-3 flex items-start shrink-0">
-        <div className="w-8 h-8 sm:w-9 sm:h-9 bg-card border border-border rounded-full flex items-center justify-center shadow-sm">
-          <Sparkles className="w-4 h-4 text-primary" />
-        </div>
+        <img src={coreaiLogo} alt="CoreAI" className="w-8 h-8 sm:w-9 sm:h-9 rounded-full shadow-sm" />
       </div>
       
       <div className="flex-1 max-w-[85%] sm:max-w-[80%]">
