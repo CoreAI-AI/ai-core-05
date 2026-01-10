@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Sparkles } from 'lucide-react';
 
 interface SplashScreenProps {
   onComplete?: () => void;
@@ -10,34 +11,57 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       className="fixed inset-0 z-50 flex items-center justify-center bg-background"
       initial={{ opacity: 1 }}
       animate={{ opacity: 0 }}
-      transition={{ duration: 0.4, delay: 0.8 }}
+      transition={{ duration: 0.5, delay: 1.2 }}
       onAnimationComplete={onComplete}
     >
       <motion.div
-        className="flex flex-col items-center gap-4"
+        className="flex flex-col items-center gap-5"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        {/* Logo */}
+        {/* Premium Logo */}
         <motion.div 
-          className="w-16 h-16 bg-foreground rounded-2xl flex items-center justify-center shadow-lg"
-          initial={{ rotate: -10 }}
-          animate={{ rotate: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="relative"
+          initial={{ rotate: -10, scale: 0.8 }}
+          animate={{ rotate: 0, scale: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
         >
-          <div className="w-8 h-8 bg-background rounded-lg" />
+          {/* Glow effect */}
+          <div className="absolute inset-0 w-20 h-20 rounded-2xl gradient-bg blur-xl opacity-50" />
+          
+          {/* Main logo */}
+          <div className="relative w-20 h-20 gradient-bg rounded-2xl flex items-center justify-center shadow-2xl">
+            <Sparkles className="w-10 h-10 text-white" />
+          </div>
         </motion.div>
         
-        {/* Brand name */}
-        <motion.h1
-          className="text-2xl font-semibold text-foreground"
-          initial={{ opacity: 0, y: 10 }}
+        {/* Brand name with gradient */}
+        <motion.div
+          className="flex flex-col items-center gap-1"
+          initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
+          transition={{ duration: 0.4, delay: 0.3 }}
         >
-          CoreAI
-        </motion.h1>
+          <h1 className="text-3xl font-bold gradient-text">
+            CoreAI
+          </h1>
+          <p className="text-sm text-muted-foreground font-medium">
+            Intelligent Assistant
+          </p>
+        </motion.div>
+
+        {/* Loading indicator */}
+        <motion.div
+          className="flex gap-1.5 mt-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="w-2 h-2 rounded-full bg-primary/60 typing-dot" />
+          <div className="w-2 h-2 rounded-full bg-primary/60 typing-dot" />
+          <div className="w-2 h-2 rounded-full bg-primary/60 typing-dot" />
+        </motion.div>
       </motion.div>
     </motion.div>
   );

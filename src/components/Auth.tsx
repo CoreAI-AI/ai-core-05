@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import { Sparkles, Zap } from "lucide-react";
 
 const sb = supabase as any;
 
@@ -33,7 +34,6 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         if (error) throw error;
 
         if (data.user) {
-          // Create profile for the user
           const { error: profileError } = await sb
             .from('profiles')
             .insert({
@@ -73,30 +73,19 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
     try {
       toast.info("Setting up demo account...");
       
-      // Call our edge function to create the demo user
       const { data, error } = await supabase.functions.invoke('create-demo-user');
       
-      if (error) {
-        console.error('Demo user creation error:', error);
-        throw error;
-      }
-
-      if (!data.success) {
-        throw new Error(data.error || 'Failed to create demo user');
-      }
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error || 'Failed to create demo user');
 
       const { email, password } = data.credentials;
       
-      // Sign in with the created demo account
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
-      if (signInError) {
-        console.error('Demo sign-in error:', signInError);
-        throw signInError;
-      }
+      if (signInError) throw signInError;
 
       toast.success("Demo account ready!");
       onAuthSuccess();
@@ -109,39 +98,43 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>{isSignUp ? "Create Account" : "Sign In"}</CardTitle>
-          <CardDescription>
-            {isSignUp 
-              ? "Create a new account to start chatting" 
-              : "Sign in to your account to continue"
-            }
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
-            {isSignUp && (
-              <div>
+    <div className="flex items-center justify-center min-h-screen bg-background p-4">
+      <div className="w-full max-w-md space-y-6">
+        {/* Logo */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center justify-center w-16 h-16 gradient-bg rounded-2xl shadow-lg mb-4">
+            <Sparkles className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold gradient-text">CoreAI</h1>
+          <p className="text-muted-foreground">Intelligent Assistant</p>
+        </div>
+
+        <Card className="border-border/50 shadow-xl">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-xl">{isSignUp ? "Create Account" : "Welcome Back"}</CardTitle>
+            <CardDescription>
+              {isSignUp ? "Join CoreAI to start your journey" : "Sign in to continue"}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleAuth} className="space-y-4">
+              {isSignUp && (
                 <Input
                   type="text"
                   placeholder="Display Name"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
+                  className="h-11 rounded-xl"
                 />
-              </div>
-            )}
-            <div>
+              )}
               <Input
                 type="email"
                 placeholder="Email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                className="h-11 rounded-xl"
               />
-            </div>
-            <div>
               <Input
                 type="password"
                 placeholder="Password"
@@ -149,36 +142,43 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
+                className="h-11 rounded-xl"
               />
+              <Button type="submit" className="w-full h-11 rounded-xl gradient-bg text-white font-medium shadow-md btn-press" disabled={isLoading}>
+                {isLoading ? "Loading..." : (isSignUp ? "Create Account" : "Sign In")}
+              </Button>
+            </form>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">or</span>
+              </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Loading..." : (isSignUp ? "Sign Up" : "Sign In")}
-            </Button>
             
             <Button 
               type="button" 
               variant="outline" 
-              className="w-full mt-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 hover:from-blue-600 hover:to-purple-700"
+              className="w-full h-11 rounded-xl font-medium btn-press border-primary/30 hover:bg-primary/5"
               onClick={handleDemoLogin}
               disabled={isLoading}
             >
-              🚀 Try Demo Account
+              <Zap className="w-4 h-4 mr-2 text-primary" />
+              Try Demo Account
             </Button>
-          </form>
-          <div className="mt-4 text-center">
+            
             <Button
               variant="link"
               onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm"
+              className="w-full text-sm text-muted-foreground hover:text-primary"
             >
-              {isSignUp 
-                ? "Already have an account? Sign in" 
-                : "Don't have an account? Sign up"
-              }
+              {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
             </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

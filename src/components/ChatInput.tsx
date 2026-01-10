@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import {
@@ -155,24 +155,24 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
   const getModeIcon = () => {
     switch (currentMode) {
       case 'deep-search':
-        return <Search className="h-4 w-4 text-blue-500" />;
+        return <Search className="h-5 w-5 text-blue-500" />;
       case 'study':
-        return <GraduationCap className="h-4 w-4 text-green-500" />;
+        return <GraduationCap className="h-5 w-5 text-green-500" />;
       case 'photo':
-        return <ImagePlus className="h-4 w-4 text-purple-500" />;
+        return <ImagePlus className="h-5 w-5 text-purple-500" />;
       case 'code':
-        return <Code className="h-4 w-4 text-orange-500" />;
+        return <Code className="h-5 w-5 text-orange-500" />;
       case 'creative':
-        return <Lightbulb className="h-4 w-4 text-yellow-500" />;
+        return <Lightbulb className="h-5 w-5 text-yellow-500" />;
       case 'analyze':
-        return <BarChart3 className="h-4 w-4 text-cyan-500" />;
+        return <BarChart3 className="h-5 w-5 text-cyan-500" />;
       default:
-        return <Paperclip className="h-4 w-4" />;
+        return <Sparkles className="h-5 w-5 text-primary" />;
     }
   };
 
   return (
-    <div className="border-t border-border bg-background p-2 sm:p-4">
+    <div className="border-t border-border bg-background/80 backdrop-blur-xl p-3 sm:p-4">
       <input
         ref={fileInputRef}
         type="file"
@@ -186,133 +186,159 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
         onChange={handleFileChange}
         className="hidden"
       />
-      <form onSubmit={handleSubmit} className="flex items-end gap-1.5 sm:gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button 
-              type="button" 
-              size="icon" 
-              variant="ghost"
-              className="text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
-            >
-              {getModeIcon()}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-64">
-            <DropdownMenuItem onClick={() => handleModeSelect('normal')} className="cursor-pointer">
-              <Paperclip className="w-4 h-4 mr-2" />
-              💬 Normal Chat
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleModeSelect('deep-search')} className="cursor-pointer">
-              <Search className="w-4 h-4 mr-2 text-blue-500" />
-              🔍 Deep Research
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleModeSelect('study')} className="cursor-pointer">
-              <GraduationCap className="w-4 h-4 mr-2 text-green-500" />
-              📚 Study Tutor
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleModeSelect('code')} className="cursor-pointer">
-              <Code className="w-4 h-4 mr-2 text-orange-500" />
-              💻 Code Assistant
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleModeSelect('creative')} className="cursor-pointer">
-              <Lightbulb className="w-4 h-4 mr-2 text-yellow-500" />
-              ✨ Creative Writer
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleModeSelect('analyze')} className="cursor-pointer">
-              <BarChart3 className="w-4 h-4 mr-2 text-cyan-500" />
-              📊 Data Analyst
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleModeSelect('photo')} className="cursor-pointer">
-              <ImagePlus className="w-4 h-4 mr-2 text-purple-500" />
-              🎨 Image Generator
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={openGallery} className="cursor-pointer">
-              <Image className="w-4 h-4 mr-2" />
-              📷 Gallery
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={openFileExplorer} className="cursor-pointer">
-              <File className="w-4 h-4 mr-2" />
-              📎 File
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={openCamera} className="cursor-pointer">
-              <Camera className="w-4 h-4 mr-2" />
-              📸 Camera
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        
-        <div className="flex-1">
-          {editingMessage && (
-            <div className="text-xs text-primary mb-1 font-medium">
-              Editing message...
+      
+      <div className="max-w-4xl mx-auto">
+        <form onSubmit={handleSubmit} className="relative">
+          {/* Main input container */}
+          <div className="flex items-end gap-2 bg-card border border-border rounded-2xl p-2 shadow-sm focus-within:border-primary/50 focus-within:shadow-md transition-all duration-200">
+            {/* Mode selector */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  type="button" 
+                  size="icon" 
+                  variant="ghost"
+                  className="h-10 w-10 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent shrink-0 btn-press"
+                >
+                  {getModeIcon()}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 p-2">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">AI Modes</p>
+                <DropdownMenuItem onClick={() => handleModeSelect('normal')} className="cursor-pointer rounded-lg">
+                  <Sparkles className="w-4 h-4 mr-2 text-primary" />
+                  Normal Chat
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleModeSelect('deep-search')} className="cursor-pointer rounded-lg">
+                  <Search className="w-4 h-4 mr-2 text-blue-500" />
+                  Deep Research
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleModeSelect('study')} className="cursor-pointer rounded-lg">
+                  <GraduationCap className="w-4 h-4 mr-2 text-green-500" />
+                  Study Tutor
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleModeSelect('code')} className="cursor-pointer rounded-lg">
+                  <Code className="w-4 h-4 mr-2 text-orange-500" />
+                  Code Assistant
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleModeSelect('creative')} className="cursor-pointer rounded-lg">
+                  <Lightbulb className="w-4 h-4 mr-2 text-yellow-500" />
+                  Creative Writer
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleModeSelect('analyze')} className="cursor-pointer rounded-lg">
+                  <BarChart3 className="w-4 h-4 mr-2 text-cyan-500" />
+                  Data Analyst
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleModeSelect('photo')} className="cursor-pointer rounded-lg">
+                  <ImagePlus className="w-4 h-4 mr-2 text-purple-500" />
+                  Image Generator
+                </DropdownMenuItem>
+                
+                <div className="h-px bg-border my-2" />
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Attach</p>
+                
+                <DropdownMenuItem onClick={openGallery} className="cursor-pointer rounded-lg">
+                  <Image className="w-4 h-4 mr-2" />
+                  Gallery
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={openFileExplorer} className="cursor-pointer rounded-lg">
+                  <File className="w-4 h-4 mr-2" />
+                  File
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={openCamera} className="cursor-pointer rounded-lg">
+                  <Camera className="w-4 h-4 mr-2" />
+                  Camera
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {/* Text input area */}
+            <div className="flex-1 relative">
+              {editingMessage && (
+                <div className="flex items-center gap-2 text-xs text-primary mb-2 font-medium bg-primary/10 px-3 py-1.5 rounded-lg">
+                  <span>Editing message</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      onCancelEdit?.();
+                      setMessage("");
+                    }}
+                    className="h-5 w-5 p-0 text-primary hover:text-primary/80"
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={
+                  editingMessage
+                    ? "Edit your message..."
+                    : currentMode === 'photo' 
+                    ? "Describe the image you want to generate..." 
+                    : currentMode === 'study'
+                    ? "Ask me to explain any topic..."
+                    : currentMode === 'deep-search'
+                    ? "Ask for in-depth research..."
+                    : currentMode === 'code'
+                    ? "Ask for coding help..."
+                    : currentMode === 'creative'
+                    ? "Let's create something amazing..."
+                    : currentMode === 'analyze'
+                    ? "Share data or info to analyze..."
+                    : disabled ? "AI is thinking..." : "Message CoreAI..."
+                }
+                disabled={disabled}
+                className="min-h-[44px] max-h-32 resize-none bg-transparent border-0 shadow-none text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 py-2.5 px-0"
+                rows={1}
+              />
             </div>
-          )}
-          <Textarea
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              editingMessage
-                ? "Edit your message..."
-                : currentMode === 'photo' 
-                ? "Describe the image you want to generate..." 
-                : currentMode === 'study'
-                ? "Ask me to explain any topic..."
-                : currentMode === 'deep-search'
-                ? "Ask for in-depth research..."
-                : currentMode === 'code'
-                ? "Ask for coding help..."
-                : currentMode === 'creative'
-                ? "Let's create something amazing..."
-                : currentMode === 'analyze'
-                ? "Share data or info to analyze..."
-                : disabled ? "AI is thinking..." : "Message..."
-            }
-            disabled={disabled}
-            className="min-h-[40px] max-h-24 sm:max-h-32 resize-none bg-input border-border text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus:ring-primary"
-            rows={1}
-          />
-        </div>
-        
-        {/* Cancel edit button */}
-        {editingMessage && onCancelEdit && (
-          <Button 
-            type="button" 
-            size="icon"
-            onClick={() => {
-              onCancelEdit();
-              setMessage("");
-            }}
-            variant="ghost"
-            className="text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
-            title="Cancel edit"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        )}
-        
-        <Button 
-          type="button" 
-          size="icon"
-          onClick={handleVoiceRecording}
-          disabled={disabled || transcribing || !!editingMessage}
-          variant="ghost"
-          className={`active:scale-95 transition-transform ${isRecording ? "text-destructive hover:bg-destructive/10" : "text-muted-foreground hover:text-foreground"}`}
-          title={isRecording ? "Stop recording" : "Start voice recording"}
-        >
-          {isRecording ? <Square className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4" />}
-        </Button>
+            
+            {/* Action buttons */}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Voice button */}
+              <Button 
+                type="button" 
+                size="icon"
+                onClick={handleVoiceRecording}
+                disabled={disabled || transcribing || !!editingMessage}
+                variant="ghost"
+                className={`h-10 w-10 rounded-xl btn-press ${
+                  isRecording 
+                    ? "text-destructive bg-destructive/10 hover:bg-destructive/20" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                }`}
+                title={isRecording ? "Stop recording" : "Start voice recording"}
+              >
+                {isRecording ? (
+                  <Square className="w-4 h-4 animate-pulse" />
+                ) : (
+                  <Mic className="w-5 h-5" />
+                )}
+              </Button>
 
-        <Button 
-          type="submit" 
-          size="icon"
-          disabled={disabled || !message.trim()}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground active:scale-95 transition-transform shadow-sm"
-        >
-          <Send className="w-4 h-4" />
-        </Button>
-      </form>
+              {/* Send button */}
+              <Button 
+                type="submit" 
+                size="icon"
+                disabled={disabled || !message.trim()}
+                className="h-10 w-10 rounded-xl gradient-bg text-white hover:opacity-90 btn-press shadow-md disabled:opacity-50 disabled:shadow-none"
+              >
+                <Send className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        </form>
+        
+        {/* Powered by text */}
+        <p className="text-center text-xs text-muted-foreground mt-3">
+          Powered by <span className="font-medium gradient-text">CoreAI</span> • Fast, intelligent, reliable
+        </p>
+      </div>
     </div>
   );
 };

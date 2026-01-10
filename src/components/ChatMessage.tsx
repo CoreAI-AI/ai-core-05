@@ -1,6 +1,7 @@
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MessageActions } from './MessageActions';
 import { cn } from '@/lib/utils';
+import { Sparkles } from 'lucide-react';
 
 interface ChatMessageProps {
   message: string;
@@ -25,7 +26,7 @@ export const ChatMessage = ({
 }: ChatMessageProps) => {
   if (isUser) {
     return (
-      <div className="flex justify-end mb-4 group">
+      <div className="flex justify-end mb-6 group animate-fade-in">
         <div className="flex items-end gap-2 max-w-[85%] sm:max-w-[70%]">
           {/* Actions on hover */}
           <MessageActions 
@@ -33,20 +34,22 @@ export const ChatMessage = ({
             messageId={messageId}
             isUser={true} 
             onEdit={onEdit}
-            className="mb-2"
+            className="mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           />
           
-          <div className="bg-chat-user-bg text-chat-user-fg rounded-2xl px-4 py-3 shadow-sm">
-            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{message}</p>
-            {timestamp && (
-              <p className="text-xs opacity-70 mt-1.5">{timestamp}</p>
-            )}
+          <div className="relative">
+            <div className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-4 py-3 shadow-md">
+              <p className="text-sm leading-relaxed break-words whitespace-pre-wrap font-medium">{message}</p>
+              {timestamp && (
+                <p className="text-xs opacity-70 mt-2 font-normal">{timestamp}</p>
+              )}
+            </div>
           </div>
         </div>
         
         {/* User avatar */}
-        <div className="ml-2 flex items-end shrink-0">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center text-primary-foreground text-xs font-medium shadow-sm">
+        <div className="ml-3 flex items-end shrink-0">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 gradient-bg rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-md">
             U
           </div>
         </div>
@@ -55,21 +58,21 @@ export const ChatMessage = ({
   }
 
   return (
-    <div className="flex mb-4 group">
-      {/* AI avatar */}
-      <div className="mr-2 sm:mr-3 flex items-start shrink-0">
-        <div className="w-7 h-7 sm:w-8 sm:h-8 bg-muted rounded-full flex items-center justify-center text-muted-foreground text-xs font-medium shadow-sm">
-          AI
+    <div className="flex mb-6 group animate-fade-in">
+      {/* AI avatar with premium styling */}
+      <div className="mr-3 flex items-start shrink-0">
+        <div className="w-8 h-8 sm:w-9 sm:h-9 bg-card border border-border rounded-full flex items-center justify-center shadow-sm">
+          <Sparkles className="w-4 h-4 text-primary" />
         </div>
       </div>
       
-      <div className="flex-1 max-w-[85%] sm:max-w-[75%]">
-        <div className="bg-chat-ai-bg text-chat-ai-fg rounded-2xl px-4 py-3 shadow-sm">
+      <div className="flex-1 max-w-[85%] sm:max-w-[80%]">
+        <div className="bg-card text-card-foreground rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border border-border/50">
           {/* Display images if present */}
           {images && images.length > 0 && (
-            <div className="mb-3 space-y-2">
+            <div className="mb-4 space-y-3">
               {images.map((image: any, index: number) => (
-                <div key={index} className="rounded-xl overflow-hidden">
+                <div key={index} className="rounded-xl overflow-hidden shadow-md">
                   <img
                     src={image.image_url?.url || image.url}
                     alt={`Generated image ${index + 1}`}
@@ -87,22 +90,22 @@ export const ChatMessage = ({
           
           {/* Display text content or loading indicator */}
           {isLoading ? (
-            <div className="flex items-center gap-2 text-muted-foreground py-1">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.3s]" />
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce [animation-delay:-0.15s]" />
-                <div className="w-2 h-2 bg-current rounded-full animate-bounce" />
+            <div className="flex items-center gap-3 py-2">
+              <div className="flex gap-1.5">
+                <div className="w-2 h-2 bg-primary rounded-full typing-dot" />
+                <div className="w-2 h-2 bg-primary rounded-full typing-dot" />
+                <div className="w-2 h-2 bg-primary rounded-full typing-dot" />
               </div>
-              <span className="text-xs font-medium">Thinking...</span>
+              <span className="text-sm font-medium text-muted-foreground">Thinking...</span>
             </div>
           ) : message ? (
-            <div className="text-sm">
+            <div className="text-sm leading-relaxed">
               <MarkdownRenderer content={message} />
             </div>
           ) : null}
           
           {timestamp && (
-            <p className="text-xs opacity-60 mt-2">{timestamp}</p>
+            <p className="text-xs text-muted-foreground mt-3">{timestamp}</p>
           )}
         </div>
         
@@ -113,7 +116,7 @@ export const ChatMessage = ({
             messageId={messageId}
             isUser={false} 
             onRegenerate={onRegenerate}
-            className="mt-1 ml-1"
+            className="mt-2 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           />
         )}
       </div>
