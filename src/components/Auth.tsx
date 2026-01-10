@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Sparkles, Zap } from "lucide-react";
+import { Zap } from "lucide-react";
+import coreaiLogo from '@/assets/coreai-logo.png';
 
 const sb = supabase as any;
 
@@ -102,9 +103,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
       <div className="w-full max-w-md space-y-6">
         {/* Logo */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-16 h-16 gradient-bg rounded-2xl shadow-lg mb-4">
-            <Sparkles className="w-8 h-8 text-white" />
-          </div>
+          <img src={coreaiLogo} alt="CoreAI" className="w-16 h-16 rounded-full shadow-lg mx-auto mb-4" />
           <h1 className="text-3xl font-bold gradient-text">CoreAI</h1>
           <p className="text-muted-foreground">Intelligent Assistant</p>
         </div>

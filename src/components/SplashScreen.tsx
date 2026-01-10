@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import coreaiLogo from '@/assets/coreai-logo.png';
 
 interface SplashScreenProps {
   onComplete?: () => void;
@@ -28,12 +28,14 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           transition={{ duration: 0.5, ease: "easeOut" }}
         >
           {/* Glow effect */}
-          <div className="absolute inset-0 w-20 h-20 rounded-2xl gradient-bg blur-xl opacity-50" />
+          <div className="absolute inset-0 w-20 h-20 rounded-full blur-xl opacity-30 bg-primary" />
           
           {/* Main logo */}
-          <div className="relative w-20 h-20 gradient-bg rounded-2xl flex items-center justify-center shadow-2xl">
-            <Sparkles className="w-10 h-10 text-white" />
-          </div>
+          <img 
+            src={coreaiLogo} 
+            alt="CoreAI Logo" 
+            className="relative w-20 h-20 rounded-full shadow-2xl"
+          />
         </motion.div>
         
         {/* Brand name with gradient */}

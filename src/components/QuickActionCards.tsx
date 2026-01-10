@@ -39,66 +39,66 @@ export const QuickActionCards = ({
   onAction,
   onSkip
 }: QuickActionCardsProps) => {
-  return <div className="w-full max-w-2xl mx-auto">
+  return (
+    <div className="w-full max-w-xl mx-auto">
       {/* Welcome Header */}
-      <motion.div initial={{
-      opacity: 0,
-      y: -10
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} className="text-center mb-8">
-        
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        className="text-center mb-5"
+      >
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">
           How can I help you today?
         </h1>
-        <p className="text-muted-foreground text-sm sm:text-base">
-          Start a conversation or choose from quick actions below
+        <p className="text-muted-foreground text-xs sm:text-sm">
+          Start a conversation or choose from quick actions
         </p>
       </motion.div>
 
       {/* Cancel Button */}
-      {onSkip && <motion.div initial={{
-      opacity: 0
-    }} animate={{
-      opacity: 1
-    }} transition={{
-      delay: 0.3
-    }} className="flex justify-center mb-6">
-          <Button variant="ghost" size="sm" onClick={onSkip} className="gap-2 text-muted-foreground hover:text-foreground">
-            <X className="w-4 h-4" />
+      {onSkip && (
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ delay: 0.3 }} 
+          className="flex justify-center mb-4"
+        >
+          <Button variant="ghost" size="sm" onClick={onSkip} className="gap-2 text-muted-foreground hover:text-foreground text-xs h-8">
+            <X className="w-3.5 h-3.5" />
             Hide quick actions
           </Button>
-        </motion.div>}
+        </motion.div>
+      )}
       
       {/* Action Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {actions.map((action, index) => <motion.div key={action.id} initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.1 + index * 0.1,
-        duration: 0.4,
-        ease: "easeOut"
-      }}>
-            <Card className="relative overflow-hidden p-4 sm:p-5 bg-card hover:bg-accent/50 border border-border hover:border-primary/30 transition-all duration-300 group cursor-pointer hover:shadow-lg" onClick={() => onAction(action.prompt)}>
+      <div className="grid grid-cols-2 gap-2.5">
+        {actions.map((action, index) => (
+          <motion.div 
+            key={action.id} 
+            initial={{ opacity: 0, y: 15 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.05 + index * 0.05, duration: 0.3, ease: "easeOut" }}
+          >
+            <Card 
+              className="relative overflow-hidden p-3 bg-card hover:bg-accent/50 border border-border hover:border-primary/30 transition-all duration-300 group cursor-pointer hover:shadow-md" 
+              onClick={() => onAction(action.prompt)}
+            >
               {/* Gradient accent */}
-              <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${action.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+              <div className={`absolute top-0 left-0 w-0.5 h-full bg-gradient-to-b ${action.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
               
-              <div className="flex items-start gap-4">
-                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${action.gradient} flex items-center justify-center shrink-0 shadow-md group-hover:scale-105 transition-transform duration-300`}>
-                  <action.icon className="w-5 h-5 text-white" />
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${action.gradient} flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-300`}>
+                  <action.icon className="w-4 h-4 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground text-base mb-1 group-hover:text-primary transition-colors duration-200">{action.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{action.description}</p>
+                  <h3 className="font-medium text-foreground text-sm group-hover:text-primary transition-colors duration-200 truncate">{action.title}</h3>
+                  <p className="text-xs text-muted-foreground truncate">{action.description}</p>
                 </div>
               </div>
             </Card>
-          </motion.div>)}
+          </motion.div>
+        ))}
       </div>
-    </div>;
+    </div>
+  );
 };
