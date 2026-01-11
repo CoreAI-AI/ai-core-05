@@ -47,10 +47,10 @@ export const QuickActionCards = ({
         animate={{ opacity: 1, y: 0 }} 
         className="text-center mb-5"
       >
-        <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">
+        <h1 className="text-lg sm:text-xl font-semibold text-foreground mb-1">
           How can I help you today?
         </h1>
-        <p className="text-muted-foreground text-xs sm:text-sm">
+        <p className="text-muted-foreground text-xs">
           Start a conversation or choose from quick actions
         </p>
       </motion.div>
