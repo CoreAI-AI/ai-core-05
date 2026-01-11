@@ -640,8 +640,8 @@ const Index = () => {
                 <div className="flex-1 overflow-hidden flex flex-col relative">
                   <ScrollArea className="h-full flex-1" ref={scrollAreaRef}>
                   
-                  {/* Scroll to bottom button */}
-                  <ScrollToBottom scrollAreaRef={scrollAreaRef} />
+                  {/* Scroll to bottom button - only show when there are messages */}
+                  {messages.length > 0 && <ScrollToBottom scrollAreaRef={scrollAreaRef} />}
                     <div className="p-3 sm:p-6 pb-4 min-h-full flex flex-col">
                       <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
                         {messages.length === 0 ? <div className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12">
