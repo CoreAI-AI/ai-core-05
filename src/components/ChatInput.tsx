@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, Sparkles } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X } from "lucide-react";
+import coreaiLogo from "@/assets/coreai-logo.png";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import {
@@ -167,7 +168,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
       case 'analyze':
         return <BarChart3 className="h-5 w-5 text-cyan-500" />;
       default:
-        return <Sparkles className="h-5 w-5 text-primary" />;
+        return <img src={coreaiLogo} alt="CoreAI" className="h-5 w-5 rounded-full" />;
     }
   };
 
@@ -206,7 +207,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
               <DropdownMenuContent align="start" className="w-56 p-2">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">AI Modes</p>
                 <DropdownMenuItem onClick={() => handleModeSelect('normal')} className="cursor-pointer rounded-lg">
-                  <Sparkles className="w-4 h-4 mr-2 text-primary" />
+                  <img src={coreaiLogo} alt="CoreAI" className="w-4 h-4 mr-2 rounded-full" />
                   Normal Chat
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleModeSelect('deep-search')} className="cursor-pointer rounded-lg">
