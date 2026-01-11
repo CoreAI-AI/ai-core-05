@@ -168,7 +168,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
       case 'analyze':
         return <BarChart3 className="h-5 w-5 text-cyan-500" />;
       default:
-        return <img src={coreaiLogo} alt="CoreAI" className="h-5 w-5 rounded-full" />;
+        return <img src={coreaiLogo} alt="CoreAI" className="h-6 w-6 rounded-full" />;
     }
   };
 

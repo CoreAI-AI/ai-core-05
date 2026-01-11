@@ -286,12 +286,15 @@ export const ChatSidebar = ({
       {/* User Section & Sign Out */}
       <div className="p-3 border-t border-sidebar-border space-y-2">
         {user && (
-          <div className="px-3 py-2 rounded-xl bg-accent/50">
+          <button
+            onClick={onOpenSettings}
+            className="w-full px-3 py-2 rounded-xl bg-accent/50 text-left hover:bg-accent transition-colors cursor-pointer"
+          >
             <p className="text-xs text-muted-foreground">Signed in as</p>
             <p className="text-sm font-medium text-sidebar-foreground truncate">
               {user.email === 'demo@example.com' ? 'Demo User' : user.email}
             </p>
-          </div>
+          </button>
         )}
         <Button
           variant="ghost"
