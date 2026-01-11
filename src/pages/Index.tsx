@@ -54,16 +54,37 @@ const Index = () => {
   const [temporaryMessages, setTemporaryMessages] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
+  const [hasNewMessage, setHasNewMessage] = useState(false);
   const [editingMessage, setEditingMessage] = useState<{
     id: string;
     content: string;
     index: number;
   } | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const prevMessageCountRef = useRef(messages.length);
+
+  // Check if user is near bottom of scroll
+  const isNearBottom = useCallback(() => {
+    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    if (!viewport) return true;
+    const { scrollTop, scrollHeight, clientHeight } = viewport;
+    return scrollHeight - scrollTop - clientHeight < 100;
+  }, []);
+
+  // Track new messages when not at bottom
+  useEffect(() => {
+    if (messages.length > prevMessageCountRef.current && !isNearBottom()) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage && !lastMessage.is_user) {
+        setHasNewMessage(true);
+      }
+    }
+    prevMessageCountRef.current = messages.length;
+  }, [messages, isNearBottom]);
 
   // Auto-scroll to bottom when messages or typing indicator changes
   useEffect(() => {
-    if (scrollAreaRef.current) {
+    if (scrollAreaRef.current && isNearBottom()) {
       const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
       if (viewport) {
         requestAnimationFrame(() => {
@@ -71,7 +92,7 @@ const Index = () => {
         });
       }
     }
-  }, [messages, isAITyping]);
+  }, [messages, isAITyping, isNearBottom]);
 
   // Keyboard shortcut: Ctrl+B to toggle sidebar
   useEffect(() => {
@@ -641,7 +662,13 @@ const Index = () => {
                   <ScrollArea className="h-full flex-1" ref={scrollAreaRef}>
                   
                   {/* Scroll to bottom button - only show when there are messages */}
-                  {messages.length > 0 && <ScrollToBottom scrollAreaRef={scrollAreaRef} />}
+                  {messages.length > 0 && (
+                    <ScrollToBottom 
+                      scrollAreaRef={scrollAreaRef} 
+                      hasNewMessage={hasNewMessage}
+                      onScrollToBottom={() => setHasNewMessage(false)}
+                    />
+                  )}
                     <div className="p-3 sm:p-6 pb-4 min-h-full flex flex-col">
                       <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
                         {messages.length === 0 ? <div className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12">
