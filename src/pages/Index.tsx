@@ -8,6 +8,7 @@ import { QuickActionCards } from "@/components/QuickActionCards";
 import { ScrollToBottom } from "@/components/ScrollToBottom";
 import { SplashScreen } from "@/components/SplashScreen";
 import { PageSkeleton } from "@/components/SkeletonLoader";
+import { TypingWaveform } from "@/components/TypingWaveform";
 import { useAuth } from "@/hooks/useAuth";
 import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
@@ -716,7 +717,12 @@ const Index = () => {
                             {messages.map((message, index) => <ChatMessage key={message.id} message={message.content} messageId={message.id} isUser={message.is_user} timestamp={new Date(message.created_at).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit'
-                    })} images={message.images} isLoading={!message.is_user && !message.content && isAITyping && index === messages.length - 1} onEdit={message.is_user ? () => handleEditMessage(message.id, message.content, index) : undefined} onRegenerate={!message.is_user ? () => handleRegenerateResponse(message.id, index) : undefined} />)}
+                    })} images={message.images} onEdit={message.is_user ? () => handleEditMessage(message.id, message.content, index) : undefined} onRegenerate={!message.is_user ? () => handleRegenerateResponse(message.id, index) : undefined} />)}
+                            
+                            {/* Typing Waveform Animation */}
+                            <AnimatePresence>
+                              <TypingWaveform show={isAITyping} />
+                            </AnimatePresence>
                           </>}
                       </div>
                     </div>

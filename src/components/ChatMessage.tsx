@@ -10,7 +10,6 @@ interface ChatMessageProps {
   isUser: boolean;
   timestamp?: string;
   images?: any[];
-  isLoading?: boolean;
   onRegenerate?: () => void;
   onEdit?: () => void;
 }
@@ -21,7 +20,6 @@ export const ChatMessage = ({
   isUser, 
   timestamp, 
   images, 
-  isLoading,
   onRegenerate,
   onEdit
 }: ChatMessageProps) => {
@@ -127,17 +125,8 @@ export const ChatMessage = ({
             </div>
           )}
           
-          {/* Display text content or loading indicator */}
-          {isLoading ? (
-            <div className="flex items-center gap-3 py-2">
-              <div className="flex gap-1.5">
-                <div className="w-2 h-2 bg-primary rounded-full typing-dot" />
-                <div className="w-2 h-2 bg-primary rounded-full typing-dot" />
-                <div className="w-2 h-2 bg-primary rounded-full typing-dot" />
-              </div>
-              <span className="text-sm font-medium text-muted-foreground">Thinking...</span>
-            </div>
-          ) : message ? (
+          {/* Display text content */}
+          {message && (
             <motion.div 
               className="text-sm leading-relaxed"
               initial={{ opacity: 0 }}
@@ -146,7 +135,7 @@ export const ChatMessage = ({
             >
               <MarkdownRenderer content={message} />
             </motion.div>
-          ) : null}
+          )}
           
           {timestamp && (
             <p className="text-xs text-muted-foreground mt-3">{timestamp}</p>
@@ -154,7 +143,7 @@ export const ChatMessage = ({
         </motion.div>
         
         {/* Actions below message for AI */}
-        {!isLoading && message && (
+        {message && (
           <MessageActions 
             message={message} 
             messageId={messageId}
