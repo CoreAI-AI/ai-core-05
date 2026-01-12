@@ -15,6 +15,7 @@ export interface UserSettings {
   textToSpeechEnabled: boolean;
   selectedVoice: string;
   speechRate: number;
+  typingSoundEnabled: boolean;
   // Data & History
   autoSaveConversations: boolean;
 }
@@ -31,6 +32,7 @@ const defaultSettings: UserSettings = {
   textToSpeechEnabled: false,
   selectedVoice: '',
   speechRate: 1,
+  typingSoundEnabled: true,
   autoSaveConversations: true,
 };
 
