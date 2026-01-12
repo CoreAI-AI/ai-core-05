@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Zap } from "lucide-react";
+import { motion } from "framer-motion";
 import coreaiLogo from '@/assets/coreai-logo.png';
 
 const sb = supabase as any;
@@ -100,13 +101,30 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Logo */}
-        <div className="text-center space-y-2">
-          <img src={coreaiLogo} alt="CoreAI" className="w-16 h-16 rounded-full shadow-lg mx-auto mb-4" />
+      <motion.div 
+        className="w-full max-w-md space-y-6"
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        {/* Logo with animation */}
+        <motion.div 
+          className="text-center space-y-2"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
+          <motion.img 
+            src={coreaiLogo} 
+            alt="CoreAI" 
+            className="w-20 h-20 rounded-full shadow-lg mx-auto mb-4 ring-4 ring-primary/20"
+            initial={{ rotate: -180, scale: 0 }}
+            animate={{ rotate: 0, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          />
           <h1 className="text-3xl font-bold gradient-text">CoreAI</h1>
           <p className="text-muted-foreground">Intelligent Assistant</p>
-        </div>
+        </motion.div>
 
         <Card className="border-border/50 shadow-xl">
           <CardHeader className="text-center pb-4">
@@ -177,7 +195,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
             </Button>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
     </div>
   );
 };
