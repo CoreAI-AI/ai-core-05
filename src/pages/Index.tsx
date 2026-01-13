@@ -12,7 +12,7 @@ import { TypingWaveform } from "@/components/TypingWaveform";
 import { useAuth } from "@/hooks/useAuth";
 import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
-import { useTypingSound } from "@/hooks/useTypingSound";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { X, PanelLeft, Users, Timer, ImageIcon } from "lucide-react";
@@ -48,9 +48,6 @@ const Index = () => {
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [isLoading, setIsLoading] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
-  
-  // Typing sound effect
-  useTypingSound(isAITyping || isLoading, settings.typingSoundEnabled);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
