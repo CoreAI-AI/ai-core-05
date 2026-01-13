@@ -378,19 +378,6 @@ export const Settings = ({ user }: SettingsProps) => {
               />
             </div>
 
-            <Separator />
-
-            {/* Typing Sound Effect */}
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <Label className="text-sm">Typing Sound Effect</Label>
-                <p className="text-xs text-muted-foreground">Play sound while AI is typing</p>
-              </div>
-              <Switch
-                checked={localSettings.typingSoundEnabled}
-                onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, typingSoundEnabled: checked }))}
-              />
-            </div>
 
             {localSettings.textToSpeechEnabled && (
               <>
