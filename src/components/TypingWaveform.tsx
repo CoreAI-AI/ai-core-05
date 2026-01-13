@@ -33,11 +33,37 @@ export const TypingWaveform = ({ show }: TypingWaveformProps) => {
       </motion.div>
       
       <motion.div 
-        className="bg-card text-card-foreground rounded-2xl rounded-tl-md px-5 py-4 shadow-sm border border-border/50"
+        className="relative bg-card text-card-foreground rounded-2xl rounded-tl-md px-5 py-4 shadow-sm border border-border/50 overflow-visible"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.25, delay: 0.15 }}
       >
+        {/* Pulsing background glow */}
+        <motion.div
+          className="absolute -inset-2 rounded-3xl bg-primary/20 blur-xl -z-10"
+          animate={{
+            opacity: [0.3, 0.6, 0.3],
+            scale: [0.95, 1.05, 0.95],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute -inset-1 rounded-2xl bg-primary/10 blur-md -z-10"
+          animate={{
+            opacity: [0.4, 0.7, 0.4],
+            scale: [0.98, 1.02, 0.98],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.2,
+          }}
+        />
         <div className="flex items-center gap-4">
           {/* Waveform bars */}
           <div className="flex items-center gap-1 h-8">
