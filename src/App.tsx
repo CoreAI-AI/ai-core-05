@@ -1,21 +1,10 @@
 import { Toaster } from "@/components/ui/toaster";
-import ProjectDetails from "./pages/ProjectDetails";
-import GroupChats from "./pages/GroupChats";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
-import Index from "./pages/Index";
-import Photos from "./pages/Photos";
-import ImagesSection from "./pages/ImagesSection";
-import Documents from "./pages/Documents";
-import Notes from "./pages/Notes";
-import Privacy from "./pages/Privacy";
-import Admin from "./pages/Admin";
-import Tools from "./pages/Tools";
-import Projects from "./pages/Projects";
-import NotFound from "./pages/NotFound";
+import { AnimatedRoutes } from "./components/AnimatedRoutes";
 
 const queryClient = new QueryClient();
 
@@ -31,21 +20,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/photos" element={<Photos />} />
-            <Route path="/images" element={<ImagesSection />} />
-            <Route path="/tools" element={<Tools />} />
-            <Route path="/documents" element={<Documents />} />
-            <Route path="/notes" element={<Notes />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/admin" element={<Admin />} />
-            <Route path="/projects" element={<Projects />} />
-            <Route path="/projects/:projectId" element={<ProjectDetails />} />
-            <Route path="/group-chats" element={<GroupChats />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AnimatedRoutes />
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
