@@ -31,7 +31,7 @@ export const ChatMessage = ({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
       >
-        <div className="flex items-end gap-2 max-w-[85%] sm:max-w-[75%]">
+        <div className="flex items-end gap-2 max-w-[95%] sm:max-w-[90%] lg:max-w-[85%]">
           {/* Actions on hover */}
           <MessageActions 
             message={message} 
@@ -41,14 +41,14 @@ export const ChatMessage = ({
             className="mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           />
           
-          <div className="relative">
+          <div className="relative min-w-0 flex-1">
             <motion.div 
               className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-4 py-3 shadow-md"
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.2, delay: 0.1 }}
             >
-              <p className="text-sm leading-relaxed break-words whitespace-pre-wrap">{message}</p>
+              <p className="text-sm leading-relaxed break-words whitespace-pre-wrap overflow-wrap-anywhere">{message}</p>
               {timestamp && (
                 <p className="text-xs opacity-70 mt-2">{timestamp}</p>
               )}
@@ -92,7 +92,7 @@ export const ChatMessage = ({
         />
       </motion.div>
       
-      <div className="flex-1 max-w-[85%] sm:max-w-[80%]">
+      <div className="flex-1 min-w-0 max-w-[95%] sm:max-w-[92%] lg:max-w-[88%]">
         <motion.div 
           className="bg-card text-card-foreground rounded-2xl rounded-tl-md px-4 py-3 shadow-sm border border-border/50"
           initial={{ scale: 0.9, opacity: 0 }}
@@ -128,12 +128,12 @@ export const ChatMessage = ({
           {/* Display text content */}
           {message && (
             <motion.div 
-              className="text-sm leading-relaxed"
+              className="text-sm leading-relaxed overflow-hidden"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.2 }}
             >
-              <MarkdownRenderer content={message} />
+              <MarkdownRenderer content={message} className="break-words [overflow-wrap:anywhere]" />
             </motion.div>
           )}
           
