@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { PageTransition } from './PageTransition';
+import { useSwipeBack } from '@/hooks/useSwipeBack';
 import Index from '@/pages/Index';
 import Photos from '@/pages/Photos';
 import ImagesSection from '@/pages/ImagesSection';
@@ -16,6 +17,9 @@ import NotFound from '@/pages/NotFound';
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
+  
+  // Enable swipe-back gesture on mobile
+  useSwipeBack({ threshold: 80, edgeWidth: 25 });
 
   return (
     <AnimatePresence mode="wait">
