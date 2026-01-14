@@ -6,39 +6,42 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
+
 interface QuickActionCardsProps {
   onAction: (prompt: string) => void;
   onSkip?: () => void;
 }
+
 const actions = [{
   id: "shopping",
   icon: ShoppingCart,
-  title: "Shopping Research",
-  description: "Find the best deals and product comparisons",
+  title: "Shopping",
+  description: "Best deals & products",
   prompt: "Help me with shopping research. I want to find the best products and deals for my needs.",
   gradient: "from-orange-500 to-pink-500"
 }, {
   id: "deep-search",
   icon: Search,
   title: "Deep Search",
-  description: "In-depth research on any topic",
+  description: "In-depth research",
   prompt: "Perform a deep search and provide comprehensive information on a topic I'm interested in.",
   gradient: "from-blue-500 to-cyan-500"
 }, {
   id: "financial",
   icon: TrendingUp,
-  title: "Financial Research",
-  description: "Market analysis and financial insights",
+  title: "Financial",
+  description: "Market insights",
   prompt: "Help me with financial research. Provide market analysis and investment insights.",
   gradient: "from-green-500 to-emerald-500"
 }, {
   id: "news",
   icon: Newspaper,
   title: "Today News",
-  description: "Get the latest news and updates",
+  description: "Latest updates",
   prompt: "Give me today's top news and important updates from around the world.",
   gradient: "from-purple-500 to-violet-500"
 }];
+
 export const QuickActionCards = ({
   onAction,
   onSkip
@@ -52,18 +55,21 @@ export const QuickActionCards = ({
     transcribe,
     reset
   } = useVoiceRecorder();
+
   const handleSend = () => {
     if (message.trim()) {
       onAction(message.trim());
       setMessage("");
     }
   };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
+
   const handleVoiceRecording = async () => {
     if (isRecording) {
       stopRecording();
@@ -77,78 +83,121 @@ export const QuickActionCards = ({
       await startRecording();
     }
   };
-  return <div className="w-full max-w-xl mx-auto">
-      {/* Welcome Header */}
-      <motion.div initial={{
-      opacity: 0,
-      y: -10
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} className="text-center mb-5">
-        <h1 className="text-lg sm:text-xl font-semibold text-foreground mb-1">
-          How can I help you today?
+
+  return (
+    <div className="w-full max-w-md mx-auto px-2">
+      {/* Welcome Header - Compact */}
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        className="text-center mb-3"
+      >
+        <h1 className="text-base sm:text-lg font-semibold text-foreground">
+          How can I help you?
         </h1>
-        <p className="text-muted-foreground text-xs">
-          Start a conversation or choose from quick actions
-        </p>
       </motion.div>
 
-      {/* Quick Input with Mic and Send */}
-      <motion.div initial={{
-      opacity: 0,
-      y: 10
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} transition={{
-      delay: 0.1
-    }} className="mb-4">
-        
-      </motion.div>
-
-      {/* Cancel Button */}
-      {onSkip && <motion.div initial={{
-      opacity: 0
-    }} animate={{
-      opacity: 1
-    }} transition={{
-      delay: 0.2
-    }} className="flex justify-center mb-4">
-          <Button variant="ghost" size="sm" onClick={onSkip} className="gap-2 text-muted-foreground hover:text-foreground text-xs h-8">
-            <X className="w-3.5 h-3.5" />
-            Hide quick actions
+      {/* Quick Input with Mic and Send - Compact */}
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }} 
+        animate={{ opacity: 1, y: 0 }} 
+        transition={{ delay: 0.1 }} 
+        className="mb-3"
+      >
+        <div className="flex items-center gap-1 bg-card border border-border rounded-xl p-1 shadow-sm focus-within:border-primary/50 transition-all duration-200">
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your message..."
+            className="min-h-[36px] max-h-20 resize-none bg-transparent border-0 shadow-none text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 py-2 px-2 flex-1"
+            rows={1}
+          />
+          
+          {/* Mic Button */}
+          <Button
+            type="button"
+            size="icon"
+            onClick={handleVoiceRecording}
+            disabled={transcribing}
+            variant="ghost"
+            className={`h-8 w-8 rounded-lg btn-press shrink-0 ${
+              isRecording
+                ? "text-destructive bg-destructive/10 hover:bg-destructive/20"
+                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+            }`}
+            title={isRecording ? "Stop recording" : "Start voice recording"}
+          >
+            {isRecording ? (
+              <Square className="w-3.5 h-3.5 animate-pulse" />
+            ) : (
+              <Mic className="w-3.5 h-3.5" />
+            )}
           </Button>
-        </motion.div>}
+
+          {/* Send Button */}
+          <Button
+            type="button"
+            size="icon"
+            onClick={handleSend}
+            disabled={!message.trim()}
+            className="h-8 w-8 rounded-lg gradient-bg text-white hover:opacity-90 btn-press shadow-sm disabled:opacity-50 disabled:shadow-none shrink-0"
+          >
+            <Send className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+      </motion.div>
+
+      {/* Cancel Button - Compact */}
+      {onSkip && (
+        <motion.div 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ delay: 0.15 }} 
+          className="flex justify-center mb-2"
+        >
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onSkip} 
+            className="gap-1.5 text-muted-foreground hover:text-foreground text-xs h-7 px-2"
+          >
+            <X className="w-3 h-3" />
+            Hide
+          </Button>
+        </motion.div>
+      )}
       
-      {/* Action Cards Grid */}
-      <div className="grid grid-cols-2 gap-2.5">
-        {actions.map((action, index) => <motion.div key={action.id} initial={{
-        opacity: 0,
-        y: 15
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.15 + index * 0.05,
-        duration: 0.3,
-        ease: "easeOut"
-      }}>
-            <Card className="relative overflow-hidden p-3 bg-card hover:bg-accent/50 border border-border hover:border-primary/30 transition-all duration-300 group cursor-pointer hover:shadow-md" onClick={() => onAction(action.prompt)}>
-              {/* Gradient accent */}
-              <div className={`absolute top-0 left-0 w-0.5 h-full bg-gradient-to-b ${action.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-              
-              <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${action.gradient} flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform duration-300`}>
-                  <action.icon className="w-4 h-4 text-white" />
+      {/* Action Cards Grid - Compact */}
+      <div className="grid grid-cols-2 gap-2">
+        {actions.map((action, index) => (
+          <motion.div 
+            key={action.id} 
+            initial={{ opacity: 0, y: 10 }} 
+            animate={{ opacity: 1, y: 0 }} 
+            transition={{ delay: 0.1 + index * 0.03, duration: 0.25, ease: "easeOut" }}
+          >
+            <Card 
+              className="relative overflow-hidden p-2 bg-card hover:bg-accent/50 border border-border hover:border-primary/30 transition-all duration-200 group cursor-pointer active:scale-[0.98]" 
+              onClick={() => onAction(action.prompt)}
+            >
+              <div className="flex items-center gap-2">
+                <div className={`w-7 h-7 rounded-md bg-gradient-to-br ${action.gradient} flex items-center justify-center shrink-0`}>
+                  <action.icon className="w-3.5 h-3.5 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-foreground text-sm group-hover:text-primary transition-colors duration-200 truncate">{action.title}</h3>
-                  <p className="text-xs text-muted-foreground truncate">{action.description}</p>
+                  <h3 className="font-medium text-foreground text-xs group-hover:text-primary transition-colors truncate">
+                    {action.title}
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {action.description}
+                  </p>
                 </div>
               </div>
             </Card>
-          </motion.div>)}
+          </motion.div>
+        ))}
       </div>
-    </div>;
+    </div>
+  );
 };
