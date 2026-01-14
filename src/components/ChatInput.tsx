@@ -5,29 +5,33 @@ import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus,
 import coreaiLogo from "@/assets/coreai-logo.png";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { chatMessageSchema, validateFile, sanitizeInput } from "@/lib/validation";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { useIsMobile } from "@/hooks/use-mobile";
-
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   onFileSelect?: (file: File) => void;
   onModeChange?: (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze') => void;
-  editingMessage?: { id: string; content: string; index: number } | null;
+  editingMessage?: {
+    id: string;
+    content: string;
+    index: number;
+  } | null;
   onCancelEdit?: () => void;
 }
-
-export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange, editingMessage, onCancelEdit }: ChatInputProps) => {
+export const ChatInput = ({
+  onSendMessage,
+  disabled,
+  onFileSelect,
+  onModeChange,
+  editingMessage,
+  onCancelEdit
+}: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const isMobile = useIsMobile();
-  
+
   // Populate message when editing
   useEffect(() => {
     if (editingMessage) {
@@ -37,14 +41,13 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
   const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
-  
   const {
     isRecording,
     transcribing,
     startRecording,
     stopRecording,
     transcribe,
-    reset,
+    reset
   } = useVoiceRecorder();
 
   // Special quick mode actions for mobile (sends prompt directly)
@@ -52,7 +55,6 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
     onSendMessage(prompt);
     toast.success(`${modeName} activated!`);
   };
-
   const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze') => {
     setCurrentMode(mode);
     if (onModeChange) {
@@ -69,7 +71,6 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
     };
     toast.success(`${modeNames[mode]} activated!`);
   };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || disabled) return;
@@ -77,7 +78,9 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
     // Validate and sanitize message
     try {
       const sanitized = sanitizeInput(message);
-      chatMessageSchema.parse({ content: sanitized });
+      chatMessageSchema.parse({
+        content: sanitized
+      });
       onSendMessage(sanitized);
       setMessage("");
     } catch (error) {
@@ -88,14 +91,12 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
       }
     }
   };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
   };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && onFileSelect) {
@@ -111,11 +112,9 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
       }
     }
   };
-
   const openGallery = () => {
     fileInputRef.current?.click();
   };
-
   const openCamera = async () => {
     try {
       const image = await CapCamera.getPhoto({
@@ -126,14 +125,13 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
         saveToGallery: false,
         correctOrientation: true
       });
-
       if (image.dataUrl && onFileSelect) {
         const response = await fetch(image.dataUrl);
         const blob = await response.blob();
         const timestamp = Date.now();
         const fileObj = Object.assign(blob, {
           name: `camera-${timestamp}.jpg`,
-          lastModified: timestamp,
+          lastModified: timestamp
         }) as File;
         onFileSelect(fileObj);
       }
@@ -142,11 +140,9 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
       toast.error('Camera access denied. Please allow camera permissions.');
     }
   };
-
   const openFileExplorer = () => {
     anyFileInputRef.current?.click();
   };
-
   const handleVoiceRecording = async () => {
     if (isRecording) {
       stopRecording();
@@ -160,7 +156,6 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
       await startRecording();
     }
   };
-
   const getModeIcon = () => {
     switch (currentMode) {
       case 'deep-search':
@@ -179,22 +174,9 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
         return <img src={coreaiLogo} alt="CoreAI" className="h-6 w-6 rounded-full" />;
     }
   };
-
-  return (
-    <div className="border-t border-border bg-background/80 backdrop-blur-xl p-2 sm:p-4">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="hidden"
-      />
-      <input
-        ref={anyFileInputRef}
-        type="file"
-        onChange={handleFileChange}
-        className="hidden"
-      />
+  return <div className="border-t border-border bg-background/80 backdrop-blur-xl p-2 sm:p-4">
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+      <input ref={anyFileInputRef} type="file" onChange={handleFileChange} className="hidden" />
       
       <div className="max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="relative">
@@ -203,51 +185,32 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
             {/* Mode selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  type="button" 
-                  size="icon" 
-                  variant="ghost"
-                  className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent shrink-0 btn-press"
-                >
+                <Button type="button" size="icon" variant="ghost" className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent shrink-0 btn-press">
                   {getModeIcon()}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56 p-2 max-h-[70vh] overflow-y-auto">
                 {/* Mobile-only Quick Modes */}
-                {isMobile && (
-                  <>
+                {isMobile && <>
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Quick Modes</p>
-                    <DropdownMenuItem 
-                      onClick={() => handleQuickMode("Help me with shopping research. I want to find the best products and deals for my needs.", "Shopping Mode")} 
-                      className="cursor-pointer rounded-lg"
-                    >
+                    <DropdownMenuItem onClick={() => handleQuickMode("Help me with shopping research. I want to find the best products and deals for my needs.", "Shopping Mode")} className="cursor-pointer rounded-lg">
                       <ShoppingCart className="w-4 h-4 mr-2 text-orange-500" />
                       Shopping Mode
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleQuickMode("Help me with financial research. Provide market analysis and investment insights.", "Financial Mode")} 
-                      className="cursor-pointer rounded-lg"
-                    >
+                    <DropdownMenuItem onClick={() => handleQuickMode("Help me with financial research. Provide market analysis and investment insights.", "Financial Mode")} className="cursor-pointer rounded-lg">
                       <TrendingUp className="w-4 h-4 mr-2 text-green-500" />
                       Financial Mode
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleQuickMode("Help me with beauty and skincare advice. Provide product recommendations and tips.", "Beauty Mode")} 
-                      className="cursor-pointer rounded-lg"
-                    >
+                    <DropdownMenuItem onClick={() => handleQuickMode("Help me with beauty and skincare advice. Provide product recommendations and tips.", "Beauty Mode")} className="cursor-pointer rounded-lg">
                       <Sparkles className="w-4 h-4 mr-2 text-pink-500" />
                       Beauty Mode
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => handleQuickMode("Give me today's top news and important updates from around the world.", "Today News")} 
-                      className="cursor-pointer rounded-lg"
-                    >
+                    <DropdownMenuItem onClick={() => handleQuickMode("Give me today's top news and important updates from around the world.", "Today News")} className="cursor-pointer rounded-lg">
                       <Newspaper className="w-4 h-4 mr-2 text-purple-500" />
                       Today News
                     </DropdownMenuItem>
                     <div className="h-px bg-border my-2" />
-                  </>
-                )}
+                  </>}
                 
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">AI Modes</p>
                 <DropdownMenuItem onClick={() => handleModeSelect('normal')} className="cursor-pointer rounded-lg">
@@ -299,80 +262,25 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
             
             {/* Text input area */}
             <div className="flex-1 min-w-0 relative">
-              {editingMessage && (
-                <div className="flex items-center gap-2 text-xs text-primary mb-2 font-medium bg-primary/10 px-3 py-1.5 rounded-lg">
+              {editingMessage && <div className="flex items-center gap-2 text-xs text-primary mb-2 font-medium bg-primary/10 px-3 py-1.5 rounded-lg">
                   <span>Editing message</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      onCancelEdit?.();
-                      setMessage("");
-                    }}
-                    className="h-5 w-5 p-0 text-primary hover:text-primary/80"
-                  >
+                  <Button type="button" variant="ghost" size="sm" onClick={() => {
+                onCancelEdit?.();
+                setMessage("");
+              }} className="h-5 w-5 p-0 text-primary hover:text-primary/80">
                     <X className="w-3 h-3" />
                   </Button>
-                </div>
-              )}
-              <Textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={
-                  editingMessage
-                    ? "Edit your message..."
-                    : currentMode === 'photo' 
-                    ? "Describe the image you want to generate..." 
-                    : currentMode === 'study'
-                    ? "Ask me to explain any topic..."
-                    : currentMode === 'deep-search'
-                    ? "Ask for in-depth research..."
-                    : currentMode === 'code'
-                    ? "Ask for coding help..."
-                    : currentMode === 'creative'
-                    ? "Let's create something amazing..."
-                    : currentMode === 'analyze'
-                    ? "Share data or info to analyze..."
-                    : disabled ? "AI is thinking..." : "Message CoreAI..."
-                }
-                disabled={disabled}
-                className="min-h-[40px] sm:min-h-[44px] max-h-32 resize-none bg-transparent border-0 shadow-none text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 py-2 sm:py-2.5 px-0"
-                rows={1}
-              />
+                </div>}
+              <Textarea value={message} onChange={e => setMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder={editingMessage ? "Edit your message..." : currentMode === 'photo' ? "Describe the image you want to generate..." : currentMode === 'study' ? "Ask me to explain any topic..." : currentMode === 'deep-search' ? "Ask for in-depth research..." : currentMode === 'code' ? "Ask for coding help..." : currentMode === 'creative' ? "Let's create something amazing..." : currentMode === 'analyze' ? "Share data or info to analyze..." : disabled ? "AI is thinking..." : "Message CoreAI..."} disabled={disabled} className="min-h-[40px] sm:min-h-[44px] max-h-32 resize-none bg-transparent border-0 shadow-none text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 py-2 sm:py-2.5 px-0" rows={1} />
             </div>
             
             {/* Action buttons - always visible */}
             <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
               {/* Voice button */}
-              <Button 
-                type="button" 
-                size="icon"
-                onClick={handleVoiceRecording}
-                disabled={disabled || transcribing || !!editingMessage}
-                variant="ghost"
-                className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl btn-press ${
-                  isRecording 
-                    ? "text-destructive bg-destructive/10 hover:bg-destructive/20" 
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                }`}
-                title={isRecording ? "Stop recording" : "Start voice recording"}
-              >
-                {isRecording ? (
-                  <Square className="w-4 h-4 animate-pulse" />
-                ) : (
-                  <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
-                )}
-              </Button>
+              
 
               {/* Send button */}
-              <Button 
-                type="submit" 
-                size="icon"
-                disabled={disabled || !message.trim()}
-                className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl gradient-bg text-white hover:opacity-90 btn-press shadow-md disabled:opacity-50 disabled:shadow-none"
-              >
+              <Button type="submit" size="icon" disabled={disabled || !message.trim()} className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl gradient-bg text-white hover:opacity-90 btn-press shadow-md disabled:opacity-50 disabled:shadow-none">
                 <Send className="w-4 h-4" />
               </Button>
             </div>
@@ -384,6 +292,5 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
           Powered by <span className="font-medium gradient-text">CoreAI</span> • Fast, intelligent, reliable
         </p>
       </div>
-    </div>
-  );
+    </div>;
 };
