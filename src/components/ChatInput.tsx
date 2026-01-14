@@ -173,7 +173,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
   };
 
   return (
-    <div className="border-t border-border bg-background/80 backdrop-blur-xl p-3 sm:p-4">
+    <div className="border-t border-border bg-background/80 backdrop-blur-xl p-2 sm:p-4">
       <input
         ref={fileInputRef}
         type="file"
