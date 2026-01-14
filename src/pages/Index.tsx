@@ -12,7 +12,6 @@ import { TypingWaveform } from "@/components/TypingWaveform";
 import { useAuth } from "@/hooks/useAuth";
 import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { X, PanelLeft, Users, Timer, ImageIcon } from "lucide-react";
@@ -69,7 +68,11 @@ const Index = () => {
   const isNearBottom = useCallback(() => {
     const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
     if (!viewport) return true;
-    const { scrollTop, scrollHeight, clientHeight } = viewport;
+    const {
+      scrollTop,
+      scrollHeight,
+      clientHeight
+    } = viewport;
     return scrollHeight - scrollTop - clientHeight < 100;
   }, []);
 
@@ -645,10 +648,7 @@ const Index = () => {
                       <ImageIcon className="h-4 w-4" />
                       <span className="hidden sm:inline ml-2">Images</span>
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => navigate('/group-chats')} className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground">
-                      <Users className="h-4 w-4" />
-                      <span className="hidden sm:inline ml-2">Group</span>
-                    </Button>
+                    
                     <Button variant={temporaryMessages ? "secondary" : "ghost"} size="sm" onClick={() => {
                 setTemporaryMessages(!temporaryMessages);
                 toast.success(temporaryMessages ? "Temporary messages off" : "Temporary messages on");
@@ -664,13 +664,7 @@ const Index = () => {
                   <ScrollArea className="h-full flex-1" ref={scrollAreaRef}>
                   
                   {/* Scroll to bottom button - only show when there are messages */}
-                  {messages.length > 0 && (
-                    <ScrollToBottom 
-                      scrollAreaRef={scrollAreaRef} 
-                      hasNewMessage={hasNewMessage}
-                      onScrollToBottom={() => setHasNewMessage(false)}
-                    />
-                  )}
+                  {messages.length > 0 && <ScrollToBottom scrollAreaRef={scrollAreaRef} hasNewMessage={hasNewMessage} onScrollToBottom={() => setHasNewMessage(false)} />}
                     <div className="p-3 sm:p-6 pb-4 min-h-full flex flex-col">
                       <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
                         {messages.length === 0 ? <div className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12">
