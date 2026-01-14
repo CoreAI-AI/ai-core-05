@@ -1,11 +1,17 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ShoppingCart, Search, TrendingUp, Newspaper, X, Sparkles } from "lucide-react";
+import { ShoppingCart, Search, TrendingUp, Newspaper, X, Mic, Send, Square } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
+
 interface QuickActionCardsProps {
   onAction: (prompt: string) => void;
   onSkip?: () => void;
 }
+
 const actions = [{
   id: "shopping",
   icon: ShoppingCart,
@@ -35,10 +41,49 @@ const actions = [{
   prompt: "Give me today's top news and important updates from around the world.",
   gradient: "from-purple-500 to-violet-500"
 }];
+
 export const QuickActionCards = ({
   onAction,
   onSkip
 }: QuickActionCardsProps) => {
+  const [message, setMessage] = useState("");
+  const {
+    isRecording,
+    transcribing,
+    startRecording,
+    stopRecording,
+    transcribe,
+    reset,
+  } = useVoiceRecorder();
+
+  const handleSend = () => {
+    if (message.trim()) {
+      onAction(message.trim());
+      setMessage("");
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  };
+
+  const handleVoiceRecording = async () => {
+    if (isRecording) {
+      stopRecording();
+      const text = await transcribe();
+      if (text) {
+        setMessage(text);
+        toast.success("Voice transcribed!");
+      }
+      reset();
+    } else {
+      await startRecording();
+    }
+  };
+
   return (
     <div className="w-full max-w-xl mx-auto">
       {/* Welcome Header */}
@@ -55,12 +100,63 @@ export const QuickActionCards = ({
         </p>
       </motion.div>
 
+      {/* Quick Input with Mic and Send */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="mb-4"
+      >
+        <div className="flex items-end gap-1.5 bg-card border border-border rounded-2xl p-1.5 shadow-sm focus-within:border-primary/50 focus-within:shadow-md transition-all duration-200">
+          <Textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your message..."
+            className="min-h-[40px] max-h-24 resize-none bg-transparent border-0 shadow-none text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 py-2 px-3 flex-1"
+            rows={1}
+          />
+          
+          {/* Mic Button */}
+          <Button 
+            type="button" 
+            size="icon"
+            onClick={handleVoiceRecording}
+            disabled={transcribing}
+            variant="ghost"
+            className={`h-9 w-9 rounded-xl btn-press shrink-0 ${
+              isRecording 
+                ? "text-destructive bg-destructive/10 hover:bg-destructive/20" 
+                : "text-muted-foreground hover:text-foreground hover:bg-accent"
+            }`}
+            title={isRecording ? "Stop recording" : "Start voice recording"}
+          >
+            {isRecording ? (
+              <Square className="w-4 h-4 animate-pulse" />
+            ) : (
+              <Mic className="w-4 h-4" />
+            )}
+          </Button>
+
+          {/* Send Button */}
+          <Button 
+            type="button" 
+            size="icon"
+            onClick={handleSend}
+            disabled={!message.trim()}
+            className="h-9 w-9 rounded-xl gradient-bg text-white hover:opacity-90 btn-press shadow-md disabled:opacity-50 disabled:shadow-none shrink-0"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
+      </motion.div>
+
       {/* Cancel Button */}
       {onSkip && (
         <motion.div 
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
-          transition={{ delay: 0.3 }} 
+          transition={{ delay: 0.2 }} 
           className="flex justify-center mb-4"
         >
           <Button variant="ghost" size="sm" onClick={onSkip} className="gap-2 text-muted-foreground hover:text-foreground text-xs h-8">
@@ -77,7 +173,7 @@ export const QuickActionCards = ({
             key={action.id} 
             initial={{ opacity: 0, y: 15 }} 
             animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.05 + index * 0.05, duration: 0.3, ease: "easeOut" }}
+            transition={{ delay: 0.15 + index * 0.05, duration: 0.3, ease: "easeOut" }}
           >
             <Card 
               className="relative overflow-hidden p-3 bg-card hover:bg-accent/50 border border-border hover:border-primary/30 transition-all duration-300 group cursor-pointer hover:shadow-md" 
