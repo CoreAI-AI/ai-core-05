@@ -25,7 +25,7 @@ export const useAuth = () => {
       }
     );
 
-    // Get initial session
+    // Get initial session - require login if no session
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -35,6 +35,8 @@ export const useAuth = () => {
         setUser(session.user);
         setShowAuth(false);
       } else {
+        // No session - require login
+        setUser(null);
         setShowAuth(true);
       }
       
@@ -48,6 +50,7 @@ export const useAuth = () => {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
     setShowAuth(true);
     toast.success("Signed out successfully!");
   };

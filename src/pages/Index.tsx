@@ -123,9 +123,9 @@ const Index = () => {
     return <Auth onAuthSuccess={() => setShowAuth(false)} />;
   }
 
-  // If no user but not showing auth, we're in the process of auto-logging in
+  // If no user, show auth page
   if (!user) {
-    return <PageSkeleton />;
+    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
   }
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file);

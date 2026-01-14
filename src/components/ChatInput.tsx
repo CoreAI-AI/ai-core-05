@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { chatMessageSchema, validateFile, sanitizeInput } from "@/lib/validation";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -25,6 +26,7 @@ interface ChatInputProps {
 
 export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange, editingMessage, onCancelEdit }: ChatInputProps) => {
   const [message, setMessage] = useState("");
+  const isMobile = useIsMobile();
   
   // Populate message when editing
   useEffect(() => {
@@ -44,6 +46,12 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
     transcribe,
     reset,
   } = useVoiceRecorder();
+
+  // Special quick mode actions for mobile (sends prompt directly)
+  const handleQuickMode = (prompt: string, modeName: string) => {
+    onSendMessage(prompt);
+    toast.success(`${modeName} activated!`);
+  };
 
   const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze') => {
     setCurrentMode(mode);
@@ -204,7 +212,43 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
                   {getModeIcon()}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 p-2">
+              <DropdownMenuContent align="start" className="w-56 p-2 max-h-[70vh] overflow-y-auto">
+                {/* Mobile-only Quick Modes */}
+                {isMobile && (
+                  <>
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Quick Modes</p>
+                    <DropdownMenuItem 
+                      onClick={() => handleQuickMode("Help me with shopping research. I want to find the best products and deals for my needs.", "Shopping Mode")} 
+                      className="cursor-pointer rounded-lg"
+                    >
+                      <ShoppingCart className="w-4 h-4 mr-2 text-orange-500" />
+                      Shopping Mode
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleQuickMode("Help me with financial research. Provide market analysis and investment insights.", "Financial Mode")} 
+                      className="cursor-pointer rounded-lg"
+                    >
+                      <TrendingUp className="w-4 h-4 mr-2 text-green-500" />
+                      Financial Mode
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleQuickMode("Help me with beauty and skincare advice. Provide product recommendations and tips.", "Beauty Mode")} 
+                      className="cursor-pointer rounded-lg"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2 text-pink-500" />
+                      Beauty Mode
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleQuickMode("Give me today's top news and important updates from around the world.", "Today News")} 
+                      className="cursor-pointer rounded-lg"
+                    >
+                      <Newspaper className="w-4 h-4 mr-2 text-purple-500" />
+                      Today News
+                    </DropdownMenuItem>
+                    <div className="h-px bg-border my-2" />
+                  </>
+                )}
+                
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">AI Modes</p>
                 <DropdownMenuItem onClick={() => handleModeSelect('normal')} className="cursor-pointer rounded-lg">
                   <img src={coreaiLogo} alt="CoreAI" className="w-4 h-4 mr-2 rounded-full" />
