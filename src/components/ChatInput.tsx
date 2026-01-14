@@ -191,7 +191,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
       <div className="max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="relative">
           {/* Main input container */}
-          <div className="flex items-end gap-2 bg-card border border-border rounded-2xl p-2 shadow-sm focus-within:border-primary/50 focus-within:shadow-md transition-all duration-200">
+          <div className="flex items-end gap-1.5 sm:gap-2 bg-card border border-border rounded-2xl p-1.5 sm:p-2 shadow-sm focus-within:border-primary/50 focus-within:shadow-md transition-all duration-200">
             {/* Mode selector */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -199,7 +199,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
                   type="button" 
                   size="icon" 
                   variant="ghost"
-                  className="h-10 w-10 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent shrink-0 btn-press"
+                  className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent shrink-0 btn-press"
                 >
                   {getModeIcon()}
                 </Button>
@@ -254,7 +254,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
             </DropdownMenu>
             
             {/* Text input area */}
-            <div className="flex-1 relative">
+            <div className="flex-1 min-w-0 relative">
               {editingMessage && (
                 <div className="flex items-center gap-2 text-xs text-primary mb-2 font-medium bg-primary/10 px-3 py-1.5 rounded-lg">
                   <span>Editing message</span>
@@ -294,13 +294,13 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
                     : disabled ? "AI is thinking..." : "Message CoreAI..."
                 }
                 disabled={disabled}
-                className="min-h-[44px] max-h-32 resize-none bg-transparent border-0 shadow-none text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 py-2.5 px-0"
+                className="min-h-[40px] sm:min-h-[44px] max-h-32 resize-none bg-transparent border-0 shadow-none text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 py-2 sm:py-2.5 px-0"
                 rows={1}
               />
             </div>
             
-            {/* Action buttons */}
-            <div className="flex items-center gap-1 shrink-0">
+            {/* Action buttons - always visible */}
+            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
               {/* Voice button */}
               <Button 
                 type="button" 
@@ -308,7 +308,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
                 onClick={handleVoiceRecording}
                 disabled={disabled || transcribing || !!editingMessage}
                 variant="ghost"
-                className={`h-10 w-10 rounded-xl btn-press ${
+                className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl btn-press ${
                   isRecording 
                     ? "text-destructive bg-destructive/10 hover:bg-destructive/20" 
                     : "text-muted-foreground hover:text-foreground hover:bg-accent"
@@ -318,7 +318,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
                 {isRecording ? (
                   <Square className="w-4 h-4 animate-pulse" />
                 ) : (
-                  <Mic className="w-5 h-5" />
+                  <Mic className="w-4 h-4 sm:w-5 sm:h-5" />
                 )}
               </Button>
 
@@ -327,7 +327,7 @@ export const ChatInput = ({ onSendMessage, disabled, onFileSelect, onModeChange,
                 type="submit" 
                 size="icon"
                 disabled={disabled || !message.trim()}
-                className="h-10 w-10 rounded-xl gradient-bg text-white hover:opacity-90 btn-press shadow-md disabled:opacity-50 disabled:shadow-none"
+                className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl gradient-bg text-white hover:opacity-90 btn-press shadow-md disabled:opacity-50 disabled:shadow-none"
               >
                 <Send className="w-4 h-4" />
               </Button>
