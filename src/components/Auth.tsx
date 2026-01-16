@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Zap } from "lucide-react";
 import { motion } from "framer-motion";
@@ -19,7 +21,17 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load remembered email on mount
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('rememberedEmail');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +70,13 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         });
 
         if (error) throw error;
+
+        // Handle remember me
+        if (rememberMe) {
+          localStorage.setItem('rememberedEmail', email);
+        } else {
+          localStorage.removeItem('rememberedEmail');
+        }
 
         toast.success("Signed in successfully!");
         onAuthSuccess();
@@ -161,6 +180,22 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
                 minLength={6}
                 className="h-11 rounded-xl"
               />
+              {!isSignUp && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="rememberMe"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked === true)}
+                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                  />
+                  <Label
+                    htmlFor="rememberMe"
+                    className="text-sm text-muted-foreground cursor-pointer select-none"
+                  >
+                    Remember me
+                  </Label>
+                </div>
+              )}
               <Button type="submit" className="w-full h-11 rounded-xl gradient-bg text-white font-medium shadow-md btn-press" disabled={isLoading}>
                 {isLoading ? "Loading..." : (isSignUp ? "Create Account" : "Sign In")}
               </Button>
