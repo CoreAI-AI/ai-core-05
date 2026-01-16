@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, MessageSquare, Settings, LogOut, Trash2, Image, MoreVertical, FileText, FileDown, PanelLeftClose, FolderKanban, Pin, PinOff, Plus } from "lucide-react";
+import { Search, MessageSquare, Settings, Trash2, Image, MoreVertical, FileText, FileDown, PanelLeftClose, FolderKanban, Pin, PinOff, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -8,6 +8,7 @@ import { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import coreaiLogo from '@/assets/coreai-logo.png';
+import { AnimatedLogoutButton } from "./AnimatedLogoutButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -296,15 +297,10 @@ export const ChatSidebar = ({
             </p>
           </button>
         )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onSignOut}
-          className="w-full justify-start h-10 text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive btn-press rounded-xl"
-        >
-          <LogOut className="w-4 h-4 mr-2.5" />
-          {user?.email === 'demo@example.com' ? 'Exit Demo' : 'Sign Out'}
-        </Button>
+        <AnimatedLogoutButton 
+          onSignOut={onSignOut} 
+          isDemo={user?.email === 'demo@example.com'} 
+        />
       </div>
     </div>
   );
