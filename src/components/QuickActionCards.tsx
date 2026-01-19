@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShoppingCart, Search, TrendingUp, Newspaper, Image, MessageCircle, FileText, MoreHorizontal, Calendar, PenLine, Code, Sparkles, Brain, ImageIcon, X } from "lucide-react";
+import { ShoppingCart, Search, TrendingUp, Newspaper, Image, MessageCircle, FileText, MoreHorizontal, Calendar, PenLine, Code, Sparkles, Brain, ImageIcon, X, Send } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -160,14 +161,25 @@ export const QuickActionCards = ({
     title: string;
     options: string[];
   } | null>(null);
+  const [customInput, setCustomInput] = useState("");
 
   const handleActionClick = (action: { title: string; options: string[] }) => {
     setSelectedAction(action);
+    setCustomInput("");
   };
 
   const handleOptionClick = (option: string) => {
     onAction(option);
     setSelectedAction(null);
+    setCustomInput("");
+  };
+
+  const handleCustomSubmit = () => {
+    if (customInput.trim()) {
+      onAction(`${selectedAction?.title}: ${customInput.trim()}`);
+      setSelectedAction(null);
+      setCustomInput("");
+    }
   };
 
   return (
@@ -214,6 +226,28 @@ export const QuickActionCards = ({
                   {option}
                 </Button>
               ))}
+            </div>
+            
+            {/* Custom Input */}
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-xs text-muted-foreground mb-2">Or type your own:</p>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Type your request..."
+                  value={customInput}
+                  onChange={(e) => setCustomInput(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleCustomSubmit()}
+                  className="flex-1 h-9 text-sm"
+                />
+                <Button
+                  size="icon"
+                  className="h-9 w-9 shrink-0"
+                  onClick={handleCustomSubmit}
+                  disabled={!customInput.trim()}
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </motion.div>
         )}
