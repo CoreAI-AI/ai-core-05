@@ -52,6 +52,7 @@ const mainActions = [
     id: "create-image",
     icon: Image,
     title: "Create image",
+    placeholder: "Describe what image you want...",
     options: [
       "Generate a logo for my brand",
       "Create an illustration for my blog",
@@ -63,6 +64,7 @@ const mainActions = [
     id: "get-advice",
     icon: MessageCircle,
     title: "Get advice",
+    placeholder: "What do you need advice on...",
     options: [
       "Career guidance",
       "Relationship advice",
@@ -74,6 +76,7 @@ const mainActions = [
     id: "summarize",
     icon: FileText,
     title: "Summarize text",
+    placeholder: "Paste or describe the text to summarize...",
     options: [
       "Summarize an article",
       "Create meeting notes",
@@ -89,6 +92,7 @@ const moreActions = [
     id: "make-plan",
     icon: Calendar,
     title: "Make a plan",
+    placeholder: "What do you want to plan...",
     options: [
       "Plan a vacation trip",
       "Create a workout schedule",
@@ -100,6 +104,7 @@ const moreActions = [
     id: "help-write",
     icon: PenLine,
     title: "Help me write",
+    placeholder: "What do you want to write...",
     options: [
       "Write an email",
       "Draft a cover letter",
@@ -111,6 +116,7 @@ const moreActions = [
     id: "code",
     icon: Code,
     title: "Code",
+    placeholder: "Describe your coding task...",
     options: [
       "Debug my code",
       "Explain a concept",
@@ -122,6 +128,7 @@ const moreActions = [
     id: "surprise-me",
     icon: Sparkles,
     title: "Surprise me",
+    placeholder: "What kind of surprise...",
     options: [
       "Tell me a fun fact",
       "Share an interesting story",
@@ -133,6 +140,7 @@ const moreActions = [
     id: "brainstorm",
     icon: Brain,
     title: "Brainstorm",
+    placeholder: "What topic to brainstorm...",
     options: [
       "Business ideas",
       "Creative project concepts",
@@ -144,6 +152,7 @@ const moreActions = [
     id: "analyze-image",
     icon: ImageIcon,
     title: "Analyze image",
+    placeholder: "Describe what to analyze...",
     options: [
       "Describe what's in this image",
       "Extract text from image",
@@ -160,6 +169,7 @@ export const QuickActionCards = ({
   const [selectedAction, setSelectedAction] = useState<{
     title: string;
     options: string[];
+    placeholder?: string;
   } | null>(null);
   const [customInput, setCustomInput] = useState("");
 
@@ -233,7 +243,7 @@ export const QuickActionCards = ({
               <p className="text-xs text-muted-foreground mb-2">Or type your own:</p>
               <div className="flex gap-2">
                 <Input
-                  placeholder="Type your request..."
+                  placeholder={selectedAction.placeholder || "Type your request..."}
                   value={customInput}
                   onChange={(e) => setCustomInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleCustomSubmit()}
