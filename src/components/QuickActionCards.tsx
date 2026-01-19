@@ -78,15 +78,15 @@ export const QuickActionCards = ({
     }
   };
   return <div className="w-full max-w-md mx-auto px-2">
-      {/* Welcome Header - Compact */}
+      {/* Welcome Header - Centered like ChatGPT */}
       <motion.div initial={{
       opacity: 0,
       y: -10
     }} animate={{
       opacity: 1,
       y: 0
-    }} className="text-center mb-3">
-        <h1 className="text-base sm:text-lg font-semibold text-foreground">
+    }} className="text-center mb-6">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground">
           How can I help you?
         </h1>
       </motion.div>
