@@ -118,8 +118,8 @@ export const QuickActionCards = ({
           </Button>
         </motion.div>}
       
-      {/* Action Cards Grid - Compact */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* Action Cards Grid - Desktop Only */}
+      <div className="hidden sm:grid grid-cols-2 gap-2">
         {actions.map((action, index) => <motion.div key={action.id} initial={{
         opacity: 0,
         y: 10
