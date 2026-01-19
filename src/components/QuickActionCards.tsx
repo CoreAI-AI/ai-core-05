@@ -112,10 +112,7 @@ export const QuickActionCards = ({
     }} transition={{
       delay: 0.15
     }} className="flex justify-center mb-2">
-          <Button variant="ghost" size="sm" onClick={onSkip} className="gap-1.5 text-muted-foreground hover:text-foreground text-xs h-7 px-2">
-            <X className="w-3 h-3" />
-            Hide
-          </Button>
+          
         </motion.div>}
       
       {/* Action Cards Grid - Desktop Only */}
