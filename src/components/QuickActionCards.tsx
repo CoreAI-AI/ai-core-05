@@ -242,13 +242,27 @@ export const QuickActionCards = ({
             <div className="mt-3 pt-3 border-t border-border">
               <p className="text-xs text-muted-foreground mb-2">Or type your own:</p>
               <div className="flex gap-2">
-                <Input
-                  placeholder={selectedAction.placeholder || "Type your request..."}
-                  value={customInput}
-                  onChange={(e) => setCustomInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleCustomSubmit()}
-                  className="flex-1 h-9 text-sm"
-                />
+                <div className="relative flex-1">
+                  <AnimatePresence mode="wait">
+                    <motion.span
+                      key={selectedAction.placeholder}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm pointer-events-none"
+                      style={{ display: customInput ? 'none' : 'block' }}
+                    >
+                      {selectedAction.placeholder || "Type your request..."}
+                    </motion.span>
+                  </AnimatePresence>
+                  <Input
+                    value={customInput}
+                    onChange={(e) => setCustomInput(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleCustomSubmit()}
+                    className="flex-1 h-9 text-sm w-full"
+                  />
+                </div>
                 <Button
                   size="icon"
                   className="h-9 w-9 shrink-0"
