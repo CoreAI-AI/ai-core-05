@@ -4,9 +4,10 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 import coreaiLogo from '@/assets/coreai-logo.png';
 
-const MAX_COLLAPSED_LENGTH = 500;
+const MAX_COLLAPSED_LENGTH = 800;
 
 interface ChatMessageProps {
   message: string;
@@ -28,11 +29,14 @@ export const ChatMessage = ({
   onEdit
 }: ChatMessageProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const isLongMessage = message.length > MAX_COLLAPSED_LENGTH;
+  const isMobile = useIsMobile();
+  
+  // On mobile, always show full message. On desktop, truncate long messages
+  const shouldTruncate = !isMobile && message.length > MAX_COLLAPSED_LENGTH;
+  const isLongMessage = shouldTruncate;
   const displayMessage = isLongMessage && !isExpanded 
     ? message.slice(0, MAX_COLLAPSED_LENGTH) + '...' 
     : message;
-
   const hiddenChars = isLongMessage && !isExpanded ? message.length - MAX_COLLAPSED_LENGTH : 0;
 
   if (isUser) {
@@ -144,22 +148,30 @@ export const ChatMessage = ({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.2, delay: 0.15 }}
+              layout
             >
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={isExpanded ? 'expanded' : 'collapsed'}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  <MarkdownRenderer content={displayMessage} className="break-words [overflow-wrap:anywhere]" />
-                </motion.div>
-              </AnimatePresence>
+              <motion.div
+                initial={false}
+                animate={{ 
+                  height: 'auto',
+                  opacity: 1 
+                }}
+                transition={{ 
+                  height: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                  opacity: { duration: 0.2 }
+                }}
+                layout
+              >
+                <MarkdownRenderer content={displayMessage} className="break-words [overflow-wrap:anywhere]" />
+              </motion.div>
               {isLongMessage && (
-                <button
+                <motion.button
                   onClick={() => setIsExpanded(!isExpanded)}
                   className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 mt-2 transition-colors font-medium"
+                  layout
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.1 }}
                 >
                   {isExpanded ? (
                     <>Show less <ChevronUp className="h-3 w-3" /></>
@@ -170,7 +182,7 @@ export const ChatMessage = ({
                       <ChevronDown className="h-3 w-3" />
                     </>
                   )}
-                </button>
+                </motion.button>
               )}
             </motion.div>
           )}
