@@ -32,6 +32,9 @@ export const ChatMessage = ({
   const displayMessage = isLongMessage && !isExpanded 
     ? message.slice(0, MAX_COLLAPSED_LENGTH) + '...' 
     : message;
+
+  const hiddenChars = isLongMessage && !isExpanded ? message.length - MAX_COLLAPSED_LENGTH : 0;
+
   if (isUser) {
     return (
       <motion.div 
@@ -57,37 +60,25 @@ export const ChatMessage = ({
               animate={{ scale: 1 }}
               transition={{ duration: 0.15, delay: 0.05 }}
             >
-              <p className="text-sm leading-snug break-words whitespace-pre-wrap overflow-wrap-anywhere">{displayMessage}</p>
-              {isLongMessage && (
-                <button
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="flex items-center gap-1 text-xs text-primary-foreground/80 hover:text-primary-foreground mt-1 transition-colors"
-                >
-                  {isExpanded ? (
-                    <>Show less <ChevronUp className="h-3 w-3" /></>
-                  ) : (
-                    <>Show more <ChevronDown className="h-3 w-3" /></>
-                  )}
-                </button>
-              )}
+              <p className="text-sm leading-snug break-words whitespace-pre-wrap overflow-wrap-anywhere">{message}</p>
               {timestamp && (
                 <p className="text-[10px] opacity-70 mt-1">{timestamp}</p>
               )}
             </motion.div>
           </div>
+          
+          {/* User avatar with logo */}
+          <motion.div 
+            className="flex items-end shrink-0"
+            initial={{ scale: 0, rotate: -30 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ duration: 0.2, delay: 0.1 }}
+          >
+            <div className="w-7 h-7 gradient-bg rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ring-1 ring-background">
+              U
+            </div>
+          </motion.div>
         </div>
-        
-        {/* User avatar with logo */}
-        <motion.div 
-          className="ml-2 flex items-end shrink-0"
-          initial={{ scale: 0, rotate: -30 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ duration: 0.2, delay: 0.1 }}
-        >
-          <div className="w-7 h-7 gradient-bg rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ring-1 ring-background">
-            U
-          </div>
-        </motion.div>
       </motion.div>
     );
   }
@@ -173,7 +164,11 @@ export const ChatMessage = ({
                   {isExpanded ? (
                     <>Show less <ChevronUp className="h-3 w-3" /></>
                   ) : (
-                    <>Show more <ChevronDown className="h-3 w-3" /></>
+                    <>
+                      Show more 
+                      <span className="text-muted-foreground font-normal">({hiddenChars.toLocaleString()} more chars)</span>
+                      <ChevronDown className="h-3 w-3" />
+                    </>
                   )}
                 </button>
               )}
