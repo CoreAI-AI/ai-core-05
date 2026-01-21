@@ -3,6 +3,8 @@ import { MessageActions } from './MessageActions';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import coreaiLogo from '@/assets/coreai-logo.png';
+import { useState } from 'react';
+import { FullScreenImageViewer } from './FullScreenImageViewer';
 
 interface ChatMessageProps {
   message: string;
@@ -10,6 +12,7 @@ interface ChatMessageProps {
   isUser: boolean;
   timestamp?: string;
   images?: any[];
+  isGeneratingImage?: boolean;
   onRegenerate?: () => void;
   onEdit?: () => void;
 }
@@ -20,9 +23,11 @@ export const ChatMessage = ({
   isUser, 
   timestamp, 
   images, 
+  isGeneratingImage,
   onRegenerate,
   onEdit
 }: ChatMessageProps) => {
+  const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
   if (isUser) {
     return (
@@ -103,26 +108,38 @@ export const ChatMessage = ({
           {/* Display images if present */}
           {images && images.length > 0 && (
             <div className="mb-3 space-y-2">
-              {images.map((image: any, index: number) => (
-                <motion.div 
-                  key={index} 
-                  className="rounded-lg overflow-hidden shadow-sm"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.2, delay: 0.15 + index * 0.05 }}
-                >
-                  <img
-                    src={image.image_url?.url || image.url}
-                    alt={`Generated image ${index + 1}`}
-                    className="w-full h-auto max-w-sm rounded-lg"
-                    loading="lazy"
-                    onError={(e) => {
-                      console.error('Error loading image:', e);
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </motion.div>
-              ))}
+              {images.map((image: any, index: number) => {
+                const imageUrl = image.image_url?.url || image.url;
+                return (
+                  <motion.div 
+                    key={index} 
+                    className="rounded-lg overflow-hidden shadow-sm cursor-pointer group/image relative"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
+                    onClick={() => setFullScreenImage(imageUrl)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={`Generated image ${index + 1}`}
+                      className="w-full h-auto max-w-sm rounded-lg transition-all duration-300"
+                      loading="lazy"
+                      onError={(e) => {
+                        console.error('Error loading image:', e);
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    {/* Hover overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-colors duration-200 flex items-center justify-center">
+                      <span className="text-white text-sm font-medium opacity-0 group-hover/image:opacity-100 transition-opacity duration-200 bg-black/50 px-3 py-1 rounded-full">
+                        View Full Screen
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           )}
           
@@ -154,6 +171,14 @@ export const ChatMessage = ({
           />
         )}
       </div>
+      
+      {/* Full screen image viewer */}
+      <FullScreenImageViewer
+        isOpen={!!fullScreenImage}
+        imageUrl={fullScreenImage || ''}
+        onClose={() => setFullScreenImage(null)}
+        prompt={message}
+      />
     </motion.div>
   );
 };

@@ -9,6 +9,7 @@ import { ScrollToBottom } from "@/components/ScrollToBottom";
 import { SplashScreen } from "@/components/SplashScreen";
 import { PageSkeleton } from "@/components/SkeletonLoader";
 import { TypingWaveform } from "@/components/TypingWaveform";
+import { ImageGeneratingOverlay } from "@/components/ImageGeneratingOverlay";
 import { useAuth } from "@/hooks/useAuth";
 import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
@@ -56,6 +57,8 @@ const Index = () => {
   const [showQuickActions, setShowQuickActions] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
   const [hasNewMessage, setHasNewMessage] = useState(false);
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
   const [editingMessage, setEditingMessage] = useState<{
     id: string;
     content: string;
@@ -425,6 +428,23 @@ const Index = () => {
         return historyItem;
       });
 
+      // Detect if this is an image generation request
+      const lower = content.toLowerCase();
+      const genKeywords = [
+        'generate image', 'create image', 'make an image', 'make image', 'draw', 'generate a photo', 'create a photo', 'generate picture', 'create picture',
+        'photo banao', 'photo bana do', 'photo bana de', 'image banao', 'tasveer banao', 'tasvir banao', 'chitra banao', 'tasveer bana do',
+        'फोटो', 'चित्र', 'तस्वीर', 'बनाओ', 'बनाइए', 'बनाना',
+        'restore', 'restore photo', 'restore image', 'fix photo', 'enhance photo', 'old photo', 'purani photo', 'पुरानी फोटो'
+      ];
+      const hasMediaWord = ['image','photo','picture','tasveer','tasvir','chitra','फोटो','चित्र','तस्वीर'].some(w => lower.includes(w));
+      const hasMakeWord = ['generate','create','make','banao','bana do','bana de','banaye','bnana','bna','बनाओ','बनाइए','बनाना','restore','fix','enhance'].some(w => lower.includes(w));
+      const wantsImageGeneration = chatMode === 'photo' || (genKeywords.some(k => lower.includes(k)) || (hasMediaWord && hasMakeWord));
+      
+      if (wantsImageGeneration) {
+        setIsGeneratingImage(true);
+        setImageGenerationPrompt(content);
+      }
+
       // Use image generation model if in photo mode
       const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
@@ -513,6 +533,7 @@ const Index = () => {
             }
             if (images && images.length > 0) {
               receivedImages = images;
+              setIsGeneratingImage(false); // Hide overlay when image is received
               await updateMessage(aiMessage.id, accumulatedContent, images);
             }
           } catch (error) {
@@ -538,6 +559,8 @@ const Index = () => {
     } finally {
       setIsLoading(false);
       setIsAITyping(false);
+      setIsGeneratingImage(false);
+      setImageGenerationPrompt("");
     }
   };
   const handleExportChat = async (chatId: string, format: 'text' | 'pdf') => {
@@ -749,6 +772,12 @@ const Index = () => {
               </div>}
           </div>
       </div>
+      
+      {/* Image Generation Overlay */}
+      <ImageGeneratingOverlay 
+        isGenerating={isGeneratingImage} 
+        prompt={imageGenerationPrompt} 
+      />
     </div>;
 };
 export default Index;
