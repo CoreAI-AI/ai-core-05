@@ -277,7 +277,16 @@ export const ChatInput = ({
             {/* Action buttons - always visible */}
             <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
               {/* Voice button */}
-              
+              <Button 
+                type="button" 
+                size="icon" 
+                variant="ghost"
+                onClick={handleVoiceRecording}
+                disabled={disabled || transcribing}
+                className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl btn-press ${isRecording ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
+              >
+                {isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </Button>
 
               {/* Send button */}
               <Button type="submit" size="icon" disabled={disabled || !message.trim()} className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl gradient-bg text-white hover:opacity-90 btn-press shadow-md disabled:opacity-50 disabled:shadow-none">
