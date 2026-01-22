@@ -37,7 +37,7 @@ export const ChatMessage = ({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
       >
-        <div className="flex items-end gap-2 max-w-[85%] sm:max-w-[75%] lg:max-w-[65%]">
+        <div className="flex items-end gap-2 max-w-[95%] sm:max-w-[85%] lg:max-w-[70%]">
           {/* Actions on hover */}
           <MessageActions 
             message={message} 
@@ -98,7 +98,7 @@ export const ChatMessage = ({
         />
       </motion.div>
       
-      <div className="flex-1 min-w-0 max-w-[85%] sm:max-w-[80%] lg:max-w-[70%]">
+      <div className="flex-1 min-w-0 max-w-[95%] sm:max-w-[85%] lg:max-w-[75%]">
         <motion.div 
           className="bg-card text-card-foreground rounded-2xl rounded-tl-md px-3 py-2 shadow-sm border border-border/50"
           initial={{ scale: 0.95, opacity: 0 }}
