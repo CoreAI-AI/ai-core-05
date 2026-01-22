@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo } from "react";
 import { ChatSidebar } from "@/components/ChatSidebar";
-import { ChatMessage } from "@/components/ChatMessage";
 import { ChatInput } from "@/components/ChatInput";
 import { Auth } from "@/components/Auth";
 import { Settings } from "@/components/Settings";
@@ -8,8 +7,8 @@ import { QuickActionCards } from "@/components/QuickActionCards";
 import { ScrollToBottom } from "@/components/ScrollToBottom";
 import { SplashScreen } from "@/components/SplashScreen";
 import { PageSkeleton } from "@/components/SkeletonLoader";
-import { TypingWaveform } from "@/components/TypingWaveform";
 import { ImageGeneratingOverlay } from "@/components/ImageGeneratingOverlay";
+import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
 import { useAuth } from "@/hooks/useAuth";
 import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
@@ -727,17 +726,13 @@ const Index = () => {
                                   </Button>
                                 </motion.div>}
                             </AnimatePresence>
-                          </div> : <div className="space-y-1">
-                            {messages.map((message, index) => <ChatMessage key={message.id} message={message.content} messageId={message.id} isUser={message.is_user} timestamp={new Date(message.created_at).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })} images={message.images} onEdit={message.is_user ? () => handleEditMessage(message.id, message.content, index) : undefined} onRegenerate={!message.is_user ? () => handleRegenerateResponse(message.id, index) : undefined} />)}
-                            
-                            {/* Typing Waveform Animation */}
-                            <AnimatePresence>
-                              <TypingWaveform show={isAITyping} />
-                            </AnimatePresence>
-                          </div>}
+                          </div> : <VirtualizedChatMessages 
+                            messages={messages}
+                            isAITyping={isAITyping}
+                            onEditMessage={handleEditMessage}
+                            onRegenerateResponse={handleRegenerateResponse}
+                          />}
+
                       </div>
                     </div>
                   </ScrollArea>
