@@ -682,9 +682,9 @@ const Index = () => {
                   </div>
                 </div>
                 
-                {/* Messages - scrollable area with fixed height */}
-                <div className="flex-1 overflow-hidden flex flex-col relative">
-                  <ScrollArea className="h-full flex-1" ref={scrollAreaRef}>
+                {/* Messages - scrollable area with fixed height, optimized for mobile */}
+                <div className="flex-1 overflow-hidden flex flex-col relative min-h-0">
+                  <ScrollArea className="h-full flex-1 overflow-y-auto" ref={scrollAreaRef}>
                   
                   {/* Scroll to bottom button - only show when there are messages */}
                   {messages.length > 0 && <ScrollToBottom scrollAreaRef={scrollAreaRef} hasNewMessage={hasNewMessage} onScrollToBottom={() => setHasNewMessage(false)} />}
@@ -727,7 +727,7 @@ const Index = () => {
                                   </Button>
                                 </motion.div>}
                             </AnimatePresence>
-                          </div> : <>
+                          </div> : <div className="space-y-1">
                             {messages.map((message, index) => <ChatMessage key={message.id} message={message.content} messageId={message.id} isUser={message.is_user} timestamp={new Date(message.created_at).toLocaleTimeString([], {
                       hour: '2-digit',
                       minute: '2-digit'
@@ -737,7 +737,7 @@ const Index = () => {
                             <AnimatePresence>
                               <TypingWaveform show={isAITyping} />
                             </AnimatePresence>
-                          </>}
+                          </div>}
                       </div>
                     </div>
                   </ScrollArea>
