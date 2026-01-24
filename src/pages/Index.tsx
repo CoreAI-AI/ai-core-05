@@ -9,6 +9,7 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { PageSkeleton } from "@/components/SkeletonLoader";
 import { ImageGeneratingOverlay } from "@/components/ImageGeneratingOverlay";
 import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
+import { IndianWelcomePopup } from "@/components/IndianWelcomePopup";
 import { useAuth } from "@/hooks/useAuth";
 import { useChats } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
@@ -58,6 +59,7 @@ const Index = () => {
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
+  const [showWelcomePopup, setShowWelcomePopup] = useState(false);
   const [editingMessage, setEditingMessage] = useState<{
     id: string;
     content: string;
@@ -125,12 +127,18 @@ const Index = () => {
 
   // Show auth page only if user has logged out or there's an auth error
   if (showAuth) {
-    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+    return <Auth onAuthSuccess={() => {
+      setShowAuth(false);
+      setShowWelcomePopup(true);
+    }} />;
   }
 
   // If no user, show auth page
   if (!user) {
-    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+    return <Auth onAuthSuccess={() => {
+      setShowAuth(false);
+      setShowWelcomePopup(true);
+    }} />;
   }
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
@@ -772,6 +780,13 @@ const Index = () => {
       <ImageGeneratingOverlay 
         isGenerating={isGeneratingImage} 
         prompt={imageGenerationPrompt} 
+      />
+
+      {/* Indian Welcome Popup */}
+      <IndianWelcomePopup
+        open={showWelcomePopup}
+        onClose={() => setShowWelcomePopup(false)}
+        userName={settings.displayName || user?.email?.split('@')[0]}
       />
     </div>;
 };
