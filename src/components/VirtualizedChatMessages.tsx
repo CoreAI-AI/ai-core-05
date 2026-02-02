@@ -156,9 +156,10 @@ const VirtualizedChatMessages = memo(({
   }, [messages.length]);
 
   // If messages are below threshold, render normally without virtualization
+  // No internal scroll container - parent handles scrolling
   if (messages.length < VIRTUALIZATION_THRESHOLD) {
     return (
-      <div className="space-y-1">
+      <div className="space-y-1 pb-4">
         {messages.map((message, index) => (
           <ChatMessage
             key={message.id}

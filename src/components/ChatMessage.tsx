@@ -37,7 +37,8 @@ export const ChatMessage = ({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
       >
-        <div className="flex items-end gap-2 max-w-[95%] sm:max-w-[85%] lg:max-w-[70%]">
+        {/* Mobile: 88%, Tablet: 80%, Desktop: 70% - prevents paragraph walls */}
+        <div className="flex items-end gap-2 max-w-[88%] sm:max-w-[80%] lg:max-w-[70%]">
           {/* Actions on hover */}
           <MessageActions 
             message={message} 
@@ -54,7 +55,8 @@ export const ChatMessage = ({
               animate={{ scale: 1 }}
               transition={{ duration: 0.15, delay: 0.05 }}
             >
-              <p className="text-sm leading-snug break-words whitespace-pre-wrap overflow-wrap-anywhere">{message}</p>
+              {/* Normal whitespace with proper line-height for readability */}
+              <p className="text-sm leading-relaxed break-words whitespace-normal [overflow-wrap:anywhere]">{message}</p>
               {timestamp && (
                 <p className="text-[10px] opacity-70 mt-1">{timestamp}</p>
               )}
@@ -98,7 +100,8 @@ export const ChatMessage = ({
         />
       </motion.div>
       
-      <div className="flex-1 min-w-0 max-w-[95%] sm:max-w-[85%] lg:max-w-[75%]">
+      {/* Mobile: 88%, Tablet: 80%, Desktop: 75% - readable line-by-line */}
+      <div className="flex-1 min-w-0 max-w-[88%] sm:max-w-[80%] lg:max-w-[75%]">
         <motion.div 
           className="bg-card text-card-foreground rounded-2xl rounded-tl-md px-3 py-2 shadow-sm border border-border/50"
           initial={{ scale: 0.95, opacity: 0 }}
