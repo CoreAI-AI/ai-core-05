@@ -66,15 +66,15 @@ const Index = () => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(messages.length);
 
-  // Check if user is near bottom of scroll
+  // Check if user is near bottom of scroll (native div, not Radix ScrollArea)
   const isNearBottom = useCallback(() => {
-    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-    if (!viewport) return true;
+    const container = scrollAreaRef.current;
+    if (!container) return true;
     const {
       scrollTop,
       scrollHeight,
       clientHeight
-    } = viewport;
+    } = container;
     return scrollHeight - scrollTop - clientHeight < 100;
   }, []);
 
@@ -89,15 +89,13 @@ const Index = () => {
     prevMessageCountRef.current = messages.length;
   }, [messages, isNearBottom]);
 
-  // Auto-scroll to bottom when messages or typing indicator changes
+  // Auto-scroll to bottom when messages or typing indicator changes (native div)
   useEffect(() => {
-    if (scrollAreaRef.current && isNearBottom()) {
-      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
-      if (viewport) {
-        requestAnimationFrame(() => {
-          viewport.scrollTop = viewport.scrollHeight;
-        });
-      }
+    const container = scrollAreaRef.current;
+    if (container && isNearBottom()) {
+      requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+      });
     }
   }, [messages, isAITyping, isNearBottom]);
 
@@ -594,7 +592,7 @@ const Index = () => {
       toast.error("Failed to export chat");
     }
   };
-  return <div className="flex h-[100dvh] bg-background overflow-hidden">
+  return <div className="flex chat-layout-mobile bg-background">
       {/* Sidebar - Hidden on mobile by default */}
       <AnimatePresence mode="wait">
         {!sidebarCollapsed && <>
@@ -681,68 +679,62 @@ const Index = () => {
                   </div>
                 </div>
                 
-                {/* Messages - scrollable area with fixed height, optimized for mobile */}
-                <div className="flex-1 overflow-hidden flex flex-col relative min-h-0">
-                  <ScrollArea className="h-full flex-1 overflow-y-auto" ref={scrollAreaRef}>
-                  
+                {/* Messages - ONLY scrollable area (ChatGPT-style) */}
+                <div className="chat-messages-container" ref={scrollAreaRef}>
                   {/* Scroll to bottom button - only show when there are messages */}
                   {messages.length > 0 && <ScrollToBottom scrollAreaRef={scrollAreaRef} hasNewMessage={hasNewMessage} onScrollToBottom={() => setHasNewMessage(false)} />}
-                    <div className="p-3 sm:p-6 pb-4 min-h-full flex flex-col">
-                      <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
-                        {messages.length === 0 ? <div className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12">
-                            {/* Title first */}
-                            
-
-                            {/* Quick Actions */}
-                            <AnimatePresence mode="wait">
-                              {showQuickActions ? <motion.div key="cards" className="w-full max-w-xl px-2" initial={{
-                        opacity: 0,
-                        y: 20
-                      }} animate={{
-                        opacity: 1,
-                        y: 0
-                      }} exit={{
-                        opacity: 0,
-                        scale: 0.95
-                      }} transition={{
-                        duration: 0.3,
-                        ease: "easeOut"
-                      }}>
-                                  <QuickActionCards onAction={handleSendMessage} onSkip={() => setShowQuickActions(false)} />
-                                </motion.div> : <motion.div key="show-btn" initial={{
-                        opacity: 0,
-                        scale: 0.9
-                      }} animate={{
-                        opacity: 1,
-                        scale: 1
-                      }} exit={{
-                        opacity: 0,
-                        scale: 0.9
-                      }} transition={{
-                        duration: 0.2
-                      }}>
-                                  <Button variant="outline" size="default" onClick={() => setShowQuickActions(true)} className="text-sm font-medium">
-                                    Show quick actions
-                                  </Button>
-                                </motion.div>}
-                            </AnimatePresence>
-                          </div> : <VirtualizedChatMessages 
-                            messages={messages}
-                            isAITyping={isAITyping}
-                            onEditMessage={handleEditMessage}
-                            onRegenerateResponse={handleRegenerateResponse}
-                          />}
-
-                      </div>
+                  
+                  <div className="p-3 sm:p-6 pb-4 min-h-full flex flex-col">
+                    <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
+                      {messages.length === 0 ? <div className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12">
+                          {/* Quick Actions */}
+                          <AnimatePresence mode="wait">
+                            {showQuickActions ? <motion.div key="cards" className="w-full max-w-xl px-2" initial={{
+                      opacity: 0,
+                      y: 20
+                    }} animate={{
+                      opacity: 1,
+                      y: 0
+                    }} exit={{
+                      opacity: 0,
+                      scale: 0.95
+                    }} transition={{
+                      duration: 0.3,
+                      ease: "easeOut"
+                    }}>
+                                <QuickActionCards onAction={handleSendMessage} onSkip={() => setShowQuickActions(false)} />
+                              </motion.div> : <motion.div key="show-btn" initial={{
+                      opacity: 0,
+                      scale: 0.9
+                    }} animate={{
+                      opacity: 1,
+                      scale: 1
+                    }} exit={{
+                      opacity: 0,
+                      scale: 0.9
+                    }} transition={{
+                      duration: 0.2
+                    }}>
+                                <Button variant="outline" size="default" onClick={() => setShowQuickActions(true)} className="text-sm font-medium">
+                                  Show quick actions
+                                </Button>
+                              </motion.div>}
+                          </AnimatePresence>
+                        </div> : <VirtualizedChatMessages 
+                          messages={messages}
+                          isAITyping={isAITyping}
+                          onEditMessage={handleEditMessage}
+                          onRegenerateResponse={handleRegenerateResponse}
+                        />}
                     </div>
-                  </ScrollArea>
+                  </div>
                 </div>
               </>}
             
-            {/* Input - Always fixed at bottom for chat interface */}
-            {!showSettings && <div className="shrink-0 bg-background">
+            {/* Input - Always fixed at bottom with sticky positioning */}
+            {!showSettings && <div className="chat-input-fixed border-t border-border">
                 {/* File Preview */}
-                {selectedFile && <div className="border-t border-border p-4">
+                {selectedFile && <div className="p-4">
                     <div className="max-w-4xl mx-auto">
                       <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                         {filePreview && <img src={filePreview} alt="Preview" className="w-16 h-16 object-cover rounded" />}

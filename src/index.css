@@ -399,15 +399,54 @@
     overflow: hidden;
   }
 
-  /* Better touch scrolling for mobile chat */
-  .scroll-smooth-mobile {
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
-    overscroll-behavior-y: contain;
+  /* ===== ChatGPT-Style Mobile Chat Layout ===== */
+  
+  /* Mobile chat container - fixed three sections */
+  .chat-layout-mobile {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    height: 100vh; /* Fallback */
+    overflow: hidden;
   }
 
-  /* Ensure chat messages don't overflow on mobile */
-  @media (max-width: 640px) {
+  /* Scrollable message area - ONLY this scrolls */
+  .chat-messages-container {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
+  }
+
+  /* Fixed input bar at bottom */
+  .chat-input-fixed {
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    z-index: 50;
+    background: hsl(var(--background));
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  /* Mobile-specific chat optimizations */
+  @media (max-width: 768px) {
+    /* Ensure proper mobile viewport handling */
+    .chat-messages-container {
+      padding-bottom: 8px;
+    }
+    
+    /* Chat bubbles - prevent paragraph walls */
+    .chat-bubble-mobile {
+      max-width: 88%;
+      word-wrap: break-word;
+      white-space: normal;
+      line-height: 1.5;
+    }
+    
+    /* Improved text rendering */
     .chat-message-content {
       word-break: break-word;
       overflow-wrap: anywhere;
@@ -415,10 +454,28 @@
     }
   }
 
+  /* Better touch scrolling for mobile chat */
+  .scroll-smooth-mobile {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior-y: contain;
+  }
+
   /* Fix for mobile browser address bar */
   @supports (height: 100dvh) {
     .h-screen-safe {
       height: 100dvh;
+    }
+    
+    .chat-layout-mobile {
+      height: 100dvh;
+    }
+  }
+
+  /* Fallback for older browsers */
+  @supports not (height: 100dvh) {
+    .chat-layout-mobile {
+      height: calc(var(--vh, 1vh) * 100);
     }
   }
 

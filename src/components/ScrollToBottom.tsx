@@ -20,24 +20,25 @@ export const ScrollToBottom = ({
   const [showButton, setShowButton] = useState(false);
 
   useEffect(() => {
-    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-    if (!viewport) return;
+    // Works with native div (no Radix ScrollArea viewport)
+    const container = scrollAreaRef.current;
+    if (!container) return;
 
     const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = viewport;
+      const { scrollTop, scrollHeight, clientHeight } = container;
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
       setShowButton(!isNearBottom);
     };
 
-    viewport.addEventListener('scroll', handleScroll);
-    return () => viewport.removeEventListener('scroll', handleScroll);
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
   }, [scrollAreaRef]);
 
   const scrollToBottom = useCallback(() => {
-    const viewport = scrollAreaRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-    if (viewport) {
-      viewport.scrollTo({
-        top: viewport.scrollHeight,
+    const container = scrollAreaRef.current;
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
         behavior: 'smooth'
       });
     }
