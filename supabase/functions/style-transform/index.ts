@@ -6,8 +6,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Style prompts mapping
+// Style prompts mapping - includes festival and trending styles
 const stylePrompts: Record<string, string> = {
+  // Original styles
   "New Year Eve": "Transform this image into a festive New Year's Eve celebration style with fireworks, sparkles, champagne gold colors, and party atmosphere",
   "Gingerbread": "Transform this image into a gingerbread cookie style with warm brown tones, icing decorations, and cozy holiday baking aesthetic",
   "Parisian Postcard": "Transform this image into a vintage Parisian postcard style with romantic Eiffel Tower vibes, soft pastel colors, and French artistic flair",
@@ -36,6 +37,36 @@ const stylePrompts: Record<string, string> = {
   "Art School": "Transform this image into an art school project style with creative mixed media, artistic experimentation, and student art aesthetic",
   "Fisheye": "Transform this image with a fisheye lens effect creating a wide-angle distorted spherical view",
   "Ornament": "Transform this image into a Christmas ornament style with spherical shape, hanging decoration aesthetic, and holiday charm",
+  
+  // Festival-specific styles (auto-detected)
+  "Diwali Festive": "Transform with warm golden Diwali glow, traditional diyas, festive lights, rangoli patterns, and rich Indian cinematic colors with bokeh light effects",
+  "Holi Colors": "Transform with vibrant Holi colors, colorful powder splash effects, high saturation rainbow hues, joyful festival atmosphere with gulaal particles in the air",
+  "Navratri Garba": "Transform with Navratri Garba style, traditional attire aesthetics, festive motion blur of dancing, colorful chaniya choli patterns, and vibrant dandiya celebration atmosphere",
+  "Rakhi Bond": "Transform with soft warm family tones, gentle golden hour lighting, rakhi thread details, traditional Indian family portrait aesthetic with loving warmth",
+  "Eid Elegance": "Transform with elegant Eid celebration lighting, soft pastel tones, crescent moon motifs, ornate Islamic patterns, and refined festive atmosphere",
+  "Durga Puja": "Transform with dramatic Durga Puja pandal lighting, rich Bengali cultural aesthetics, vermillion and gold tones, divine goddess energy, and traditional dhunuchi smoke atmosphere",
+  "Tricolor Pride": "Transform with patriotic Indian tricolor grading, saffron white and green color scheme, proud national celebration atmosphere, flag motifs and freedom fighter aesthetic",
+  "Ganpati Bappa": "Transform with Ganesh Chaturthi celebration style, modak and laddu aesthetics, vermillion and turmeric tones, traditional pandal lighting with Ganpati devotion atmosphere",
+  "Christmas Magic": "Transform with cozy Christmas lighting, warm red and green holiday tones, snow effects, twinkling fairy lights, Santa aesthetic, and magical winter wonderland atmosphere",
+  "New Year Glow": "Transform with neon New Year party glow, champagne gold sparkles, midnight celebration vibes, fireworks reflections, and glamorous countdown atmosphere",
+  "Spooky Halloween": "Transform with dark cinematic Halloween aesthetic, spooky orange and purple tones, jack-o-lantern glow, haunted atmosphere, and mysterious gothic vibes",
+  "Romantic Love": "Transform with romantic soft pink lighting, dreamy love aesthetic, rose petals, heart bokeh effects, and intimate couple portrait vibes",
+  "Easter Spring": "Transform with bright Easter pastel tones, spring bloom aesthetic, soft bunny and egg motifs, fresh flower colors, and joyful spring celebration vibes",
+  "Thanksgiving Warmth": "Transform with warm autumn Thanksgiving tones, harvest golden hour lighting, cozy family gathering aesthetic, fall leaves colors, and grateful celebration atmosphere",
+  
+  // Trending styles (auto-rotated)
+  "Ghibli Style": "Transform into Studio Ghibli anime style with soft watercolor textures, magical atmosphere, whimsical details, and Hayao Miyazaki artistic aesthetic",
+  "AI Portrait Pro": "Transform into hyper-realistic AI enhanced portrait with perfect skin, professional studio lighting, magazine cover quality, and celebrity photoshoot aesthetic",
+  "3D Pixar Character": "Transform into 3D Pixar-style animated character with expressive features, smooth rendering, cartoon proportions, and Disney-quality animation look",
+  "Retro 90s Anime": "Transform into classic 90s retro anime style with vintage cel animation look, nostalgic color palette, VHS grain texture, and old school anime aesthetics",
+  "Cinematic Portrait": "Transform into cinematic movie still with dramatic lighting, film grain, anamorphic lens flare, Hollywood cinematography, and blockbuster movie poster aesthetic",
+  "Cute Plushie": "Transform into adorable plush toy version with soft fabric texture, button eyes, stuffed toy proportions, kawaii aesthetic, and collectible figure style",
+  "Ink Sketch Art": "Transform into detailed pen and ink sketch with fine line work, cross-hatching shading, artistic illustration style, and hand-drawn aesthetic",
+  "Neon Cyberpunk": "Transform into futuristic cyberpunk style with neon pink and blue lighting, rain-soaked streets, holographic elements, and Blade Runner aesthetic",
+  "Watercolor Dream": "Transform into soft watercolor painting with flowing color bleeds, artistic brush strokes, dreamy pastel palette, and fine art gallery aesthetic",
+  "Pop Art Comic": "Transform into bold pop art comic style with Ben-Day dots, thick outlines, bright primary colors, Roy Lichtenstein aesthetic, and vintage comic book look",
+  "Luxury Glam": "Transform into luxury fashion magazine editorial with high-end glamour, designer aesthetic, premium lighting, and Vogue cover quality",
+  "Anime Waifu": "Transform into modern anime character style with expressive eyes, dynamic hair, clean line art, vibrant colors, and popular anime aesthetic"
 };
 
 // Discover prompts mapping
@@ -55,7 +86,7 @@ const discoverPrompts: Record<string, string> = {
   "Give them a bowl": "Add a cute bowl to the pet in this image, showing them with their food or water bowl",
   "Me as the Girl with a Pearl": "Transform this portrait in the style of Vermeer's 'Girl with a Pearl Earring' painting with similar composition, lighting, and artistic style",
   "Create a professional job photo": "Transform this into a professional corporate headshot suitable for LinkedIn or job applications with clean background and professional attire",
-  "Remove people in the background": "Remove all people in the background of this image, keeping only the main subject and clean background",
+  "Remove people in the background": "Remove all people in the background of this image, keeping only the main subject and clean background"
 };
 
 serve(async (req) => {
