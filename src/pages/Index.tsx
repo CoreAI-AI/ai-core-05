@@ -50,7 +50,7 @@ const Index = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
+  const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor'>('normal');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 768);
   const [temporaryMessages, setTemporaryMessages] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(true);
@@ -592,39 +592,54 @@ const Index = () => {
       toast.error("Failed to export chat");
     }
   };
-  return <div className="flex chat-layout-mobile bg-background">
-      {/* Sidebar - Hidden on mobile by default */}
+  return <div className="flex h-screen bg-background overflow-hidden">
+      {/* Sidebar */}
       <AnimatePresence mode="wait">
         {!sidebarCollapsed && <>
-            {/* Mobile Overlay */}
-            <motion.div initial={{
-          opacity: 0
-        }} animate={{
-          opacity: 1
-        }} exit={{
-          opacity: 0
-        }} className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarCollapsed(true)} />
+            {/* Mobile Overlay - only on mobile */}
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="fixed inset-0 bg-black/50 z-40 md:hidden" 
+              onClick={() => setSidebarCollapsed(true)} 
+            />
+            {/* Sidebar Container */}
             <motion.div 
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ duration: 0.2, ease: "easeInOut" }} 
-              className="fixed md:relative h-full w-[280px] z-50 md:z-auto shrink-0 bg-sidebar">
-              <ChatSidebar chats={chats} currentChat={currentChat} onSelectChat={chat => {
-            selectChat(chat);
-            // Auto-close sidebar on mobile after selection
-            if (window.innerWidth < 768) setSidebarCollapsed(true);
-          }} onNewChat={() => {
-            startNewChat();
-            if (window.innerWidth < 768) setSidebarCollapsed(true);
-          }} onSignOut={signOut} onOpenSettings={() => {
-            setShowSettings(true);
-            if (window.innerWidth < 768) setSidebarCollapsed(true);
-          }} onDeleteChat={deleteChat} onExportChat={handleExportChat} user={user} onCollapse={() => setSidebarCollapsed(true)} />
+              className="fixed md:static h-full w-[280px] z-50 md:z-auto shrink-0 bg-sidebar border-r border-border"
+            >
+              <ChatSidebar 
+                chats={chats} 
+                currentChat={currentChat} 
+                onSelectChat={chat => {
+                  selectChat(chat);
+                  // Auto-close sidebar on mobile after selection
+                  if (window.innerWidth < 768) setSidebarCollapsed(true);
+                }} 
+                onNewChat={() => {
+                  startNewChat();
+                  if (window.innerWidth < 768) setSidebarCollapsed(true);
+                }} 
+                onSignOut={signOut} 
+                onOpenSettings={() => {
+                  setShowSettings(true);
+                  if (window.innerWidth < 768) setSidebarCollapsed(true);
+                }} 
+                onDeleteChat={deleteChat} 
+                onExportChat={handleExportChat} 
+                user={user} 
+                onCollapse={() => setSidebarCollapsed(true)} 
+              />
             </motion.div>
           </>}
       </AnimatePresence>
-      <div className="flex-1 flex flex-col h-full">
+      
+      {/* Main Content - Always visible */}
+      <div className="flex-1 flex flex-col min-w-0 chat-layout-mobile">
           <div className="flex flex-col h-full relative">
             {showSettings ?
         // Settings Panel

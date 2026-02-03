@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -13,7 +13,7 @@ interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   onFileSelect?: (file: File) => void;
-  onModeChange?: (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze') => void;
+  onModeChange?: (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor') => void;
   editingMessage?: {
     id: string;
     content: string;
@@ -38,7 +38,7 @@ export const ChatInput = ({
       setMessage(editingMessage.content);
     }
   }, [editingMessage]);
-  const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze'>('normal');
+  const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor'>('normal');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
   const {
@@ -55,19 +55,21 @@ export const ChatInput = ({
     onSendMessage(prompt);
     toast.success(`${modeName} activated!`);
   };
-  const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze') => {
+  const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor') => {
     setCurrentMode(mode);
     if (onModeChange) {
       onModeChange(mode);
     }
-    const modeNames = {
+    const modeNames: Record<string, string> = {
       'normal': 'Normal Chat',
       'deep-search': 'Deep Research',
       'study': 'Study Tutor',
       'photo': 'Image Generator',
       'code': 'Code Assistant',
       'creative': 'Creative Writer',
-      'analyze': 'Data Analyst'
+      'analyze': 'Data Analyst',
+      'rich': 'Rich Mode',
+      'poor': 'Poor Mode'
     };
     toast.success(`${modeNames[mode]} activated!`);
   };
@@ -170,6 +172,10 @@ export const ChatInput = ({
         return <Lightbulb className="h-5 w-5 text-yellow-500" />;
       case 'analyze':
         return <BarChart3 className="h-5 w-5 text-cyan-500" />;
+      case 'rich':
+        return <Crown className="h-5 w-5 text-amber-500" />;
+      case 'poor':
+        return <Coins className="h-5 w-5 text-gray-500" />;
       default:
         return <img src={coreaiLogo} alt="CoreAI" className="h-6 w-6 rounded-full" />;
     }
@@ -243,6 +249,18 @@ export const ChatInput = ({
                 </DropdownMenuItem>
                 
                 <div className="h-px bg-border my-2" />
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Mindset Modes</p>
+                
+                <DropdownMenuItem onClick={() => handleModeSelect('rich')} className="cursor-pointer rounded-lg">
+                  <Crown className="w-4 h-4 mr-2 text-amber-500" />
+                  Rich Mode
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleModeSelect('poor')} className="cursor-pointer rounded-lg">
+                  <Coins className="w-4 h-4 mr-2 text-gray-500" />
+                  Poor Mode
+                </DropdownMenuItem>
+                
+                <div className="h-px bg-border my-2" />
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Attach</p>
                 
                 <DropdownMenuItem onClick={openGallery} className="cursor-pointer rounded-lg">
@@ -271,7 +289,7 @@ export const ChatInput = ({
                     <X className="w-3 h-3" />
                   </Button>
                 </div>}
-              <Textarea value={message} onChange={e => setMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder={editingMessage ? "Edit your message..." : currentMode === 'photo' ? "Describe the image you want to generate..." : currentMode === 'study' ? "Ask me to explain any topic..." : currentMode === 'deep-search' ? "Ask for in-depth research..." : currentMode === 'code' ? "Ask for coding help..." : currentMode === 'creative' ? "Let's create something amazing..." : currentMode === 'analyze' ? "Share data or info to analyze..." : disabled ? "AI is thinking..." : "Message CoreAI..."} disabled={disabled} className="min-h-[40px] sm:min-h-[44px] max-h-32 resize-none bg-transparent border-0 shadow-none text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 py-2 sm:py-2.5 px-0" rows={1} />
+              <Textarea value={message} onChange={e => setMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder={editingMessage ? "Edit your message..." : currentMode === 'photo' ? "Describe the image you want to generate..." : currentMode === 'study' ? "Ask me to explain any topic..." : currentMode === 'deep-search' ? "Ask for in-depth research..." : currentMode === 'code' ? "Ask for coding help..." : currentMode === 'creative' ? "Let's create something amazing..." : currentMode === 'analyze' ? "Share data or info to analyze..." : currentMode === 'rich' ? "Ask about wealth, investments, luxury..." : currentMode === 'poor' ? "Ask about saving, budgeting, survival tips..." : disabled ? "AI is thinking..." : "Message CoreAI..."} disabled={disabled} className="min-h-[40px] sm:min-h-[44px] max-h-32 resize-none bg-transparent border-0 shadow-none text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 py-2 sm:py-2.5 px-0" rows={1} />
             </div>
             
             {/* Action buttons - always visible */}

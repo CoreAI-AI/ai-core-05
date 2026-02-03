@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import coreaiLogo from '@/assets/coreai-logo.png';
 import { useState } from 'react';
 import { FullScreenImageViewer } from './FullScreenImageViewer';
+import { File as FileIcon, X } from 'lucide-react';
 
 interface ChatMessageProps {
   message: string;
@@ -28,6 +29,62 @@ export const ChatMessage = ({
   onEdit
 }: ChatMessageProps) => {
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+
+  // Helper to render images/files at top of message (ChatGPT style)
+  const renderAttachments = () => {
+    if (!images || images.length === 0) return null;
+    
+    return (
+      <div className="mb-2 space-y-2">
+        {images.map((image: any, index: number) => {
+          const imageUrl = image.image_url?.url || image.url;
+          const isImage = image.type?.startsWith('image/') || imageUrl?.startsWith('data:image') || imageUrl?.includes('image');
+          
+          if (isImage && imageUrl) {
+            return (
+              <motion.div 
+                key={index} 
+                className="rounded-lg overflow-hidden shadow-sm cursor-pointer group/image relative"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+                onClick={() => setFullScreenImage(imageUrl)}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <img
+                  src={imageUrl}
+                  alt={`Attachment ${index + 1}`}
+                  className="w-full h-auto max-w-xs rounded-lg transition-all duration-300"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error('Error loading image:', e);
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-colors duration-200 flex items-center justify-center">
+                  <span className="text-white text-xs font-medium opacity-0 group-hover/image:opacity-100 transition-opacity duration-200 bg-black/50 px-2 py-1 rounded-full">
+                    View
+                  </span>
+                </div>
+              </motion.div>
+            );
+          } else {
+            // File attachment
+            return (
+              <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                <FileIcon className="w-4 h-4 text-muted-foreground" />
+                <span className="text-xs text-muted-foreground truncate">
+                  {image.name || 'Attached file'}
+                </span>
+              </div>
+            );
+          }
+        })}
+      </div>
+    );
+  };
 
   if (isUser) {
     return (
@@ -55,8 +112,14 @@ export const ChatMessage = ({
               animate={{ scale: 1 }}
               transition={{ duration: 0.15, delay: 0.05 }}
             >
-              {/* Normal whitespace with proper line-height for readability */}
-              <p className="text-sm leading-relaxed break-words whitespace-normal [overflow-wrap:anywhere]">{message}</p>
+              {/* ChatGPT-style: Images/files first, then text */}
+              {renderAttachments()}
+              
+              {/* Text message - Normal whitespace with proper line-height */}
+              {message && (
+                <p className="text-sm leading-relaxed break-words whitespace-normal [overflow-wrap:anywhere]">{message}</p>
+              )}
+              
               {timestamp && (
                 <p className="text-[10px] opacity-70 mt-1">{timestamp}</p>
               )}
@@ -75,6 +138,14 @@ export const ChatMessage = ({
             </div>
           </motion.div>
         </div>
+        
+        {/* Full screen image viewer */}
+        <FullScreenImageViewer
+          isOpen={!!fullScreenImage}
+          imageUrl={fullScreenImage || ''}
+          onClose={() => setFullScreenImage(null)}
+          prompt={message}
+        />
       </motion.div>
     );
   }
@@ -108,7 +179,7 @@ export const ChatMessage = ({
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.15, delay: 0.1 }}
         >
-          {/* Display images if present */}
+          {/* Display images if present - ChatGPT style at top */}
           {images && images.length > 0 && (
             <div className="mb-3 space-y-2">
               {images.map((image: any, index: number) => {
