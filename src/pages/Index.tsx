@@ -604,19 +604,12 @@ const Index = () => {
         }} exit={{
           opacity: 0
         }} className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setSidebarCollapsed(true)} />
-            <motion.div initial={{
-          x: -280,
-          opacity: 0
-        }} animate={{
-          x: 0,
-          opacity: 1
-        }} exit={{
-          x: -280,
-          opacity: 0
-        }} transition={{
-          duration: 0.2,
-          ease: "easeInOut"
-        }} className="fixed md:relative h-full w-[280px] z-50 md:z-auto shrink-0">
+            <motion.div 
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }} 
+              className="fixed md:relative h-full w-[280px] z-50 md:z-auto shrink-0 bg-sidebar">
               <ChatSidebar chats={chats} currentChat={currentChat} onSelectChat={chat => {
             selectChat(chat);
             // Auto-close sidebar on mobile after selection
@@ -653,7 +646,7 @@ const Index = () => {
               </div> :
         // Main Chat Interface
         <>
-                {/* Header */}
+                {/* Header - ChatGPT Style */}
                 <div className="border-b border-border px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2">
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     {sidebarCollapsed && <Button variant="ghost" size="sm" onClick={() => setSidebarCollapsed(false)} className="h-8 w-8 p-0 shrink-0">
@@ -663,18 +656,46 @@ const Index = () => {
                       {currentChat ? currentChat.title : "New conversation"}
                     </h1>
                   </div>
-                  <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                    <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground">
+                  
+                  {/* Right side icons - ChatGPT style */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    {/* Images - Desktop only shows text */}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => navigate('/images')} 
+                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
+                      title="Images"
+                    >
                       <ImageIcon className="h-4 w-4" />
                       <span className="hidden sm:inline ml-2">Images</span>
                     </Button>
                     
-                    <Button variant={temporaryMessages ? "secondary" : "ghost"} size="sm" onClick={() => {
-                setTemporaryMessages(!temporaryMessages);
-                toast.success(temporaryMessages ? "Temporary messages off" : "Temporary messages on");
-              }} className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground">
+                    {/* Temporary Messages */}
+                    <Button 
+                      variant={temporaryMessages ? "secondary" : "ghost"} 
+                      size="sm" 
+                      onClick={() => {
+                        setTemporaryMessages(!temporaryMessages);
+                        toast.success(temporaryMessages ? "Temporary messages off" : "Temporary messages on");
+                      }} 
+                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
+                      title="Temporary Messages"
+                    >
                       <Timer className="h-4 w-4" />
                       <span className="hidden lg:inline ml-2">Temporary</span>
+                    </Button>
+                    
+                    {/* Group Chat - New Icon */}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => navigate('/group-chats')} 
+                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
+                      title="Group Chats"
+                    >
+                      <Users className="h-4 w-4" />
+                      <span className="hidden lg:inline ml-2">Groups</span>
                     </Button>
                   </div>
                 </div>
