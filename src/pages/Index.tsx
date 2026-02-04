@@ -9,17 +9,26 @@ import { SplashScreen } from "@/components/SplashScreen";
 import { PageSkeleton } from "@/components/SkeletonLoader";
 import { ImageGeneratingOverlay } from "@/components/ImageGeneratingOverlay";
 import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
+import { SmartChatTabs } from "@/components/SmartChatTabs";
+import { PinnedMessages } from "@/components/PinnedMessages";
+import { QuickActionButtons } from "@/components/QuickActionButtons";
+import { FloatingActionButton } from "@/components/FloatingActionButton";
+import { MemoryControl } from "@/components/MemoryControl";
+import { ChatSearch } from "@/components/ChatSearch";
+import { ResponseLengthControl } from "@/components/ResponseLengthControl";
 import { useAuth } from "@/hooks/useAuth";
-import { useChats } from "@/hooks/useChats";
+import { useChats, Chat } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
+import { useOfflineDraft } from "@/hooks/useOfflineDraft";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft, Users, Timer, ImageIcon } from "lucide-react";
+import { X, PanelLeft, Users, Timer, ImageIcon, Search, Star } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+
 const Index = () => {
   const navigate = useNavigate();
   const {
@@ -44,6 +53,8 @@ const Index = () => {
     selectChat,
     deleteChat
   } = useChats(user?.id);
+  const { saveDraft, removeDraft, isOnline } = useOfflineDraft();
+  
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [isLoading, setIsLoading] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
@@ -58,6 +69,16 @@ const Index = () => {
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
+  
+  // New feature states
+  const [openTabs, setOpenTabs] = useState<Chat[]>([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const [responseLength, setResponseLength] = useState<'short' | 'normal' | 'detailed'>('normal');
+  const [favoriteChats, setFavoriteChats] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('favorite_chats');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+  
   const [editingMessage, setEditingMessage] = useState<{
     id: string;
     content: string;
@@ -99,17 +120,86 @@ const Index = () => {
     }
   }, [messages, isAITyping, isNearBottom]);
 
-  // Keyboard shortcut: Ctrl+B to toggle sidebar
+  // Keyboard shortcuts: Ctrl+B sidebar, Ctrl+F search
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
         e.preventDefault();
         setSidebarCollapsed(prev => !prev);
       }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f' && messages.length > 0) {
+        e.preventDefault();
+        setShowSearch(prev => !prev);
+      }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [messages.length]);
+
+  // Manage open tabs for Smart Chat Tabs feature
+  useEffect(() => {
+    if (currentChat && !openTabs.find(t => t.id === currentChat.id)) {
+      setOpenTabs(prev => [...prev, currentChat].slice(-5)); // Keep max 5 tabs
+    }
+  }, [currentChat]);
+
+  const handleCloseTab = (chatId: string) => {
+    setOpenTabs(prev => prev.filter(t => t.id !== chatId));
+    if (currentChat?.id === chatId && openTabs.length > 1) {
+      const remainingTabs = openTabs.filter(t => t.id !== chatId);
+      if (remainingTabs.length > 0) {
+        selectChat(remainingTabs[remainingTabs.length - 1]);
+      }
+    }
+  };
+
+  // Toggle favorite chat
+  const toggleFavorite = (chatId: string) => {
+    setFavoriteChats(prev => {
+      const next = new Set(prev);
+      if (next.has(chatId)) {
+        next.delete(chatId);
+      } else {
+        next.add(chatId);
+      }
+      localStorage.setItem('favorite_chats', JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  // Scroll to message (for search and pinned)
+  const scrollToMessage = (messageId: string) => {
+    const element = document.getElementById(`message-${messageId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('bg-primary/10');
+      setTimeout(() => element.classList.remove('bg-primary/10'), 2000);
+    }
+  };
+
+  // Quick action handlers
+  const handleQuickAction = async (action: string) => {
+    if (!currentChat || messages.length === 0) return;
+    
+    const lastAIMessage = [...messages].reverse().find(m => !m.is_user);
+    if (!lastAIMessage) return;
+    
+    const actionPrompts: Record<string, string> = {
+      rewrite: `Please rewrite the following response in a different way: "${lastAIMessage.content}"`,
+      summarize: `Please summarize this response briefly: "${lastAIMessage.content}"`,
+      translate: `Please translate this response to Hindi: "${lastAIMessage.content}"`,
+      improve: `Please improve this response with more details: "${lastAIMessage.content}"`,
+    };
+    
+    if (action === 'regenerate') {
+      const aiMsgIndex = messages.findIndex(m => m.id === lastAIMessage.id);
+      if (aiMsgIndex > 0) {
+        handleRegenerateResponse(lastAIMessage.id, aiMsgIndex);
+      }
+    } else if (actionPrompts[action]) {
+      handleSendMessage(actionPrompts[action]);
+    }
+  };
 
   // Show splash screen on initial load
   if (showSplash) {
@@ -661,7 +751,18 @@ const Index = () => {
               </div> :
         // Main Chat Interface
         <>
-                {/* Header - ChatGPT Style */}
+                {/* Smart Chat Tabs - Desktop Only */}
+                <div className="hidden md:block">
+                  <SmartChatTabs
+                    openChats={openTabs}
+                    activeChat={currentChat}
+                    onSelectTab={selectChat}
+                    onCloseTab={handleCloseTab}
+                    onNewTab={startNewChat}
+                  />
+                </div>
+                
+                {/* Header - ChatGPT Style with New Features */}
                 <div className="border-b border-border px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2">
                   <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     {sidebarCollapsed && <Button variant="ghost" size="sm" onClick={() => setSidebarCollapsed(false)} className="h-8 w-8 p-0 shrink-0">
@@ -670,11 +771,44 @@ const Index = () => {
                     <h1 className="text-sm sm:text-lg font-medium text-foreground truncate">
                       {currentChat ? currentChat.title : "New conversation"}
                     </h1>
+                    {/* Favorite button */}
+                    {currentChat && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 shrink-0"
+                        onClick={() => toggleFavorite(currentChat.id)}
+                      >
+                        <Star className={`h-4 w-4 ${favoriteChats.has(currentChat.id) ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground'}`} />
+                      </Button>
+                    )}
                   </div>
                   
-                  {/* Right side icons - ChatGPT style */}
+                  {/* Right side icons - ChatGPT style + New Controls */}
                   <div className="flex items-center gap-1 shrink-0">
-                    {/* Images - Desktop only shows text */}
+                    {/* Memory Control - Desktop */}
+                    <div className="hidden sm:block">
+                      <MemoryControl chatId={currentChat?.id} />
+                    </div>
+                    
+                    {/* Response Length Control - Desktop */}
+                    <div className="hidden sm:block">
+                      <ResponseLengthControl value={responseLength} onChange={setResponseLength} />
+                    </div>
+                    
+                    {/* Search in Chat */}
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setShowSearch(true)}
+                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                      title="Search (Ctrl+F)"
+                      disabled={messages.length === 0}
+                    >
+                      <Search className="h-4 w-4" />
+                    </Button>
+                    
+                    {/* Images */}
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -701,7 +835,7 @@ const Index = () => {
                       <span className="hidden lg:inline ml-2">Temporary</span>
                     </Button>
                     
-                    {/* Group Chat - New Icon */}
+                    {/* Group Chat */}
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -714,6 +848,21 @@ const Index = () => {
                     </Button>
                   </div>
                 </div>
+                
+                {/* Pinned Messages */}
+                <PinnedMessages 
+                  chatId={currentChat?.id}
+                  onUnpin={() => {}}
+                  onScrollTo={scrollToMessage}
+                />
+                
+                {/* Chat Search */}
+                <ChatSearch
+                  messages={messages}
+                  onScrollToMessage={scrollToMessage}
+                  isOpen={showSearch}
+                  onClose={() => setShowSearch(false)}
+                />
                 
                 {/* Messages - ONLY scrollable area (ChatGPT-style) */}
                 <div className="chat-messages-container" ref={scrollAreaRef}>
@@ -758,6 +907,7 @@ const Index = () => {
                           </AnimatePresence>
                         </div> : <VirtualizedChatMessages 
                           messages={messages}
+                          chatId={currentChat?.id}
                           isAITyping={isAITyping}
                           onEditMessage={handleEditMessage}
                           onRegenerateResponse={handleRegenerateResponse}
@@ -769,6 +919,21 @@ const Index = () => {
             
             {/* Input - Always fixed at bottom with sticky positioning */}
             {!showSettings && <div className="chat-input-fixed border-t border-border">
+                {/* Quick Action Buttons - Desktop only */}
+                {messages.length > 0 && (
+                  <div className="hidden md:flex justify-center py-2">
+                    <QuickActionButtons
+                      onRewrite={() => handleQuickAction('rewrite')}
+                      onSummarize={() => handleQuickAction('summarize')}
+                      onTranslate={() => handleQuickAction('translate')}
+                      onImprove={() => handleQuickAction('improve')}
+                      onRegenerate={() => handleQuickAction('regenerate')}
+                      disabled={isLoading}
+                      hasMessage={messages.some(m => !m.is_user)}
+                    />
+                  </div>
+                )}
+                
                 {/* File Preview */}
                 {selectedFile && <div className="p-4">
                     <div className="max-w-4xl mx-auto">
@@ -796,11 +961,36 @@ const Index = () => {
           </div>
       </div>
       
+      {/* Floating Action Button - Mobile Only */}
+      <FloatingActionButton
+        onNewChat={startNewChat}
+        onVoiceInput={() => toast.info("Tap the microphone in the input bar")}
+        onCameraUpload={() => toast.info("Camera upload coming soon")}
+        onImageUpload={() => document.getElementById('file-upload')?.click()}
+      />
+      
       {/* Image Generation Overlay */}
       <ImageGeneratingOverlay 
         isGenerating={isGeneratingImage} 
         prompt={imageGenerationPrompt} 
       />
+      
+      {/* Offline indicator */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-72 z-50"
+          >
+            <div className="bg-destructive/90 backdrop-blur-sm text-destructive-foreground px-4 py-3 rounded-lg shadow-lg">
+              <p className="text-sm font-medium">You're offline</p>
+              <p className="text-xs opacity-80">Messages will be sent when you're back online</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>;
 };
 export default Index;

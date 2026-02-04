@@ -79,41 +79,41 @@
   }
 
   .dark {
-    /* CoreAI Dark Theme - Premium Sophisticated */
-    --background: 222 47% 6%;
+    /* CoreAI Dark Theme - Premium Sophisticated with Better Contrast */
+    --background: 222 47% 5%;
     --foreground: 210 40% 98%;
-    --card: 222 47% 9%;
+    --card: 222 47% 8%;
     --card-foreground: 210 40% 98%;
-    --popover: 222 47% 11%;
+    --popover: 222 47% 9%;
     --popover-foreground: 210 40% 98%;
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 217 33% 17%;
+    --secondary: 217 33% 14%;
     --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 17%;
+    --muted: 217 33% 14%;
+    --muted-foreground: 215 20% 70%;
+    --accent: 217 33% 14%;
     --accent-foreground: 217 91% 70%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 217 33% 17%;
-    --input: 217 33% 20%;
+    --border: 217 33% 14%;
+    --input: 217 33% 16%;
     --ring: 217 91% 60%;
     
-    /* Sidebar */
-    --sidebar-background: 222 47% 7%;
+    /* Sidebar - Slightly darker for depth */
+    --sidebar-background: 222 47% 4%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent: 217 33% 14%;
     --sidebar-accent-foreground: 217 91% 70%;
-    --sidebar-border: 217 33% 17%;
+    --sidebar-border: 217 33% 12%;
     --sidebar-ring: 217 91% 60%;
     
-    /* Chat bubbles */
+    /* Chat bubbles - Subtle gradient effect */
     --chat-user-bg: 217 91% 55%;
     --chat-user-fg: 0 0% 100%;
-    --chat-ai-bg: 222 47% 11%;
+    --chat-ai-bg: 222 47% 10%;
     --chat-ai-fg: 210 40% 95%;
     
     /* CoreAI Premium Tokens */
@@ -130,14 +130,17 @@
     --chart-4: 38 92% 55%;
     --chart-5: 346 77% 55%;
     
-    /* Premium Shadows */
-    --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.1);
-    --shadow-xs: 0 1px 3px 0 hsl(0 0% 0% / 0.15);
-    --shadow-sm: 0 2px 4px -1px hsl(0 0% 0% / 0.2), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-    --shadow-md: 0 4px 6px -2px hsl(0 0% 0% / 0.25), 0 2px 4px -2px hsl(0 0% 0% / 0.15);
-    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.3), 0 4px 6px -4px hsl(0 0% 0% / 0.15);
-    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.35), 0 8px 10px -6px hsl(0 0% 0% / 0.2);
-    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.5);
+    /* Premium Shadows with Glow */
+    --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.15);
+    --shadow-xs: 0 1px 3px 0 hsl(0 0% 0% / 0.2);
+    --shadow-sm: 0 2px 4px -1px hsl(0 0% 0% / 0.25), 0 1px 2px -1px hsl(0 0% 0% / 0.15);
+    --shadow-md: 0 4px 6px -2px hsl(0 0% 0% / 0.3), 0 2px 4px -2px hsl(0 0% 0% / 0.2);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.35), 0 4px 6px -4px hsl(0 0% 0% / 0.2);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.4), 0 8px 10px -6px hsl(0 0% 0% / 0.25);
+    --shadow-2xl: 0 25px 50px -12px hsl(0 0% 0% / 0.55);
+    
+    /* Input glow on focus */
+    --input-glow: 0 0 0 3px hsl(217 91% 60% / 0.15);
   }
 }
 
@@ -289,6 +292,51 @@
     50% {
       box-shadow: 0 0 50px hsl(var(--core-glow) / 0.5);
     }
+  }
+
+  /* Input glow on typing */
+  .input-glow-typing {
+    animation: input-typing-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes input-typing-glow {
+    0%, 100% {
+      box-shadow: 0 0 10px hsl(var(--primary) / 0.2);
+    }
+    50% {
+      box-shadow: 0 0 25px hsl(var(--primary) / 0.4);
+    }
+  }
+
+  /* Subtle gradient on message bubbles */
+  .chat-bubble-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--chat-ai-bg)) 0%,
+      hsl(var(--chat-ai-bg) / 0.95) 100%
+    );
+  }
+
+  .chat-bubble-user-gradient {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      hsl(var(--core-gradient-end)) 100%
+    );
+  }
+
+  /* Smooth transition for theme changes */
+  .theme-transition * {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.15s ease;
+  }
+
+  /* Hide scrollbar utility */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 
   /* Fade in animation */
