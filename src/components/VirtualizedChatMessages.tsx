@@ -13,6 +13,7 @@ interface Message {
 
 interface VirtualizedChatMessagesProps {
   messages: Message[];
+  chatId?: string;
   isAITyping: boolean;
   onEditMessage?: (id: string, content: string, index: number) => void;
   onRegenerateResponse?: (id: string, index: number) => void;
@@ -25,6 +26,7 @@ const ESTIMATED_ROW_HEIGHT = 100;
 
 const VirtualizedChatMessages = memo(({ 
   messages, 
+  chatId,
   isAITyping,
   onEditMessage,
   onRegenerateResponse 
@@ -161,19 +163,20 @@ const VirtualizedChatMessages = memo(({
     return (
       <div className="space-y-1 pb-4">
         {messages.map((message, index) => (
-          <ChatMessage
-            key={message.id}
-            message={message.content}
-            messageId={message.id}
-            isUser={message.is_user}
-            timestamp={new Date(message.created_at).toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit'
-            })}
-            images={message.images}
-            onEdit={message.is_user ? () => onEditMessage?.(message.id, message.content, index) : undefined}
-            onRegenerate={!message.is_user ? () => onRegenerateResponse?.(message.id, index) : undefined}
-          />
+          <div key={message.id} id={`message-${message.id}`} className="transition-colors duration-500">
+            <ChatMessage
+              message={message.content}
+              messageId={message.id}
+              isUser={message.is_user}
+              timestamp={new Date(message.created_at).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit'
+              })}
+              images={message.images}
+              onEdit={message.is_user ? () => onEditMessage?.(message.id, message.content, index) : undefined}
+              onRegenerate={!message.is_user ? () => onRegenerateResponse?.(message.id, index) : undefined}
+            />
+          </div>
         ))}
         <AnimatePresence>
           <TypingWaveform show={isAITyping} />
