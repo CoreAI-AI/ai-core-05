@@ -2,10 +2,9 @@ import { MarkdownRenderer } from './MarkdownRenderer';
 import { MessageActions } from './MessageActions';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import coreaiLogo from '@/assets/coreai-logo.png';
 import { useState } from 'react';
 import { FullScreenImageViewer } from './FullScreenImageViewer';
-import { File as FileIcon, X } from 'lucide-react';
+import { File as FileIcon, Plus } from 'lucide-react';
 
 interface ChatMessageProps {
   message: string;
@@ -157,18 +156,16 @@ export const ChatMessage = ({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
     >
-      {/* AI avatar with CoreAI logo */}
+      {/* AI avatar with + icon (ChatGPT style) */}
       <motion.div 
         className="mr-2 flex items-start shrink-0"
         initial={{ scale: 0, rotate: 30 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ duration: 0.2, delay: 0.05 }}
       >
-        <img 
-          src={coreaiLogo} 
-          alt="CoreAI" 
-          className="w-7 h-7 rounded-full shadow-sm ring-1 ring-background" 
-        />
+        <div className="w-6 h-6 rounded-full bg-foreground dark:bg-white flex items-center justify-center shadow-sm ring-1 ring-background">
+          <Plus className="w-3.5 h-3.5 text-background dark:text-black stroke-[2.5]" />
+        </div>
       </motion.div>
       
       {/* Mobile: 88%, Tablet: 80%, Desktop: 75% - readable line-by-line */}
