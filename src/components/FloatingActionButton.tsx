@@ -95,22 +95,20 @@ export const FloatingActionButton = ({
 
       {/* Main FAB */}
       <motion.div
-        animate={isOpen ? { rotate: 45 } : { rotate: 0 }}
+        animate={isOpen ? { rotate: 135 } : { rotate: 0 }}
         transition={{ duration: 0.2 }}
       >
         <Button
           className={cn(
-            "h-14 w-14 rounded-full shadow-xl gradient-bg",
-            "hover:opacity-90 transition-all duration-200",
-            isOpen && "bg-destructive hover:bg-destructive/90"
+            "h-12 w-12 rounded-full shadow-xl bg-foreground dark:bg-white",
+            "hover:opacity-90 transition-all duration-200"
           )}
           onClick={() => setIsOpen(!isOpen)}
         >
-          {isOpen ? (
-            <X className="w-6 h-6" />
-          ) : (
-            <Sparkles className="w-6 h-6" />
-          )}
+          <Plus className={cn(
+            "w-5 h-5 stroke-[2.5]",
+            "text-background dark:text-black"
+          )} />
         </Button>
       </motion.div>
 
