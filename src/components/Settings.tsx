@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Upload, User as UserIcon, Monitor, Moon, Sun, Palette, Brain, 
   Volume2, Database, Shield, LogOut, Trash2, Download, History,
-  Type, LayoutGrid, Sparkles, FileText, AlertTriangle
+  Type, LayoutGrid, Sparkles, FileText, AlertTriangle, Lock, Fingerprint
 } from "lucide-react";
 import { UserSettings, useSettings } from "@/hooks/useSettings";
 import { toast } from "sonner";
@@ -31,6 +31,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
+import { useAppLock } from "@/hooks/useAppLock";
 
 interface SettingsProps {
   user: User | null;
@@ -46,6 +47,7 @@ export const Settings = ({ user }: SettingsProps) => {
   const { theme, setTheme } = useTheme();
   const [localSettings, setLocalSettings] = useState<UserSettings>(settings);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const appLock = useAppLock();
 
   useEffect(() => {
     setLocalSettings(settings);
@@ -496,6 +498,116 @@ export const Settings = ({ user }: SettingsProps) => {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* App Lock */}
+      <motion.div variants={cardVariants} initial="hidden" animate="visible" transition={{ delay: 0.23 }}>
+        <Card className="border-border/50">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Lock className="w-5 h-5" />
+              App Lock
+            </CardTitle>
+            <CardDescription>
+              Protect your app with PIN or fingerprint
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-5">
+            {/* Enable App Lock */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-sm">Enable App Lock</Label>
+                <p className="text-xs text-muted-foreground">
+                  Require PIN to access app
+                </p>
+              </div>
+              {appLock.settings.enabled ? (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Switch checked={true} />
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Disable App Lock?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will remove the PIN protection from your app.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={appLock.disableLock}>
+                        Disable
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : (
+                <Switch 
+                  checked={false} 
+                  onCheckedChange={() => appLock.setIsSetupMode(true)} 
+                />
+              )}
+            </div>
+
+            {appLock.settings.enabled && (
+              <>
+                <Separator />
+
+                {/* Biometric Authentication */}
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5 flex items-center gap-2">
+                    <Fingerprint className="w-4 h-4 text-muted-foreground" />
+                    <div>
+                      <Label className="text-sm">Fingerprint / Face ID</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Use biometric to unlock
+                      </p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={appLock.settings.biometricEnabled}
+                    onCheckedChange={appLock.toggleBiometric}
+                  />
+                </div>
+
+                <Separator />
+
+                {/* Lock Timeout */}
+                <div className="space-y-2">
+                  <Label className="text-sm">Auto-lock after</Label>
+                  <Select
+                    value={String(appLock.settings.lockAfterMinutes)}
+                    onValueChange={(value) => appLock.setLockTimeout(Number(value))}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select timeout" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 minute</SelectItem>
+                      <SelectItem value="5">5 minutes</SelectItem>
+                      <SelectItem value="15">15 minutes</SelectItem>
+                      <SelectItem value="30">30 minutes</SelectItem>
+                      <SelectItem value="60">1 hour</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Separator />
+
+                {/* Lock Now Button */}
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={appLock.lockApp}
+                >
+                  <Lock className="w-4 h-4 mr-2" />
+                  Lock App Now
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </motion.div>
