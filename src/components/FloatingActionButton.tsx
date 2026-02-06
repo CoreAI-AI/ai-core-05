@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Plus, 
+  MessageSquare,
   MessageSquarePlus, 
   Mic, 
   Camera, 
   Image as ImageIcon,
-  X,
-  Sparkles
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -94,23 +93,37 @@ export const FloatingActionButton = ({
       </AnimatePresence>
 
       {/* Main FAB */}
-      <motion.div
-        animate={isOpen ? { rotate: 135 } : { rotate: 0 }}
-        transition={{ duration: 0.2 }}
+      <Button
+        className={cn(
+          "h-11 w-11 rounded-full shadow-xl bg-foreground dark:bg-white",
+          "hover:opacity-90 transition-all duration-200"
+        )}
+        onClick={() => setIsOpen(!isOpen)}
       >
-        <Button
-          className={cn(
-            "h-12 w-12 rounded-full shadow-xl bg-foreground dark:bg-white",
-            "hover:opacity-90 transition-all duration-200"
+        <AnimatePresence mode="wait">
+          {isOpen ? (
+            <motion.div
+              key="close"
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <X className="w-4 h-4 text-background dark:text-black" />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="chat"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <MessageSquare className="w-4 h-4 text-background dark:text-black" />
+            </motion.div>
           )}
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          <Plus className={cn(
-            "w-5 h-5 stroke-[2.5]",
-            "text-background dark:text-black"
-          )} />
-        </Button>
-      </motion.div>
+        </AnimatePresence>
+      </Button>
 
       {/* Backdrop */}
       <AnimatePresence>
