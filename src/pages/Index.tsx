@@ -965,10 +965,22 @@ const Index = () => {
       {/* Floating Action Button - Mobile Only */}
       <FloatingActionButton
         onNewChat={startNewChat}
-        onVoiceInput={() => toast.info("Tap the microphone in the input bar")}
-        onCameraUpload={() => toast.info("Camera upload coming soon")}
-        onImageUpload={() => document.getElementById('file-upload')?.click()}
+        onVoiceInput={() => {
+          const micButton = document.querySelector('[data-voice-input]') as HTMLButtonElement;
+          if (micButton) micButton.click();
+          else toast.info("Tap the microphone in the input bar");
+        }}
+        onCameraUpload={() => {
+          const cameraButton = document.querySelector('[data-camera-upload]') as HTMLButtonElement;
+          if (cameraButton) cameraButton.click();
+          else toast.info("Camera upload coming soon");
+        }}
+        onImageUpload={() => {
+          const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+          if (fileInput) fileInput.click();
+        }}
         isTyping={isUserTyping}
+        isLoading={isLoading || isAITyping}
       />
       
       {/* Image Generation Overlay */}

@@ -278,7 +278,7 @@ export const ChatInput = ({
                   <File className="w-4 h-4 mr-2" />
                   File
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={openCamera} className="cursor-pointer rounded-lg">
+                <DropdownMenuItem onClick={openCamera} className="cursor-pointer rounded-lg" data-camera-upload>
                   <Camera className="w-4 h-4 mr-2" />
                   Camera
                 </DropdownMenuItem>
@@ -308,6 +308,7 @@ export const ChatInput = ({
                 variant="ghost"
                 onClick={handleVoiceRecording}
                 disabled={disabled || transcribing}
+                data-voice-input
                 className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl btn-press ${isRecording ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
               >
                 {isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
