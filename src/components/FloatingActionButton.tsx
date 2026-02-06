@@ -16,6 +16,7 @@ interface FloatingActionButtonProps {
   onVoiceInput: () => void;
   onCameraUpload: () => void;
   onImageUpload: () => void;
+  isTyping?: boolean;
   className?: string;
 }
 
@@ -31,6 +32,7 @@ export const FloatingActionButton = ({
   onVoiceInput,
   onCameraUpload,
   onImageUpload,
+  isTyping = false,
   className,
 }: FloatingActionButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,6 +54,11 @@ export const FloatingActionButton = ({
         break;
     }
   };
+
+  // Hide FAB when typing
+  if (isTyping) {
+    return null;
+  }
 
   return (
     <div className={cn("fixed bottom-24 right-4 z-50 md:hidden", className)}>
@@ -95,7 +102,7 @@ export const FloatingActionButton = ({
       {/* Main FAB */}
       <Button
         className={cn(
-          "h-11 w-11 rounded-full shadow-xl bg-foreground dark:bg-white",
+          "h-9 w-9 rounded-full shadow-xl bg-foreground dark:bg-white",
           "hover:opacity-90 transition-all duration-200"
         )}
         onClick={() => setIsOpen(!isOpen)}
@@ -109,7 +116,7 @@ export const FloatingActionButton = ({
               exit={{ rotate: 90, opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              <X className="w-4 h-4 text-background dark:text-black" />
+              <X className="w-3.5 h-3.5 text-background dark:text-black" />
             </motion.div>
           ) : (
             <motion.div
@@ -119,7 +126,7 @@ export const FloatingActionButton = ({
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              <MessageSquare className="w-4 h-4 text-background dark:text-black" />
+              <MessageSquare className="w-3.5 h-3.5 text-background dark:text-black" />
             </motion.div>
           )}
         </AnimatePresence>

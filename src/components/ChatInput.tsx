@@ -20,6 +20,7 @@ interface ChatInputProps {
     index: number;
   } | null;
   onCancelEdit?: () => void;
+  onTypingChange?: (isTyping: boolean) => void;
 }
 export const ChatInput = ({
   onSendMessage,
@@ -27,7 +28,8 @@ export const ChatInput = ({
   onFileSelect,
   onModeChange,
   editingMessage,
-  onCancelEdit
+  onCancelEdit,
+  onTypingChange
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const isMobile = useIsMobile();
@@ -38,6 +40,11 @@ export const ChatInput = ({
       setMessage(editingMessage.content);
     }
   }, [editingMessage]);
+
+  // Notify parent when typing state changes
+  useEffect(() => {
+    onTypingChange?.(message.trim().length > 0);
+  }, [message, onTypingChange]);
   const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor'>('normal');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);

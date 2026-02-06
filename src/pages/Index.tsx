@@ -69,6 +69,7 @@ const Index = () => {
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
+  const [isUserTyping, setIsUserTyping] = useState(false);
   
   // New feature states
   const [openTabs, setOpenTabs] = useState<Chat[]>([]);
@@ -954,7 +955,7 @@ const Index = () => {
                   </div>}
                 <div className="px-2 py-3 sm:p-4">
                   <div className="max-w-4xl mx-auto w-full">
-                    <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} onFileSelect={handleFileSelect} onModeChange={setChatMode} editingMessage={editingMessage} onCancelEdit={() => setEditingMessage(null)} />
+                    <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} onFileSelect={handleFileSelect} onModeChange={setChatMode} editingMessage={editingMessage} onCancelEdit={() => setEditingMessage(null)} onTypingChange={setIsUserTyping} />
                   </div>
                 </div>
               </div>}
@@ -967,6 +968,7 @@ const Index = () => {
         onVoiceInput={() => toast.info("Tap the microphone in the input bar")}
         onCameraUpload={() => toast.info("Camera upload coming soon")}
         onImageUpload={() => document.getElementById('file-upload')?.click()}
+        isTyping={isUserTyping}
       />
       
       {/* Image Generation Overlay */}
