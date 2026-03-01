@@ -9,9 +9,12 @@ export const useAuth = () => {
   const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+    
     // Listen for auth changes first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (!mounted) return;
         console.log('Auth state changed:', event, session?.user?.id);
         setUser(session?.user ?? null);
         
@@ -25,27 +28,47 @@ export const useAuth = () => {
       }
     );
 
-    // Get initial session - require login if no session
+    // Get initial session - handle failures gracefully
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      console.log('Initial session:', session?.user?.id);
-      
-      if (session?.user) {
-        setUser(session.user);
-        setShowAuth(false);
-      } else {
-        // No session - require login
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (error || !session?.user) {
+          // Session expired or failed - show login
+          setUser(null);
+          setShowAuth(true);
+        } else {
+          setUser(session.user);
+          setShowAuth(false);
+        }
+      } catch (err) {
+        console.warn('Auth session fetch failed:', err);
+        if (!mounted) return;
         setUser(null);
         setShowAuth(true);
       }
       
-      setLoading(false);
+      if (mounted) setLoading(false);
     };
+
+    // Set a timeout to force loading to false after 5 seconds
+    const timeout = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth loading timeout - showing login');
+        setLoading(false);
+        setShowAuth(true);
+      }
+    }, 5000);
 
     getSession();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signOut = async () => {
