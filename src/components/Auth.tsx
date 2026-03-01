@@ -146,12 +146,12 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         </motion.div>
 
         <Card className="border-border/50 shadow-xl">
-          <CardHeader className="text-center pb-4">
-            <CardTitle className="text-xl">{isSignUp ? "Create Account" : "Welcome Back"}</CardTitle>
-            <CardDescription>
-              {isSignUp ? "Join CoreAI to start your journey" : "Sign in to continue"}
-            </CardDescription>
-          </CardHeader>
+          
+
+
+
+
+
           
 
 
