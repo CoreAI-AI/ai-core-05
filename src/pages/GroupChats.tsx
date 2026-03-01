@@ -391,6 +391,15 @@ const GroupChats = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => {
+                      const link = `${window.location.origin}/group-chats?invite=${currentGroup.id}`;
+                      navigator.clipboard.writeText(link);
+                      toast.success('Invite link copied!');
+                    }}>
+                      <Link2 className="w-4 h-4 mr-2" />
+                      Invite with Link
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={leaveGroup}>
                       <LogOut className="w-4 h-4 mr-2" />
                       Leave Group
