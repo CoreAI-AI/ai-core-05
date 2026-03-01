@@ -45,6 +45,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "sonner";
 
 const GroupChats = () => {
   const { user, loading: authLoading } = useAuth();
