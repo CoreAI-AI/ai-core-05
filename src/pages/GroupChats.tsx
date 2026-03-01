@@ -495,37 +495,54 @@ const GroupChats = () => {
           </>
         ) : (
           <div className="flex-1 flex flex-col">
-            {/* Empty state header on mobile */}
             {isMobile && !showSidebar && (
               <div className="p-3 border-b border-border flex items-center gap-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setShowSidebar(true)}
-                  className="h-8 w-8 p-0"
-                >
+                <Button variant="ghost" size="sm" onClick={() => setShowSidebar(true)} className="h-8 w-8 p-0">
                   <Menu className="w-4 h-4" />
                 </Button>
                 <span className="text-sm font-medium">Group Chats</span>
               </div>
             )}
             <div className="flex-1 flex items-center justify-center text-muted-foreground p-4">
-              <div className="text-center">
-                <Users className="w-14 h-14 mx-auto mb-4 opacity-50" />
-                <h3 className="text-base font-medium mb-2">Select a group</h3>
-                <p className="text-sm">Choose a group from the sidebar to start chatting</p>
+              <motion.div className="text-center max-w-sm" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground mb-2">Use CoreAI together</h3>
+                <p className="text-sm text-muted-foreground mb-6">Add people to your chats to plan, share ideas</p>
+                <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="gap-2 rounded-xl h-11 px-6">
+                      <Plus className="w-4 h-4" />
+                      Start Group Chat
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Create Group Chat</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                      <div className="flex justify-center">
+                        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center border-2 border-dashed border-primary/30">
+                          <Users className="w-8 h-8 text-primary/50" />
+                        </div>
+                      </div>
+                      <Input placeholder="Group Name" value={newGroupName} onChange={(e) => setNewGroupName(e.target.value)} className="h-11 rounded-xl" />
+                      <Input placeholder="Username / Description" value={newGroupDescription} onChange={(e) => setNewGroupDescription(e.target.value)} className="h-11 rounded-xl" />
+                      <div className="flex gap-2">
+                        <Button variant="outline" className="flex-1 h-11 rounded-xl" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleCreateGroup} className="flex-1 h-11 rounded-xl" disabled={!newGroupName.trim()}>Save Profile</Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 {isMobile && (
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setShowSidebar(true)}
-                    className="mt-4"
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => setShowSidebar(true)} className="mt-3">
                     <Menu className="w-4 h-4 mr-2" />
                     View Groups
                   </Button>
                 )}
-              </div>
+              </motion.div>
             </div>
           </div>
         )}
