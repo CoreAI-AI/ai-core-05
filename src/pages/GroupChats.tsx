@@ -90,30 +90,48 @@ const GroupChats = () => {
 
   // Handle invite link - auto join group
   useEffect(() => {
-    if (!user) return;
+    if (!user || loading) return;
     const params = new URLSearchParams(window.location.search);
     const inviteGroupId = params.get('invite');
-    if (inviteGroupId) {
-      // Try to join the group
-      const joinGroup = async () => {
-        const success = await addMember(user.id);
-        if (success) {
+    if (!inviteGroupId) return;
+
+    const joinViaInvite = async () => {
+      // Check if already a member
+      const { data: existing } = await supabase
+        .from('group_members')
+        .select('id')
+        .eq('group_id', inviteGroupId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (!existing) {
+        const { error } = await supabase
+          .from('group_members')
+          .insert({ group_id: inviteGroupId, user_id: user.id, role: 'member' });
+        
+        if (error) {
+          toast.error('Failed to join group');
+        } else {
           toast.success('Successfully joined the group!');
         }
-        // Try to select the group from the list, or fetch it
-        const found = groups.find(g => g.id === inviteGroupId);
-        if (found) {
-          selectGroup(found);
-        }
-        // Clean up URL
-        window.history.replaceState({}, '', '/group-chats');
-      };
-      // Wait for groups to load
-      if (!loading) {
-        joinGroup();
       }
-    }
-  }, [user, loading, groups]);
+
+      // Select the group
+      const { data: group } = await supabase
+        .from('group_chats')
+        .select('*')
+        .eq('id', inviteGroupId)
+        .single();
+      
+      if (group) {
+        selectGroup(group);
+      }
+      
+      window.history.replaceState({}, '', '/group-chats');
+    };
+
+    joinViaInvite();
+  }, [user, loading]);
 
   if (authLoading) {
     return (
