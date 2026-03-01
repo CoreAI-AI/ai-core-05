@@ -127,23 +127,23 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         transition={{ duration: 0.5, ease: "easeOut" }}>
 
         {/* Logo with animation */}
-        <motion.div
-          className="text-center space-y-2"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.2 }}>
+        
 
-          <motion.img
-            src={coreaiLogo}
-            alt="CoreAI"
-            className="w-20 h-20 rounded-full shadow-lg mx-auto mb-4 ring-4 ring-primary/20"
-            initial={{ rotate: -180, scale: 0 }}
-            animate={{ rotate: 0, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }} />
 
-          <h1 className="text-3xl font-bold gradient-text">CoreAI</h1>
-          <p className="text-muted-foreground">Intelligent Assistant</p>
-        </motion.div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         <Card className="border-border/50 shadow-xl">
           
