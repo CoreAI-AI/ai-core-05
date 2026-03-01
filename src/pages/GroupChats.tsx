@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useGroupChats } from "@/hooks/useGroupChats";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -88,51 +87,6 @@ const GroupChats = () => {
   useEffect(() => {
     setShowSidebar(!isMobile);
   }, [isMobile]);
-
-  // Handle invite link - auto join group
-  useEffect(() => {
-    if (!user || loading) return;
-    const params = new URLSearchParams(window.location.search);
-    const inviteGroupId = params.get('invite');
-    if (!inviteGroupId) return;
-
-    const joinViaInvite = async () => {
-      // Check if already a member
-      const { data: existing } = await supabase
-        .from('group_members')
-        .select('id')
-        .eq('group_id', inviteGroupId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (!existing) {
-        const { error } = await supabase
-          .from('group_members')
-          .insert({ group_id: inviteGroupId, user_id: user.id, role: 'member' });
-        
-        if (error) {
-          toast.error('Failed to join group');
-        } else {
-          toast.success('Successfully joined the group!');
-        }
-      }
-
-      // Select the group
-      const { data: group } = await supabase
-        .from('group_chats')
-        .select('*')
-        .eq('id', inviteGroupId)
-        .single();
-      
-      if (group) {
-        selectGroup(group);
-      }
-      
-      window.history.replaceState({}, '', '/group-chats');
-    };
-
-    joinViaInvite();
-  }, [user, loading]);
 
   if (authLoading) {
     return (
