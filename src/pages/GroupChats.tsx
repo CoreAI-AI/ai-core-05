@@ -17,7 +17,9 @@ import {
   User,
   Menu,
   X,
-  MessageCircle
+  MessageCircle,
+  Link2,
+  Share2
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
