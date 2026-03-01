@@ -48,13 +48,13 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         if (error) throw error;
 
         if (data.user) {
-          const { error: profileError } = await sb
-            .from('profiles')
-            .insert({
-              user_id: data.user.id,
-              display_name: displayName || email.split('@')[0],
-              email: email,
-            });
+          const { error: profileError } = await sb.
+          from('profiles').
+          insert({
+            user_id: data.user.id,
+            display_name: displayName || email.split('@')[0],
+            email: email
+          });
 
           if (profileError) {
             console.error('Profile creation error:', profileError);
@@ -66,7 +66,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
-          password,
+          password
         });
 
         if (error) throw error;
@@ -90,20 +90,20 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
 
   const handleDemoLogin = async () => {
     setIsLoading(true);
-    
+
     try {
       toast.info("Setting up demo account...");
-      
+
       const { data, error } = await supabase.functions.invoke('create-demo-user');
-      
+
       if (error) throw error;
       if (!data.success) throw new Error(data.error || 'Failed to create demo user');
 
       const { email, password } = data.credentials;
-      
+
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
 
       if (signInError) throw signInError;
@@ -120,27 +120,27 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
-      <motion.div 
+      <motion.div
         className="w-full max-w-md space-y-6"
         initial={{ opacity: 0, y: 30, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-      >
+        transition={{ duration: 0.5, ease: "easeOut" }}>
+
         {/* Logo with animation */}
-        <motion.div 
+        <motion.div
           className="text-center space-y-2"
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-        >
-          <motion.img 
-            src={coreaiLogo} 
-            alt="CoreAI" 
+          transition={{ duration: 0.4, delay: 0.2 }}>
+
+          <motion.img
+            src={coreaiLogo}
+            alt="CoreAI"
             className="w-20 h-20 rounded-full shadow-lg mx-auto mb-4 ring-4 ring-primary/20"
             initial={{ rotate: -180, scale: 0 }}
             animate={{ rotate: 0, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
-          />
+            transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }} />
+
           <h1 className="text-3xl font-bold gradient-text">CoreAI</h1>
           <p className="text-muted-foreground">Intelligent Assistant</p>
         </motion.div>
@@ -152,85 +152,85 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
               {isSignUp ? "Join CoreAI to start your journey" : "Sign in to continue"}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <form onSubmit={handleAuth} className="space-y-4">
-              {isSignUp && (
-                <Input
-                  type="text"
-                  placeholder="Display Name"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="h-11 rounded-xl"
-                />
-              )}
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-11 rounded-xl"
-              />
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="h-11 rounded-xl"
-              />
-              {!isSignUp && (
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="rememberMe"
-                    checked={rememberMe}
-                    onCheckedChange={(checked) => setRememberMe(checked === true)}
-                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                  />
-                  <Label
-                    htmlFor="rememberMe"
-                    className="text-sm text-muted-foreground cursor-pointer select-none"
-                  >
-                    Remember me
-                  </Label>
-                </div>
-              )}
-              <Button type="submit" className="w-full h-11 rounded-xl gradient-bg text-white font-medium shadow-md btn-press" disabled={isLoading}>
-                {isLoading ? "Loading..." : (isSignUp ? "Create Account" : "Sign In")}
-              </Button>
-            </form>
-            
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border" />
-              </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-2 text-muted-foreground">or</span>
-              </div>
-            </div>
-            
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full h-11 rounded-xl font-medium btn-press border-primary/30 hover:bg-primary/5"
-              onClick={handleDemoLogin}
-              disabled={isLoading}
-            >
-              <Zap className="w-4 h-4 mr-2 text-primary" />
-              Try Demo Account
-            </Button>
-            
-            <Button
-              variant="link"
-              onClick={() => setIsSignUp(!isSignUp)}
-              className="w-full text-sm text-muted-foreground hover:text-primary"
-            >
-              {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
-            </Button>
-          </CardContent>
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         </Card>
       </motion.div>
-    </div>
-  );
+    </div>);
+
 };
