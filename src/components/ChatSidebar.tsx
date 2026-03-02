@@ -299,7 +299,7 @@ export const ChatSidebar = ({
         )}
         <AnimatedLogoutButton 
           onSignOut={onSignOut} 
-          isDemo={user?.email === 'demo@example.com'} 
+          isDemo={false} 
         />
       </div>
     </div>
