@@ -293,7 +293,7 @@ export const ChatSidebar = ({
           >
             <p className="text-xs text-muted-foreground">Signed in as</p>
             <p className="text-sm font-medium text-sidebar-foreground truncate">
-              {user.email === 'demo@example.com' ? 'Demo User' : user.email}
+              @{user.username}
             </p>
           </button>
         )}
