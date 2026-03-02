@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { UserSettings, useSettings } from "@/hooks/useSettings";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
 import {
   AlertDialog,
