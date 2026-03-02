@@ -221,7 +221,7 @@ const Index = () => {
 
   // If no user, show auth page
   if (!user) {
-    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+    return <Auth onAuthSuccess={(username) => signIn(username)} />;
   }
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
