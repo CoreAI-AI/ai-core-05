@@ -34,7 +34,8 @@ import { motion } from "framer-motion";
 import { useAppLock } from "@/hooks/useAppLock";
 
 interface SettingsProps {
-  user: User | null;
+  user: SimpleUser | null;
+  onChangeUsername?: () => void;
 }
 
 const cardVariants = {
