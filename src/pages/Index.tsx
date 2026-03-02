@@ -36,6 +36,8 @@ const Index = () => {
     loading: authLoading,
     showAuth,
     signOut,
+    signIn,
+    changeUsername,
     setShowAuth
   } = useAuth();
   const {
