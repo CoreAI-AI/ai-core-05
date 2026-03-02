@@ -11,6 +11,16 @@ export const useAuth = () => {
   const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
+    // Clear old Supabase auth tokens to prevent errors
+    try {
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch {}
+
     const savedUsername = localStorage.getItem('coreai_username');
     if (savedUsername) {
       setUser({
