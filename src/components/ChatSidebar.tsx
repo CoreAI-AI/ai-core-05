@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Chat } from "@/hooks/useChats";
-import { User } from "@supabase/supabase-js";
+import { SimpleUser } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import coreaiLogo from '@/assets/coreai-logo.png';
