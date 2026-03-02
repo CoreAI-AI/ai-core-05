@@ -216,7 +216,7 @@ const Index = () => {
 
   // Show auth page only if user has logged out or there's an auth error
   if (showAuth) {
-    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+    return <Auth onAuthSuccess={(username) => signIn(username)} />;
   }
 
   // If no user, show auth page
