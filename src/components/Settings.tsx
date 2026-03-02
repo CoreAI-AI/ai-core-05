@@ -99,19 +99,9 @@ export const Settings = ({ user, onChangeUsername }: SettingsProps) => {
   };
 
   const handleClearHistory = async () => {
-    if (user) {
-      try {
-        await supabase.from('messages').delete().eq('chat_id', user.id);
-        await supabase.from('chats').delete().eq('user_id', user.id);
-        toast.success("Chat history cleared successfully!");
-      } catch (error) {
-        toast.error("Failed to clear chat history");
-      }
-    } else {
-      localStorage.removeItem('demo_chats');
-      localStorage.removeItem('demo_messages');
-      toast.success("Chat history cleared!");
-    }
+    localStorage.removeItem('demo_chats');
+    localStorage.removeItem('demo_messages');
+    toast.success("Chat history cleared!");
   };
 
   const handleSignOutAll = async () => {
