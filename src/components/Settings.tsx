@@ -104,13 +104,9 @@ export const Settings = ({ user, onChangeUsername }: SettingsProps) => {
     toast.success("Chat history cleared!");
   };
 
-  const handleSignOutAll = async () => {
-    try {
-      await supabase.auth.signOut({ scope: 'global' });
-      toast.success("Signed out from all devices");
-    } catch (error) {
-      toast.error("Failed to sign out from all devices");
-    }
+  const handleSignOutAll = () => {
+    localStorage.removeItem('coreai_username');
+    window.location.reload();
   };
 
   const handleDeleteAccount = async () => {
