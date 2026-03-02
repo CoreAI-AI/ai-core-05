@@ -43,7 +43,7 @@ const cardVariants = {
   visible: { opacity: 1, y: 0 }
 };
 
-export const Settings = ({ user }: SettingsProps) => {
+export const Settings = ({ user, onChangeUsername }: SettingsProps) => {
   const { settings, updateSettings } = useSettings(user?.id);
   const { theme, setTheme } = useTheme();
   const [localSettings, setLocalSettings] = useState<UserSettings>(settings);
