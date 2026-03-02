@@ -45,7 +45,7 @@ interface ChatSidebarProps {
   onOpenSettings: () => void;
   onDeleteChat: (chatId: string) => void;
   onExportChat: (chatId: string, format: 'text' | 'pdf') => void;
-  user: User | null;
+  user: SimpleUser | null;
   onCollapse?: () => void;
 }
 
