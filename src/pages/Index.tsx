@@ -652,14 +652,16 @@ const Index = () => {
         return;
       }
 
-      // Load messages for the chat
-      const {
-        data: chatMessages,
-        error
-      } = await supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', {
-        ascending: true
-      });
-      if (error) throw error;
+      // Use current messages if it's the active chat, otherwise load from localStorage
+      let chatMessages = messages;
+      if (currentChat?.id !== chatId) {
+        const username = localStorage.getItem('coreai_username');
+        if (username) {
+          const stored = JSON.parse(localStorage.getItem(`coreai_messages_${username}`) || '{}');
+          chatMessages = stored[chatId] || [];
+        }
+      }
+
       if (!chatMessages || chatMessages.length === 0) {
         toast.error("No messages to export");
         return;
