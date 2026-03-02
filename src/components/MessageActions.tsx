@@ -77,8 +77,8 @@ export const MessageActions = ({
 
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const username = localStorage.getItem('coreai_username');
+      if (!username) {
         toast.error('Please sign in to give feedback');
         return;
       }
