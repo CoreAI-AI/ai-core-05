@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User } from "@supabase/supabase-js";
+import { SimpleUser } from "@/hooks/useAuth";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
