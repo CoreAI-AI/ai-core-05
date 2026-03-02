@@ -168,6 +168,19 @@ export const Settings = ({ user, onChangeUsername }: SettingsProps) => {
                 className="h-10"
               />
             </div>
+            {onChangeUsername && (
+              <>
+                <Separator />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={onChangeUsername}
+                >
+                  Change Username
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </motion.div>
