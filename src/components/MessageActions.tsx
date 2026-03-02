@@ -43,8 +43,8 @@ export const MessageActions = ({
     const loadFeedback = async () => {
       if (!messageId || isUser) return;
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const username = localStorage.getItem('coreai_username');
+      if (!username) return;
 
       const { data } = await supabase
         .from('message_feedback')
