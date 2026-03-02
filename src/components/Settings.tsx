@@ -84,8 +84,8 @@ export const Settings = ({ user, onChangeUsername }: SettingsProps) => {
     if (localSettings.displayName) {
       return localSettings.displayName.split(' ').map(n => n[0]).join('').toUpperCase();
     }
-    if (user?.email) {
-      return user.email[0].toUpperCase();
+    if (user?.username) {
+      return user.username[0].toUpperCase();
     }
     return 'U';
   };
