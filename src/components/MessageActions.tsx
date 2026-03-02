@@ -50,7 +50,7 @@ export const MessageActions = ({
         .from('message_feedback')
         .select('feedback_type')
         .eq('message_id', messageId)
-        .eq('user_id', user.id)
+        .eq('user_id', username)
         .maybeSingle();
 
       if (data) {
