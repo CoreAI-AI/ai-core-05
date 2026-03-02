@@ -276,10 +276,7 @@ const Index = () => {
       // Create AI message placeholder
       const aiMessage = await addMessage(currentChat.id, "", false);
       if (!aiMessage) return;
-      const {
-        data: session
-      } = await supabase.auth.getSession();
-      const authToken = session?.session?.access_token;
+      const authToken = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       // Get updated messages (after deletion)
       const updatedMessages = messages.slice(0, editIndex + 1).map(msg => msg.id === editingMessage.id ? {
