@@ -16,7 +16,7 @@ import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { MemoryControl } from "@/components/MemoryControl";
 import { ChatSearch } from "@/components/ChatSearch";
 import { ResponseLengthControl } from "@/components/ResponseLengthControl";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, SimpleUser } from "@/hooks/useAuth";
 import { useChats, Chat } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
