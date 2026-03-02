@@ -137,7 +137,7 @@ export const Settings = ({ user, onChangeUsername }: SettingsProps) => {
                   {localSettings.displayName || 'Set your name'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {user?.email || 'demo@example.com'}
+                  @{user?.username || 'user'}
                 </p>
               </div>
               <Button
