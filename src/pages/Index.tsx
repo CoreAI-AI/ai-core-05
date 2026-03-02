@@ -739,7 +739,13 @@ const Index = () => {
                 {/* Settings Content */}
                 <ScrollArea className="flex-1 p-6">
                   <div className="max-w-4xl mx-auto">
-                    <Settings user={user} />
+                    <Settings user={user} onChangeUsername={() => {
+                      const newName = prompt('Enter new username:');
+                      if (newName && newName.trim().length >= 2) {
+                        changeUsername(newName.trim());
+                        toast.success('Username changed!');
+                      }
+                    }} />
                   </div>
                 </ScrollArea>
               </div> :
