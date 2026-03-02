@@ -97,7 +97,7 @@ export const MessageActions = ({
         await supabase
           .from('message_feedback')
           .upsert({
-            user_id: user.id,
+            user_id: username,
             message_id: messageId,
             feedback_type: type
           }, {
