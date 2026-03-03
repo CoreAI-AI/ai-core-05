@@ -43,14 +43,14 @@ export const MessageActions = ({
     const loadFeedback = async () => {
       if (!messageId || isUser) return;
       
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const username = localStorage.getItem('coreai_username');
+      if (!username) return;
 
       const { data } = await supabase
         .from('message_feedback')
         .select('feedback_type')
         .eq('message_id', messageId)
-        .eq('user_id', user.id)
+        .eq('user_id', username)
         .maybeSingle();
 
       if (data) {
@@ -77,8 +77,8 @@ export const MessageActions = ({
 
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const username = localStorage.getItem('coreai_username');
+      if (!username) {
         toast.error('Please sign in to give feedback');
         return;
       }
@@ -89,7 +89,7 @@ export const MessageActions = ({
           .from('message_feedback')
           .delete()
           .eq('message_id', messageId)
-          .eq('user_id', user.id);
+          .eq('user_id', username);
         setFeedback(null);
         toast.success('Feedback removed');
       } else {
@@ -97,7 +97,7 @@ export const MessageActions = ({
         await supabase
           .from('message_feedback')
           .upsert({
-            user_id: user.id,
+            user_id: username,
             message_id: messageId,
             feedback_type: type
           }, {

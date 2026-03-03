@@ -16,7 +16,7 @@ import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { MemoryControl } from "@/components/MemoryControl";
 import { ChatSearch } from "@/components/ChatSearch";
 import { ResponseLengthControl } from "@/components/ResponseLengthControl";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, SimpleUser } from "@/hooks/useAuth";
 import { useChats, Chat } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
@@ -24,7 +24,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { X, PanelLeft, Users, Timer, ImageIcon, Search, Star } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
+
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -36,6 +36,8 @@ const Index = () => {
     loading: authLoading,
     showAuth,
     signOut,
+    signIn,
+    changeUsername,
     setShowAuth
   } = useAuth();
   const {
@@ -214,12 +216,12 @@ const Index = () => {
 
   // Show auth page only if user has logged out or there's an auth error
   if (showAuth) {
-    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+    return <Auth onAuthSuccess={(username) => signIn(username)} />;
   }
 
   // If no user, show auth page
   if (!user) {
-    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+    return <Auth onAuthSuccess={(username) => signIn(username)} />;
   }
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
@@ -274,10 +276,7 @@ const Index = () => {
       // Create AI message placeholder
       const aiMessage = await addMessage(currentChat.id, "", false);
       if (!aiMessage) return;
-      const {
-        data: session
-      } = await supabase.auth.getSession();
-      const authToken = session?.session?.access_token;
+      const authToken = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       // Get updated messages (after deletion)
       const updatedMessages = messages.slice(0, editIndex + 1).map(msg => msg.id === editingMessage.id ? {
@@ -372,10 +371,7 @@ const Index = () => {
     try {
       // Clear the AI message content first
       await updateMessage(aiMessageId, "");
-      const {
-        data: session
-      } = await supabase.auth.getSession();
-      const authToken = session?.session?.access_token;
+      const authToken = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       // Get conversation history up to (but not including) the AI message being regenerated
       const conversationHistory = messages.slice(0, aiMessageIndex).slice(-20).map(msg => ({
@@ -483,10 +479,7 @@ const Index = () => {
       // Create AI message placeholder
       const aiMessage = await addMessage(chatToUse.id, "", false);
       if (!aiMessage) return;
-      const {
-        data: session
-      } = await supabase.auth.getSession();
-      const authToken = session?.session?.access_token;
+      const authToken = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       // Prepare text content for non-image files
       let fileTextToSend: string | undefined;
@@ -659,14 +652,16 @@ const Index = () => {
         return;
       }
 
-      // Load messages for the chat
-      const {
-        data: chatMessages,
-        error
-      } = await supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', {
-        ascending: true
-      });
-      if (error) throw error;
+      // Use current messages if it's the active chat, otherwise load from localStorage
+      let chatMessages = messages;
+      if (currentChat?.id !== chatId) {
+        const username = localStorage.getItem('coreai_username');
+        if (username) {
+          const stored = JSON.parse(localStorage.getItem(`coreai_messages_${username}`) || '{}');
+          chatMessages = stored[chatId] || [];
+        }
+      }
+
       if (!chatMessages || chatMessages.length === 0) {
         toast.error("No messages to export");
         return;
@@ -746,7 +741,13 @@ const Index = () => {
                 {/* Settings Content */}
                 <ScrollArea className="flex-1 p-6">
                   <div className="max-w-4xl mx-auto">
-                    <Settings user={user} />
+                    <Settings user={user} onChangeUsername={() => {
+                      const newName = prompt('Enter new username:');
+                      if (newName && newName.trim().length >= 2) {
+                        changeUsername(newName.trim());
+                        toast.success('Username changed!');
+                      }
+                    }} />
                   </div>
                 </ScrollArea>
               </div> :

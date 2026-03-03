@@ -1,8 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-
-const sb = supabase as any;
 
 export interface Chat {
   id: string;
@@ -20,213 +17,142 @@ export interface Message {
   images?: any;
 }
 
+const generateId = () => crypto.randomUUID?.() || Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+const getStorageKey = (userId: string) => `coreai_chats_${userId}`;
+const getMessagesKey = (userId: string) => `coreai_messages_${userId}`;
+
+const loadFromStorage = <T,>(key: string, fallback: T): T => {
+  try {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const saveToStorage = (key: string, data: any) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    console.warn('Storage save failed:', e);
+  }
+};
+
 export const useChats = (userId: string | undefined) => {
   const [chats, setChats] = useState<Chat[]>([]);
   const [currentChat, setCurrentChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [allMessages, setAllMessages] = useState<Record<string, Message[]>>({});
   const [loading, setLoading] = useState(false);
 
-  // Load user's chats
-  const loadChats = async () => {
+  // Load chats from localStorage
+  useEffect(() => {
     if (!userId) return;
+    const stored = loadFromStorage<Chat[]>(getStorageKey(userId), []);
+    setChats(stored);
+    const storedMsgs = loadFromStorage<Record<string, Message[]>>(getMessagesKey(userId), {});
+    setAllMessages(storedMsgs);
+  }, [userId]);
 
-    try {
-      const { data, error } = await sb
-        .from('chats')
-        .select('*')
-        .eq('user_id', userId)
-        .order('updated_at', { ascending: false });
+  // Save chats whenever they change
+  useEffect(() => {
+    if (!userId) return;
+    saveToStorage(getStorageKey(userId), chats);
+  }, [chats, userId]);
 
-      if (error) throw error;
-      setChats(data || []);
-    } catch (error: any) {
-      console.error('Error loading chats:', error);
-      toast.error('Failed to load chats');
-    }
-  };
+  // Save messages whenever they change
+  useEffect(() => {
+    if (!userId) return;
+    saveToStorage(getMessagesKey(userId), allMessages);
+  }, [allMessages, userId]);
 
-  // Load messages for a specific chat
-  const loadMessages = async (chatId: string) => {
-    try {
-      const { data, error } = await sb
-        .from('messages')
-        .select('*')
-        .eq('chat_id', chatId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setMessages(data || []);
-    } catch (error: any) {
-      console.error('Error loading messages:', error);
-      toast.error('Failed to load messages');
-    }
-  };
-
-  // Create a new chat
   const createChat = async (title: string): Promise<Chat | null> => {
     if (!userId) return null;
-
-    try {
-      const { data, error } = await sb
-        .from('chats')
-        .insert({
-          user_id: userId,
-          title: title,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const newChat = data as Chat;
-      setChats(prev => [newChat, ...prev]);
-      setCurrentChat(newChat);
-      setMessages([]);
-      
-      return newChat;
-    } catch (error: any) {
-      console.error('Error creating chat:', error);
-      toast.error('Failed to create chat');
-      return null;
-    }
+    const newChat: Chat = {
+      id: generateId(),
+      title,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setChats(prev => [newChat, ...prev]);
+    setCurrentChat(newChat);
+    setMessages([]);
+    return newChat;
   };
 
-  // Add a message to the current chat
   const addMessage = async (chatId: string, content: string, isUser: boolean, images?: any[]): Promise<Message | null> => {
-    try {
-      const messageData: any = {
-        chat_id: chatId,
-        content: content,
-        is_user: isUser,
-      };
-
-      // Add images if provided
-      if (images && images.length > 0) {
-        messageData.images = images;
-      }
-
-      const { data, error } = await sb
-        .from('messages')
-        .insert(messageData)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const newMessage = data as Message;
-      setMessages(prev => [...prev, newMessage]);
-
-      // Update chat's updated_at timestamp
-      await sb
-        .from('chats')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', chatId);
-
-      return newMessage;
-    } catch (error: any) {
-      console.error('Error adding message:', error);
-      toast.error('Failed to save message');
-      return null;
-    }
+    const newMessage: Message = {
+      id: generateId(),
+      chat_id: chatId,
+      content,
+      is_user: isUser,
+      created_at: new Date().toISOString(),
+      ...(images && images.length > 0 ? { images } : {}),
+    };
+    setMessages(prev => [...prev, newMessage]);
+    setAllMessages(prev => ({
+      ...prev,
+      [chatId]: [...(prev[chatId] || []), newMessage],
+    }));
+    // Update chat timestamp
+    setChats(prev => prev.map(c => c.id === chatId ? { ...c, updated_at: new Date().toISOString() } : c));
+    return newMessage;
   };
 
-  // Update a message (for streaming responses)
   const updateMessage = async (messageId: string, content: string, images?: any[]) => {
-    try {
-      const updateData: any = { content };
-      
-      // Add images if provided
-      if (images && images.length > 0) {
-        updateData.images = images;
-      }
-
-      const { error } = await sb
-        .from('messages')
-        .update(updateData)
-        .eq('id', messageId);
-
-      if (error) throw error;
-
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === messageId 
-            ? { ...msg, content, ...(images ? { images } : {}) }
-            : msg
-        )
+    const updater = (msgs: Message[]) =>
+      msgs.map(msg =>
+        msg.id === messageId
+          ? { ...msg, content, ...(images ? { images } : {}) }
+          : msg
       );
-    } catch (error: any) {
-      console.error('Error updating message:', error);
-    }
+    setMessages(updater);
+    setAllMessages(prev => {
+      const updated = { ...prev };
+      for (const chatId of Object.keys(updated)) {
+        updated[chatId] = updater(updated[chatId]);
+      }
+      return updated;
+    });
   };
 
-  // Delete a message
   const deleteMessage = async (messageId: string) => {
-    try {
-      const { error } = await sb
-        .from('messages')
-        .delete()
-        .eq('id', messageId);
-
-      if (error) throw error;
-
-      setMessages(prev => prev.filter(msg => msg.id !== messageId));
-    } catch (error: any) {
-      console.error('Error deleting message:', error);
-    }
+    setMessages(prev => prev.filter(msg => msg.id !== messageId));
+    setAllMessages(prev => {
+      const updated = { ...prev };
+      for (const chatId of Object.keys(updated)) {
+        updated[chatId] = updated[chatId].filter(msg => msg.id !== messageId);
+      }
+      return updated;
+    });
   };
 
-  // Start a new chat session
   const startNewChat = () => {
     setCurrentChat(null);
     setMessages([]);
   };
 
-  // Select an existing chat
   const selectChat = async (chat: Chat) => {
     setCurrentChat(chat);
-    await loadMessages(chat.id);
+    setMessages(allMessages[chat.id] || []);
   };
 
-  // Delete a chat
   const deleteChat = async (chatId: string) => {
-    try {
-      // Delete all messages in the chat first
-      const { error: messagesError } = await sb
-        .from('messages')
-        .delete()
-        .eq('chat_id', chatId);
-
-      if (messagesError) throw messagesError;
-
-      // Delete the chat
-      const { error: chatError } = await sb
-        .from('chats')
-        .delete()
-        .eq('id', chatId);
-
-      if (chatError) throw chatError;
-
-      // Update local state
-      setChats(prev => prev.filter(chat => chat.id !== chatId));
-      
-      // If the deleted chat was the current one, clear it
-      if (currentChat?.id === chatId) {
-        setCurrentChat(null);
-        setMessages([]);
-      }
-
-      toast.success('Chat deleted successfully');
-    } catch (error: any) {
-      console.error('Error deleting chat:', error);
-      toast.error('Failed to delete chat');
+    setChats(prev => prev.filter(c => c.id !== chatId));
+    setAllMessages(prev => {
+      const updated = { ...prev };
+      delete updated[chatId];
+      return updated;
+    });
+    if (currentChat?.id === chatId) {
+      setCurrentChat(null);
+      setMessages([]);
     }
+    toast.success('Chat deleted successfully');
   };
 
-  useEffect(() => {
-    if (userId) {
-      loadChats();
-    }
-  }, [userId]);
+  const loadChats = async () => {};
 
   return {
     chats,

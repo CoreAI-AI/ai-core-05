@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { User } from "@supabase/supabase-js";
+import { SimpleUser } from "@/hooks/useAuth";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import { UserSettings, useSettings } from "@/hooks/useSettings";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
 import {
   AlertDialog,
@@ -34,7 +33,8 @@ import { motion } from "framer-motion";
 import { useAppLock } from "@/hooks/useAppLock";
 
 interface SettingsProps {
-  user: User | null;
+  user: SimpleUser | null;
+  onChangeUsername?: () => void;
 }
 
 const cardVariants = {
@@ -42,7 +42,7 @@ const cardVariants = {
   visible: { opacity: 1, y: 0 }
 };
 
-export const Settings = ({ user }: SettingsProps) => {
+export const Settings = ({ user, onChangeUsername }: SettingsProps) => {
   const { settings, updateSettings } = useSettings(user?.id);
   const { theme, setTheme } = useTheme();
   const [localSettings, setLocalSettings] = useState<UserSettings>(settings);
@@ -83,8 +83,8 @@ export const Settings = ({ user }: SettingsProps) => {
     if (localSettings.displayName) {
       return localSettings.displayName.split(' ').map(n => n[0]).join('').toUpperCase();
     }
-    if (user?.email) {
-      return user.email[0].toUpperCase();
+    if (user?.username) {
+      return user.username[0].toUpperCase();
     }
     return 'U';
   };
@@ -98,28 +98,14 @@ export const Settings = ({ user }: SettingsProps) => {
   };
 
   const handleClearHistory = async () => {
-    if (user) {
-      try {
-        await supabase.from('messages').delete().eq('chat_id', user.id);
-        await supabase.from('chats').delete().eq('user_id', user.id);
-        toast.success("Chat history cleared successfully!");
-      } catch (error) {
-        toast.error("Failed to clear chat history");
-      }
-    } else {
-      localStorage.removeItem('demo_chats');
-      localStorage.removeItem('demo_messages');
-      toast.success("Chat history cleared!");
-    }
+    localStorage.removeItem('demo_chats');
+    localStorage.removeItem('demo_messages');
+    toast.success("Chat history cleared!");
   };
 
-  const handleSignOutAll = async () => {
-    try {
-      await supabase.auth.signOut({ scope: 'global' });
-      toast.success("Signed out from all devices");
-    } catch (error) {
-      toast.error("Failed to sign out from all devices");
-    }
+  const handleSignOutAll = () => {
+    localStorage.removeItem('coreai_username');
+    window.location.reload();
   };
 
   const handleDeleteAccount = async () => {
@@ -150,7 +136,7 @@ export const Settings = ({ user }: SettingsProps) => {
                   {localSettings.displayName || 'Set your name'}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {user?.email || 'demo@example.com'}
+                  @{user?.username || 'user'}
                 </p>
               </div>
               <Button
@@ -181,6 +167,19 @@ export const Settings = ({ user }: SettingsProps) => {
                 className="h-10"
               />
             </div>
+            {onChangeUsername && (
+              <>
+                <Separator />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={onChangeUsername}
+                >
+                  Change Username
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </motion.div>
