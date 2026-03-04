@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Chat } from "@/hooks/useChats";
-import { SimpleUser } from "@/hooks/useAuth";
+import { User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import coreaiLogo from '@/assets/coreai-logo.png';
@@ -45,7 +45,7 @@ interface ChatSidebarProps {
   onOpenSettings: () => void;
   onDeleteChat: (chatId: string) => void;
   onExportChat: (chatId: string, format: 'text' | 'pdf') => void;
-  user: SimpleUser | null;
+  user: User | null;
   onCollapse?: () => void;
 }
 
@@ -293,13 +293,13 @@ export const ChatSidebar = ({
           >
             <p className="text-xs text-muted-foreground">Signed in as</p>
             <p className="text-sm font-medium text-sidebar-foreground truncate">
-              @{user.username}
+              {user.email === 'demo@example.com' ? 'Demo User' : user.email}
             </p>
           </button>
         )}
         <AnimatedLogoutButton 
           onSignOut={onSignOut} 
-          isDemo={false} 
+          isDemo={user?.email === 'demo@example.com'} 
         />
       </div>
     </div>

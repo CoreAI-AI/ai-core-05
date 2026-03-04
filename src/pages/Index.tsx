@@ -16,7 +16,7 @@ import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { MemoryControl } from "@/components/MemoryControl";
 import { ChatSearch } from "@/components/ChatSearch";
 import { ResponseLengthControl } from "@/components/ResponseLengthControl";
-import { useAuth, SimpleUser } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useChats, Chat } from "@/hooks/useChats";
 import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
@@ -24,7 +24,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { X, PanelLeft, Users, Timer, ImageIcon, Search, Star } from "lucide-react";
 import { toast } from "sonner";
-
+import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -36,8 +36,6 @@ const Index = () => {
     loading: authLoading,
     showAuth,
     signOut,
-    signIn,
-    changeUsername,
     setShowAuth
   } = useAuth();
   const {
@@ -56,7 +54,7 @@ const Index = () => {
     deleteChat
   } = useChats(user?.id);
   const { saveDraft, removeDraft, isOnline } = useOfflineDraft();
-  
+
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [isLoading, setIsLoading] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
@@ -72,7 +70,7 @@ const Index = () => {
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
   const [isUserTyping, setIsUserTyping] = useState(false);
-  
+
   // New feature states
   const [openTabs, setOpenTabs] = useState<Chat[]>([]);
   const [showSearch, setShowSearch] = useState(false);
@@ -81,7 +79,7 @@ const Index = () => {
     const saved = localStorage.getItem('favorite_chats');
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
-  
+
   const [editingMessage, setEditingMessage] = useState<{
     id: string;
     content: string;
@@ -128,11 +126,11 @@ const Index = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
         e.preventDefault();
-        setSidebarCollapsed(prev => !prev);
+        setSidebarCollapsed((prev) => !prev);
       }
       if ((e.ctrlKey || e.metaKey) && e.key === 'f' && messages.length > 0) {
         e.preventDefault();
-        setShowSearch(prev => !prev);
+        setShowSearch((prev) => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -141,15 +139,15 @@ const Index = () => {
 
   // Manage open tabs for Smart Chat Tabs feature
   useEffect(() => {
-    if (currentChat && !openTabs.find(t => t.id === currentChat.id)) {
-      setOpenTabs(prev => [...prev, currentChat].slice(-5)); // Keep max 5 tabs
+    if (currentChat && !openTabs.find((t) => t.id === currentChat.id)) {
+      setOpenTabs((prev) => [...prev, currentChat].slice(-5)); // Keep max 5 tabs
     }
   }, [currentChat]);
 
   const handleCloseTab = (chatId: string) => {
-    setOpenTabs(prev => prev.filter(t => t.id !== chatId));
+    setOpenTabs((prev) => prev.filter((t) => t.id !== chatId));
     if (currentChat?.id === chatId && openTabs.length > 1) {
-      const remainingTabs = openTabs.filter(t => t.id !== chatId);
+      const remainingTabs = openTabs.filter((t) => t.id !== chatId);
       if (remainingTabs.length > 0) {
         selectChat(remainingTabs[remainingTabs.length - 1]);
       }
@@ -158,7 +156,7 @@ const Index = () => {
 
   // Toggle favorite chat
   const toggleFavorite = (chatId: string) => {
-    setFavoriteChats(prev => {
+    setFavoriteChats((prev) => {
       const next = new Set(prev);
       if (next.has(chatId)) {
         next.delete(chatId);
@@ -183,19 +181,19 @@ const Index = () => {
   // Quick action handlers
   const handleQuickAction = async (action: string) => {
     if (!currentChat || messages.length === 0) return;
-    
-    const lastAIMessage = [...messages].reverse().find(m => !m.is_user);
+
+    const lastAIMessage = [...messages].reverse().find((m) => !m.is_user);
     if (!lastAIMessage) return;
-    
+
     const actionPrompts: Record<string, string> = {
       rewrite: `Please rewrite the following response in a different way: "${lastAIMessage.content}"`,
       summarize: `Please summarize this response briefly: "${lastAIMessage.content}"`,
       translate: `Please translate this response to Hindi: "${lastAIMessage.content}"`,
-      improve: `Please improve this response with more details: "${lastAIMessage.content}"`,
+      improve: `Please improve this response with more details: "${lastAIMessage.content}"`
     };
-    
+
     if (action === 'regenerate') {
-      const aiMsgIndex = messages.findIndex(m => m.id === lastAIMessage.id);
+      const aiMsgIndex = messages.findIndex((m) => m.id === lastAIMessage.id);
       if (aiMsgIndex > 0) {
         handleRegenerateResponse(lastAIMessage.id, aiMsgIndex);
       }
@@ -216,12 +214,12 @@ const Index = () => {
 
   // Show auth page only if user has logged out or there's an auth error
   if (showAuth) {
-    return <Auth onAuthSuccess={(username) => signIn(username)} />;
+    return;
   }
 
   // If no user, show auth page
   if (!user) {
-    return <Auth onAuthSuccess={(username) => signIn(username)} />;
+    return <Auth onAuthSuccess={() => setShowAuth(false)} />;
   }
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
@@ -276,14 +274,17 @@ const Index = () => {
       // Create AI message placeholder
       const aiMessage = await addMessage(currentChat.id, "", false);
       if (!aiMessage) return;
-      const authToken = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const {
+        data: session
+      } = await supabase.auth.getSession();
+      const authToken = session?.session?.access_token;
 
       // Get updated messages (after deletion)
-      const updatedMessages = messages.slice(0, editIndex + 1).map(msg => msg.id === editingMessage.id ? {
+      const updatedMessages = messages.slice(0, editIndex + 1).map((msg) => msg.id === editingMessage.id ? {
         ...msg,
         content
       } : msg);
-      const conversationHistory = updatedMessages.slice(-20).map(msg => ({
+      const conversationHistory = updatedMessages.slice(-20).map((msg) => ({
         role: msg.is_user ? 'user' : 'assistant',
         content: msg.id === editingMessage.id ? content : msg.content,
         ...(msg.images && msg.images.length > 0 ? {
@@ -371,10 +372,13 @@ const Index = () => {
     try {
       // Clear the AI message content first
       await updateMessage(aiMessageId, "");
-      const authToken = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const {
+        data: session
+      } = await supabase.auth.getSession();
+      const authToken = session?.session?.access_token;
 
       // Get conversation history up to (but not including) the AI message being regenerated
-      const conversationHistory = messages.slice(0, aiMessageIndex).slice(-20).map(msg => ({
+      const conversationHistory = messages.slice(0, aiMessageIndex).slice(-20).map((msg) => ({
         role: msg.is_user ? 'user' : 'assistant',
         content: msg.content,
         ...(msg.images && msg.images.length > 0 ? {
@@ -479,7 +483,10 @@ const Index = () => {
       // Create AI message placeholder
       const aiMessage = await addMessage(chatToUse.id, "", false);
       if (!aiMessage) return;
-      const authToken = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const {
+        data: session
+      } = await supabase.auth.getSession();
+      const authToken = session?.session?.access_token;
 
       // Prepare text content for non-image files
       let fileTextToSend: string | undefined;
@@ -496,7 +503,7 @@ const Index = () => {
 
       // Limit conversation history to last 20 messages for better performance
       const recentMessages = messages.slice(-20);
-      const conversationHistory = recentMessages.map(msg => {
+      const conversationHistory = recentMessages.map((msg) => {
         const historyItem: any = {
           role: msg.is_user ? 'user' : 'assistant',
           content: msg.content
@@ -512,15 +519,15 @@ const Index = () => {
       // Detect if this is an image generation request
       const lower = content.toLowerCase();
       const genKeywords = [
-        'generate image', 'create image', 'make an image', 'make image', 'draw', 'generate a photo', 'create a photo', 'generate picture', 'create picture',
-        'photo banao', 'photo bana do', 'photo bana de', 'image banao', 'tasveer banao', 'tasvir banao', 'chitra banao', 'tasveer bana do',
-        'फोटो', 'चित्र', 'तस्वीर', 'बनाओ', 'बनाइए', 'बनाना',
-        'restore', 'restore photo', 'restore image', 'fix photo', 'enhance photo', 'old photo', 'purani photo', 'पुरानी फोटो'
-      ];
-      const hasMediaWord = ['image','photo','picture','tasveer','tasvir','chitra','फोटो','चित्र','तस्वीर'].some(w => lower.includes(w));
-      const hasMakeWord = ['generate','create','make','banao','bana do','bana de','banaye','bnana','bna','बनाओ','बनाइए','बनाना','restore','fix','enhance'].some(w => lower.includes(w));
-      const wantsImageGeneration = chatMode === 'photo' || (genKeywords.some(k => lower.includes(k)) || (hasMediaWord && hasMakeWord));
-      
+      'generate image', 'create image', 'make an image', 'make image', 'draw', 'generate a photo', 'create a photo', 'generate picture', 'create picture',
+      'photo banao', 'photo bana do', 'photo bana de', 'image banao', 'tasveer banao', 'tasvir banao', 'chitra banao', 'tasveer bana do',
+      'फोटो', 'चित्र', 'तस्वीर', 'बनाओ', 'बनाइए', 'बनाना',
+      'restore', 'restore photo', 'restore image', 'fix photo', 'enhance photo', 'old photo', 'purani photo', 'पुरानी फोटो'];
+
+      const hasMediaWord = ['image', 'photo', 'picture', 'tasveer', 'tasvir', 'chitra', 'फोटो', 'चित्र', 'तस्वीर'].some((w) => lower.includes(w));
+      const hasMakeWord = ['generate', 'create', 'make', 'banao', 'bana do', 'bana de', 'banaye', 'bnana', 'bna', 'बनाओ', 'बनाइए', 'बनाना', 'restore', 'fix', 'enhance'].some((w) => lower.includes(w));
+      const wantsImageGeneration = chatMode === 'photo' || genKeywords.some((k) => lower.includes(k)) || hasMediaWord && hasMakeWord;
+
       if (wantsImageGeneration) {
         setIsGeneratingImage(true);
         setImageGenerationPrompt(content);
@@ -646,22 +653,20 @@ const Index = () => {
   };
   const handleExportChat = async (chatId: string, format: 'text' | 'pdf') => {
     try {
-      const chat = chats.find(c => c.id === chatId);
+      const chat = chats.find((c) => c.id === chatId);
       if (!chat) {
         toast.error("Chat not found");
         return;
       }
 
-      // Use current messages if it's the active chat, otherwise load from localStorage
-      let chatMessages = messages;
-      if (currentChat?.id !== chatId) {
-        const username = localStorage.getItem('coreai_username');
-        if (username) {
-          const stored = JSON.parse(localStorage.getItem(`coreai_messages_${username}`) || '{}');
-          chatMessages = stored[chatId] || [];
-        }
-      }
-
+      // Load messages for the chat
+      const {
+        data: chatMessages,
+        error
+      } = await supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', {
+        ascending: true
+      });
+      if (error) throw error;
       if (!chatMessages || chatMessages.length === 0) {
         toast.error("No messages to export");
         return;
@@ -683,43 +688,43 @@ const Index = () => {
       <AnimatePresence mode="wait">
         {!sidebarCollapsed && <>
             {/* Mobile Overlay - only on mobile */}
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              className="fixed inset-0 bg-black/50 z-40 md:hidden" 
-              onClick={() => setSidebarCollapsed(true)} 
-            />
+            <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setSidebarCollapsed(true)} />
+
             {/* Sidebar Container */}
-            <motion.div 
-              initial={{ x: -280 }}
-              animate={{ x: 0 }}
-              exit={{ x: -280 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }} 
-              className="fixed md:static h-full w-[280px] z-50 md:z-auto shrink-0 bg-sidebar border-r border-border"
-            >
-              <ChatSidebar 
-                chats={chats} 
-                currentChat={currentChat} 
-                onSelectChat={chat => {
-                  selectChat(chat);
-                  // Auto-close sidebar on mobile after selection
-                  if (window.innerWidth < 768) setSidebarCollapsed(true);
-                }} 
-                onNewChat={() => {
-                  startNewChat();
-                  if (window.innerWidth < 768) setSidebarCollapsed(true);
-                }} 
-                onSignOut={signOut} 
-                onOpenSettings={() => {
-                  setShowSettings(true);
-                  if (window.innerWidth < 768) setSidebarCollapsed(true);
-                }} 
-                onDeleteChat={deleteChat} 
-                onExportChat={handleExportChat} 
-                user={user} 
-                onCollapse={() => setSidebarCollapsed(true)} 
-              />
+            <motion.div
+          initial={{ x: -280 }}
+          animate={{ x: 0 }}
+          exit={{ x: -280 }}
+          transition={{ duration: 0.2, ease: "easeInOut" }}
+          className="fixed md:static h-full w-[280px] z-50 md:z-auto shrink-0 bg-sidebar border-r border-border">
+
+              <ChatSidebar
+            chats={chats}
+            currentChat={currentChat}
+            onSelectChat={(chat) => {
+              selectChat(chat);
+              // Auto-close sidebar on mobile after selection
+              if (window.innerWidth < 768) setSidebarCollapsed(true);
+            }}
+            onNewChat={() => {
+              startNewChat();
+              if (window.innerWidth < 768) setSidebarCollapsed(true);
+            }}
+            onSignOut={signOut}
+            onOpenSettings={() => {
+              setShowSettings(true);
+              if (window.innerWidth < 768) setSidebarCollapsed(true);
+            }}
+            onDeleteChat={deleteChat}
+            onExportChat={handleExportChat}
+            user={user}
+            onCollapse={() => setSidebarCollapsed(true)} />
+
             </motion.div>
           </>}
       </AnimatePresence>
@@ -741,13 +746,7 @@ const Index = () => {
                 {/* Settings Content */}
                 <ScrollArea className="flex-1 p-6">
                   <div className="max-w-4xl mx-auto">
-                    <Settings user={user} onChangeUsername={() => {
-                      const newName = prompt('Enter new username:');
-                      if (newName && newName.trim().length >= 2) {
-                        changeUsername(newName.trim());
-                        toast.success('Username changed!');
-                      }
-                    }} />
+                    <Settings user={user} />
                   </div>
                 </ScrollArea>
               </div> :
@@ -756,12 +755,12 @@ const Index = () => {
                 {/* Smart Chat Tabs - Desktop Only */}
                 <div className="hidden md:block">
                   <SmartChatTabs
-                    openChats={openTabs}
-                    activeChat={currentChat}
-                    onSelectTab={selectChat}
-                    onCloseTab={handleCloseTab}
-                    onNewTab={startNewChat}
-                  />
+              openChats={openTabs}
+              activeChat={currentChat}
+              onSelectTab={selectChat}
+              onCloseTab={handleCloseTab}
+              onNewTab={startNewChat} />
+
                 </div>
                 
                 {/* Header - ChatGPT Style with New Features */}
@@ -774,16 +773,16 @@ const Index = () => {
                       {currentChat ? currentChat.title : "New conversation"}
                     </h1>
                     {/* Favorite button */}
-                    {currentChat && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 w-7 p-0 shrink-0"
-                        onClick={() => toggleFavorite(currentChat.id)}
-                      >
+                    {currentChat &&
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 shrink-0"
+                onClick={() => toggleFavorite(currentChat.id)}>
+
                         <Star className={`h-4 w-4 ${favoriteChats.has(currentChat.id) ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground'}`} />
                       </Button>
-                    )}
+              }
                   </div>
                   
                   {/* Right side icons - ChatGPT style + New Controls */}
@@ -799,52 +798,52 @@ const Index = () => {
                     </div>
                     
                     {/* Search in Chat */}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setShowSearch(true)}
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                      title="Search (Ctrl+F)"
-                      disabled={messages.length === 0}
-                    >
+                    <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowSearch(true)}
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                title="Search (Ctrl+F)"
+                disabled={messages.length === 0}>
+
                       <Search className="h-4 w-4" />
                     </Button>
                     
                     {/* Images */}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => navigate('/images')} 
-                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
-                      title="Images"
-                    >
+                    <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/images')}
+                className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
+                title="Images">
+
                       <ImageIcon className="h-4 w-4" />
                       <span className="hidden sm:inline ml-2">Images</span>
                     </Button>
                     
                     {/* Temporary Messages */}
-                    <Button 
-                      variant={temporaryMessages ? "secondary" : "ghost"} 
-                      size="sm" 
-                      onClick={() => {
-                        setTemporaryMessages(!temporaryMessages);
-                        toast.success(temporaryMessages ? "Temporary messages off" : "Temporary messages on");
-                      }} 
-                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
-                      title="Temporary Messages"
-                    >
+                    <Button
+                variant={temporaryMessages ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => {
+                  setTemporaryMessages(!temporaryMessages);
+                  toast.success(temporaryMessages ? "Temporary messages off" : "Temporary messages on");
+                }}
+                className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
+                title="Temporary Messages">
+
                       <Timer className="h-4 w-4" />
                       <span className="hidden lg:inline ml-2">Temporary</span>
                     </Button>
                     
                     {/* Group Chat */}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => navigate('/group-chats')} 
-                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
-                      title="Group Chats"
-                    >
+                    <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/group-chats')}
+                className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
+                title="Group Chats">
+
                       <Users className="h-4 w-4" />
                       <span className="hidden lg:inline ml-2">Groups</span>
                     </Button>
@@ -852,19 +851,19 @@ const Index = () => {
                 </div>
                 
                 {/* Pinned Messages */}
-                <PinnedMessages 
-                  chatId={currentChat?.id}
-                  onUnpin={() => {}}
-                  onScrollTo={scrollToMessage}
-                />
+                <PinnedMessages
+            chatId={currentChat?.id}
+            onUnpin={() => {}}
+            onScrollTo={scrollToMessage} />
+
                 
                 {/* Chat Search */}
                 <ChatSearch
-                  messages={messages}
-                  onScrollToMessage={scrollToMessage}
-                  isOpen={showSearch}
-                  onClose={() => setShowSearch(false)}
-                />
+            messages={messages}
+            onScrollToMessage={scrollToMessage}
+            isOpen={showSearch}
+            onClose={() => setShowSearch(false)} />
+
                 
                 {/* Messages - ONLY scrollable area (ChatGPT-style) */}
                 <div className="chat-messages-container" ref={scrollAreaRef}>
@@ -907,13 +906,13 @@ const Index = () => {
                                 </Button>
                               </motion.div>}
                           </AnimatePresence>
-                        </div> : <VirtualizedChatMessages 
-                          messages={messages}
-                          chatId={currentChat?.id}
-                          isAITyping={isAITyping}
-                          onEditMessage={handleEditMessage}
-                          onRegenerateResponse={handleRegenerateResponse}
-                        />}
+                        </div> : <VirtualizedChatMessages
+                  messages={messages}
+                  chatId={currentChat?.id}
+                  isAITyping={isAITyping}
+                  onEditMessage={handleEditMessage}
+                  onRegenerateResponse={handleRegenerateResponse} />
+                }
                     </div>
                   </div>
                 </div>
@@ -922,19 +921,19 @@ const Index = () => {
             {/* Input - Always fixed at bottom with sticky positioning */}
             {!showSettings && <div className="chat-input-fixed border-t border-border">
                 {/* Quick Action Buttons - Desktop only */}
-                {messages.length > 0 && (
-                  <div className="hidden md:flex justify-center py-2">
+                {messages.length > 0 &&
+          <div className="hidden md:flex justify-center py-2">
                     <QuickActionButtons
-                      onRewrite={() => handleQuickAction('rewrite')}
-                      onSummarize={() => handleQuickAction('summarize')}
-                      onTranslate={() => handleQuickAction('translate')}
-                      onImprove={() => handleQuickAction('improve')}
-                      onRegenerate={() => handleQuickAction('regenerate')}
-                      disabled={isLoading}
-                      hasMessage={messages.some(m => !m.is_user)}
-                    />
+              onRewrite={() => handleQuickAction('rewrite')}
+              onSummarize={() => handleQuickAction('summarize')}
+              onTranslate={() => handleQuickAction('translate')}
+              onImprove={() => handleQuickAction('improve')}
+              onRegenerate={() => handleQuickAction('regenerate')}
+              disabled={isLoading}
+              hasMessage={messages.some((m) => !m.is_user)} />
+
                   </div>
-                )}
+          }
                 
                 {/* File Preview */}
                 {selectedFile && <div className="p-4">
@@ -965,46 +964,46 @@ const Index = () => {
       
       {/* Floating Action Button - Mobile Only */}
       <FloatingActionButton
-        onNewChat={startNewChat}
-        onVoiceInput={() => {
-          const micButton = document.querySelector('[data-voice-input]') as HTMLButtonElement;
-          if (micButton) micButton.click();
-          else toast.info("Tap the microphone in the input bar");
-        }}
-        onCameraUpload={() => {
-          const cameraButton = document.querySelector('[data-camera-upload]') as HTMLButtonElement;
-          if (cameraButton) cameraButton.click();
-          else toast.info("Camera upload coming soon");
-        }}
-        onImageUpload={() => {
-          const fileInput = document.getElementById('file-upload') as HTMLInputElement;
-          if (fileInput) fileInput.click();
-        }}
-        isTyping={isUserTyping}
-        isLoading={isLoading || isAITyping}
-      />
+      onNewChat={startNewChat}
+      onVoiceInput={() => {
+        const micButton = document.querySelector('[data-voice-input]') as HTMLButtonElement;
+        if (micButton) micButton.click();else
+        toast.info("Tap the microphone in the input bar");
+      }}
+      onCameraUpload={() => {
+        const cameraButton = document.querySelector('[data-camera-upload]') as HTMLButtonElement;
+        if (cameraButton) cameraButton.click();else
+        toast.info("Camera upload coming soon");
+      }}
+      onImageUpload={() => {
+        const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+        if (fileInput) fileInput.click();
+      }}
+      isTyping={isUserTyping}
+      isLoading={isLoading || isAITyping} />
+
       
       {/* Image Generation Overlay */}
-      <ImageGeneratingOverlay 
-        isGenerating={isGeneratingImage} 
-        prompt={imageGenerationPrompt} 
-      />
+      <ImageGeneratingOverlay
+      isGenerating={isGeneratingImage}
+      prompt={imageGenerationPrompt} />
+
       
       {/* Offline indicator */}
       <AnimatePresence>
-        {!isOnline && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-72 z-50"
-          >
+        {!isOnline &&
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 50 }}
+        className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-72 z-50">
+
             <div className="bg-destructive/90 backdrop-blur-sm text-destructive-foreground px-4 py-3 rounded-lg shadow-lg">
               <p className="text-sm font-medium">You're offline</p>
               <p className="text-xs opacity-80">Messages will be sent when you're back online</p>
             </div>
           </motion.div>
-        )}
+      }
       </AnimatePresence>
     </div>;
 };
