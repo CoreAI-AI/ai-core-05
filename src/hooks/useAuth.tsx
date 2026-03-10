@@ -1,55 +1,81 @@
 import { useState, useEffect } from 'react';
-
-export interface SimpleUser {
-  id: string;
-  username: string;
-}
+import { User } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export const useAuth = () => {
-  const [user, setUser] = useState<SimpleUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
-    // Clear old Supabase auth tokens to prevent errors
-    try {
-      const keys = Object.keys(localStorage);
-      keys.forEach(key => {
-        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
-          localStorage.removeItem(key);
+    let mounted = true;
+    
+    // Listen for auth changes first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+        console.log('Auth state changed:', event, session?.user?.id);
+        setUser(session?.user ?? null);
+        
+        if (event === 'SIGNED_IN') {
+          setShowAuth(false);
+        } else if (event === 'SIGNED_OUT') {
+          setShowAuth(true);
         }
-      });
-    } catch {}
+        
+        setLoading(false);
+      }
+    );
 
-    const savedUsername = localStorage.getItem('coreai_username');
-    if (savedUsername) {
-      setUser({
-        id: savedUsername,
-        username: savedUsername,
-      });
-      setShowAuth(false);
-    } else {
-      setShowAuth(true);
-    }
-    setLoading(false);
+    // Get initial session - handle failures gracefully
+    const getSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (error || !session?.user) {
+          // Session expired or failed - show login
+          setUser(null);
+          setShowAuth(true);
+        } else {
+          setUser(session.user);
+          setShowAuth(false);
+        }
+      } catch (err) {
+        console.warn('Auth session fetch failed:', err);
+        if (!mounted) return;
+        setUser(null);
+        setShowAuth(true);
+      }
+      
+      if (mounted) setLoading(false);
+    };
+
+    // Set a timeout to force loading to false after 5 seconds
+    const timeout = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth loading timeout - showing login');
+        setLoading(false);
+        setShowAuth(true);
+      }
+    }, 5000);
+
+    getSession();
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const signIn = (username: string) => {
-    localStorage.setItem('coreai_username', username);
-    const newUser: SimpleUser = { id: username, username };
-    setUser(newUser);
-    setShowAuth(false);
-  };
-
-  const signOut = () => {
-    localStorage.removeItem('coreai_username');
+  const signOut = async () => {
+    await supabase.auth.signOut();
     setUser(null);
     setShowAuth(true);
-  };
-
-  const changeUsername = (newUsername: string) => {
-    localStorage.setItem('coreai_username', newUsername);
-    setUser({ id: newUsername, username: newUsername });
+    toast.success("Signed out successfully!");
   };
 
   return {
@@ -57,8 +83,6 @@ export const useAuth = () => {
     loading,
     showAuth,
     signOut,
-    signIn,
-    changeUsername,
     setShowAuth,
   };
 };
