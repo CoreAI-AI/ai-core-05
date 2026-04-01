@@ -22,7 +22,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft, Users, Timer, ImageIcon, Search, Star } from "lucide-react";
+import { X, PanelLeft, Users, Timer, ImageIcon, Search, Star, Download } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
@@ -763,16 +763,41 @@ const Index = () => {
                   />
                 </div>
                 
-                {/* Header - ChatGPT Style with New Features */}
+                {/* Header - Mobile: Logo + Name + Install | Desktop: Full controls */}
                 <div className="border-b border-border px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2">
-                  <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  {/* Mobile Header: Logo + Name centered + Install */}
+                  <div className="flex sm:hidden items-center justify-between w-full">
+                    <div className="flex items-center gap-2">
+                      {sidebarCollapsed && <Button variant="ghost" size="sm" onClick={() => setSidebarCollapsed(false)} className="h-8 w-8 p-0 shrink-0">
+                        <PanelLeft className="h-4 w-4" />
+                      </Button>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <img src="/app-icon-192.png" alt="CoreAI" className="w-7 h-7 rounded-lg" />
+                      <span className="text-base font-bold text-foreground">CoreAI</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 px-2.5 text-xs font-semibold text-primary gap-1"
+                      onClick={() => {
+                        localStorage.removeItem('pwa_install_dismissed');
+                        window.location.reload();
+                      }}
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      Install
+                    </Button>
+                  </div>
+
+                  {/* Desktop Header: Full controls */}
+                  <div className="hidden sm:flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                     {sidebarCollapsed && <Button variant="ghost" size="sm" onClick={() => setSidebarCollapsed(false)} className="h-8 w-8 p-0 shrink-0">
                         <PanelLeft className="h-4 w-4" />
                       </Button>}
                     <h1 className="text-sm sm:text-lg font-medium text-foreground truncate">
                       {currentChat ? currentChat.title : "New conversation"}
                     </h1>
-                    {/* Favorite button */}
                     {currentChat && (
                       <Button
                         variant="ghost"
@@ -785,65 +810,25 @@ const Index = () => {
                     )}
                   </div>
                   
-                  {/* Right side icons - ChatGPT style + New Controls */}
-                  <div className="flex items-center gap-1 shrink-0">
-                    {/* Memory Control - Desktop */}
+                  <div className="hidden sm:flex items-center gap-1 shrink-0">
                     <div className="hidden sm:block">
                       <MemoryControl chatId={currentChat?.id} />
                     </div>
-                    
-                    {/* Response Length Control - Desktop */}
                     <div className="hidden sm:block">
                       <ResponseLengthControl value={responseLength} onChange={setResponseLength} />
                     </div>
-                    
-                    {/* Search in Chat */}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => setShowSearch(true)}
-                      className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                      title="Search (Ctrl+F)"
-                      disabled={messages.length === 0}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => setShowSearch(true)} className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground" title="Search (Ctrl+F)" disabled={messages.length === 0}>
                       <Search className="h-4 w-4" />
                     </Button>
-                    
-                    {/* Images */}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => navigate('/images')} 
-                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
-                      title="Images"
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Images">
                       <ImageIcon className="h-4 w-4" />
-                      <span className="hidden sm:inline ml-2">Images</span>
+                      <span className="ml-2">Images</span>
                     </Button>
-                    
-                    {/* Temporary Messages */}
-                    <Button 
-                      variant={temporaryMessages ? "secondary" : "ghost"} 
-                      size="sm" 
-                      onClick={() => {
-                        setTemporaryMessages(!temporaryMessages);
-                        toast.success(temporaryMessages ? "Temporary messages off" : "Temporary messages on");
-                      }} 
-                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
-                      title="Temporary Messages"
-                    >
+                    <Button variant={temporaryMessages ? "secondary" : "ghost"} size="sm" onClick={() => { setTemporaryMessages(!temporaryMessages); toast.success(temporaryMessages ? "Temporary messages off" : "Temporary messages on"); }} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Temporary Messages">
                       <Timer className="h-4 w-4" />
                       <span className="hidden lg:inline ml-2">Temporary</span>
                     </Button>
-                    
-                    {/* Group Chat */}
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => navigate('/group-chats')} 
-                      className="h-8 w-8 sm:h-9 sm:w-auto p-0 sm:px-3 text-muted-foreground hover:text-foreground"
-                      title="Group Chats"
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/group-chats')} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Group Chats">
                       <Users className="h-4 w-4" />
                       <span className="hidden lg:inline ml-2">Groups</span>
                     </Button>
