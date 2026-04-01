@@ -553,6 +553,22 @@ const Index = () => {
         })
       });
       if (!response.ok) {
+        if (response.status === 402) {
+          toast.error("AI credits exhausted. Core features like chat history, groups, and images remain available.");
+          await updateMessage(aiMessage.id, "⚠️ AI credits are currently exhausted. Your chats, groups, images, and all other features continue to work normally. AI responses will resume once credits are replenished.");
+          setIsLoading(false);
+          setIsAITyping(false);
+          setIsGeneratingImage(false);
+          return;
+        }
+        if (response.status === 429) {
+          toast.error("Too many requests. Please wait a moment and try again.");
+          await updateMessage(aiMessage.id, "⏳ Rate limit reached. Please wait a moment before sending another message.");
+          setIsLoading(false);
+          setIsAITyping(false);
+          setIsGeneratingImage(false);
+          return;
+        }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const reader = response.body?.getReader();
