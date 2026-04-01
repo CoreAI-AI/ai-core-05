@@ -26,7 +26,7 @@ const AppContent = () => {
 
   return (
     <>
-      <PWAInstallBanner />
+      
       <AnimatePresence mode="wait">
         {isSetupMode && (
           <AppLockSetup
