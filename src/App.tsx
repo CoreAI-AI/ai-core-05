@@ -8,7 +8,7 @@ import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { useAppLock } from "@/hooks/useAppLock";
 import { AppLockScreen } from "@/components/AppLockScreen";
 import { AppLockSetup } from "@/components/AppLockSetup";
-import { PWAInstallBanner } from "@/components/PWAInstallBanner";
+
 import { AnimatePresence } from "framer-motion";
 
 const queryClient = new QueryClient();
@@ -26,7 +26,7 @@ const AppContent = () => {
 
   return (
     <>
-      <PWAInstallBanner />
+      
       <AnimatePresence mode="wait">
         {isSetupMode && (
           <AppLockSetup
