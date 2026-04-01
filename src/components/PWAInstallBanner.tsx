@@ -84,7 +84,7 @@ export const PWAInstallBanner = () => {
               </button>
 
               {/* Top gradient accent */}
-              <div className="h-1.5 w-full bg-gradient-to-r from-primary via-blue-400 to-primary" />
+              <div className="h-1.5 w-full bg-gradient-to-r from-primary via-primary/60 to-primary" />
 
               {/* Content */}
               <div className="flex flex-col items-center px-6 pt-6 pb-5">
