@@ -122,7 +122,32 @@ const Index = () => {
     }
   }, [messages, isAITyping, isNearBottom]);
 
-  // Keyboard shortcuts: Ctrl+B sidebar, Ctrl+F search
+  // PWA Install prompt detection
+  useEffect(() => {
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsAppInstalled(true);
+    }
+
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+
+    const installedHandler = () => {
+      setIsAppInstalled(true);
+      setDeferredPrompt(null);
+    };
+    window.addEventListener('appinstalled', installedHandler);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', installedHandler);
+    };
+  }, []);
+
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'b') {

@@ -108,7 +108,7 @@ export const AnimatedRoutes = () => {
           path="/group-chats"
           element={
             <PageTransition>
-              <GroupChats />
+              <NotFound />
             </PageTransition>
           }
         />
