@@ -22,7 +22,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft, Users, Timer, ImageIcon, Search, Star, Download } from "lucide-react";
+import { X, PanelLeft, ImageIcon, Search, Star, Download, Palette, BookOpen } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
@@ -63,7 +63,8 @@ const Index = () => {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor'>('normal');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 768);
-  const [temporaryMessages, setTemporaryMessages] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
   const [hasNewMessage, setHasNewMessage] = useState(false);
@@ -121,7 +122,32 @@ const Index = () => {
     }
   }, [messages, isAITyping, isNearBottom]);
 
-  // Keyboard shortcuts: Ctrl+B sidebar, Ctrl+F search
+  // PWA Install prompt detection
+  useEffect(() => {
+    // Check if already installed
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsAppInstalled(true);
+    }
+
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+
+    const installedHandler = () => {
+      setIsAppInstalled(true);
+      setDeferredPrompt(null);
+    };
+    window.addEventListener('appinstalled', installedHandler);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('appinstalled', installedHandler);
+    };
+  }, []);
+
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
@@ -783,27 +809,46 @@ const Index = () => {
                 <div className="border-b border-border px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2">
                   {/* Mobile Header: Logo + Name centered + Install */}
                   <div className="flex sm:hidden items-center justify-between w-full">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       {sidebarCollapsed && <Button variant="ghost" size="sm" onClick={() => setSidebarCollapsed(false)} className="h-8 w-8 p-0 shrink-0">
                         <PanelLeft className="h-4 w-4" />
                       </Button>}
                     </div>
                     <div className="flex items-center gap-2">
-                      <img src="/app-icon-192.png" alt="CoreAI" className="w-7 h-7 rounded-lg" />
+                      <img src="/app-icon-192.png" alt="CoreAI" className="w-7 h-7 rounded-full" />
                       <span className="text-base font-bold text-foreground">CoreAI</span>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 px-2.5 text-xs font-semibold text-primary gap-1"
-                      onClick={() => {
-                        localStorage.removeItem('pwa_install_dismissed');
-                        window.location.reload();
-                      }}
-                    >
-                      <Download className="h-3.5 w-3.5" />
-                      Install
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-8 w-8 p-0 text-muted-foreground" title="Image Styles">
+                        <Palette className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => navigate('/tools')} className="h-8 w-8 p-0 text-muted-foreground" title="AI Tools">
+                        <BookOpen className="h-4 w-4" />
+                      </Button>
+                      {!isAppInstalled && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-xs font-semibold text-primary gap-1"
+                          onClick={async () => {
+                            if (deferredPrompt) {
+                              deferredPrompt.prompt();
+                              const result = await deferredPrompt.userChoice;
+                              if (result.outcome === 'accepted') {
+                                setIsAppInstalled(true);
+                                toast.success("CoreAI installed successfully!");
+                              }
+                              setDeferredPrompt(null);
+                            } else {
+                              toast.info("Open this site in Chrome and tap 'Add to Home Screen'");
+                            }
+                          }}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                          Install
+                        </Button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Desktop Header: Full controls */}
@@ -836,17 +881,13 @@ const Index = () => {
                     <Button variant="ghost" size="sm" onClick={() => setShowSearch(true)} className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground" title="Search (Ctrl+F)" disabled={messages.length === 0}>
                       <Search className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Images">
-                      <ImageIcon className="h-4 w-4" />
-                      <span className="ml-2">Images</span>
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Image Styles">
+                      <Palette className="h-4 w-4" />
+                      <span className="ml-2">Styles</span>
                     </Button>
-                    <Button variant={temporaryMessages ? "secondary" : "ghost"} size="sm" onClick={() => { setTemporaryMessages(!temporaryMessages); toast.success(temporaryMessages ? "Temporary messages off" : "Temporary messages on"); }} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Temporary Messages">
-                      <Timer className="h-4 w-4" />
-                      <span className="hidden lg:inline ml-2">Temporary</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => navigate('/group-chats')} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Group Chats">
-                      <Users className="h-4 w-4" />
-                      <span className="hidden lg:inline ml-2">Groups</span>
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/tools')} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="AI Tools">
+                      <BookOpen className="h-4 w-4" />
+                      <span className="ml-2">AI Tools</span>
                     </Button>
                   </div>
                 </div>
