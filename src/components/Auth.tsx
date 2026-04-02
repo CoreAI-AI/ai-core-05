@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Zap, Mail, Chrome } from "lucide-react";
+import { Zap, Loader2, Eye, EyeOff } from "lucide-react";
 import { motion } from "framer-motion";
 import coreaiLogo from '@/assets/coreai-logo.png';
 
@@ -25,6 +25,9 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string }>({});
 
   useEffect(() => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
@@ -34,14 +37,26 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
     }
   }, []);
 
+  const validate = () => {
+    const newErrors: typeof errors = {};
+    if (!email.trim()) newErrors.email = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) newErrors.email = "Invalid email format";
+    if (!password) newErrors.password = "Password is required";
+    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
+    if (isSignUp && !displayName.trim()) newErrors.name = "Name is required";
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
     setIsLoading(true);
 
     try {
       if (isSignUp) {
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: email.trim(),
           password,
           options: { emailRedirectTo: `${window.location.origin}/` }
         });
@@ -49,36 +64,34 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         if (error) throw error;
 
         if (data.user) {
-          const { error: profileError } = await sb
-            .from('profiles')
-            .insert({
-              user_id: data.user.id,
-              display_name: displayName || email.split('@')[0],
-              email: email,
-            });
-
-          if (profileError) {
-            console.error('Profile creation error:', profileError);
-          }
-
-          toast.success("Account created successfully!");
+          await sb.from('profiles').insert({
+            user_id: data.user.id,
+            display_name: displayName.trim() || email.split('@')[0],
+            email: email.trim(),
+          });
+          toast.success("Account created! Welcome to CoreAI 🎉");
           onAuthSuccess();
         }
       } else {
         const { error } = await supabase.auth.signInWithPassword({
-          email,
+          email: email.trim(),
           password,
         });
 
-        if (error) throw error;
+        if (error) {
+          if (error.message.includes('Invalid login')) {
+            throw new Error("Incorrect email or password. Please try again.");
+          }
+          throw error;
+        }
 
         if (rememberMe) {
-          localStorage.setItem('rememberedEmail', email);
+          localStorage.setItem('rememberedEmail', email.trim());
         } else {
           localStorage.removeItem('rememberedEmail');
         }
 
-        toast.success("Signed in successfully!");
+        toast.success("Welcome back! 👋");
         onAuthSuccess();
       }
     } catch (error: any) {
@@ -91,46 +104,61 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      const { error } = await lovable.auth.signInWithOAuth("google", {
+      const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
+        extraParams: {
+          prompt: "select_account",
+        },
       });
-      if (error) throw error;
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      if (result.redirected) {
+        // Browser will redirect to Google — keep loading state
+        return;
+      }
+
+      // Tokens received and session set
+      toast.success("Signed in with Google! 🎉");
+      onAuthSuccess();
     } catch (error: any) {
       console.error('Google sign-in error:', error);
-      toast.error(error.message || "Google sign-in failed");
+      toast.error(error.message || "Google sign-in failed. Please try again.");
       setIsGoogleLoading(false);
     }
   };
 
   const handleDemoLogin = async () => {
-    setIsLoading(true);
+    setIsDemoLoading(true);
     
     try {
-      toast.info("Setting up demo account...");
-      
       const { data, error } = await supabase.functions.invoke('create-demo-user');
       
       if (error) throw error;
-      if (!data.success) throw new Error(data.error || 'Failed to create demo user');
+      if (!data?.success) throw new Error(data?.error || 'Failed to create demo account');
 
-      const { email, password } = data.credentials;
+      const { email: demoEmail, password: demoPassword } = data.credentials;
       
       const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: demoEmail,
+        password: demoPassword,
       });
 
       if (signInError) throw signInError;
 
-      toast.success("Demo account ready!");
+      toast.success("Demo account ready! Explore CoreAI 🚀");
       onAuthSuccess();
     } catch (error: any) {
       console.error('Demo login error:', error);
-      toast.error(error.message || "Demo setup failed");
+      toast.error(error.message || "Demo setup failed. Please try again.");
     } finally {
-      setIsLoading(false);
+      setIsDemoLoading(false);
     }
   };
+
+  const anyLoading = isLoading || isGoogleLoading || isDemoLoading;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
@@ -172,15 +200,19 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
               variant="outline"
               className="w-full h-11 rounded-xl font-medium gap-2 border-border hover:bg-accent"
               onClick={handleGoogleSignIn}
-              disabled={isGoogleLoading || isLoading}
+              disabled={anyLoading}
             >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              {isGoogleLoading ? "Connecting..." : "Continue with Google"}
+              {isGoogleLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+              )}
+              {isGoogleLoading ? "Connecting to Google..." : "Continue with Google"}
             </Button>
 
             <div className="relative">
@@ -192,33 +224,52 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
               </div>
             </div>
 
-            <form onSubmit={handleAuth} className="space-y-4">
+            <form onSubmit={handleAuth} className="space-y-3">
               {isSignUp && (
-                <Input
-                  type="text"
-                  placeholder="Display Name"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="h-11 rounded-xl"
-                />
+                <div>
+                  <Input
+                    type="text"
+                    placeholder="Display Name"
+                    value={displayName}
+                    onChange={(e) => { setDisplayName(e.target.value); setErrors(p => ({ ...p, name: undefined })); }}
+                    className={`h-11 rounded-xl ${errors.name ? 'border-destructive' : ''}`}
+                    disabled={anyLoading}
+                  />
+                  {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
+                </div>
               )}
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-11 rounded-xl"
-              />
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="h-11 rounded-xl"
-              />
+              <div>
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => { setEmail(e.target.value); setErrors(p => ({ ...p, email: undefined })); }}
+                  className={`h-11 rounded-xl ${errors.email ? 'border-destructive' : ''}`}
+                  disabled={anyLoading}
+                />
+                {errors.email && <p className="text-xs text-destructive mt-1">{errors.email}</p>}
+              </div>
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setErrors(p => ({ ...p, password: undefined })); }}
+                  className={`h-11 rounded-xl pr-10 ${errors.password ? 'border-destructive' : ''}`}
+                  disabled={anyLoading}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 p-0 text-muted-foreground"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+                {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
+              </div>
               {!isSignUp && (
                 <div className="flex items-center space-x-2">
                   <Checkbox
@@ -235,8 +286,12 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
                   </Label>
                 </div>
               )}
-              <Button type="submit" className="w-full h-11 rounded-xl gradient-bg text-white font-medium shadow-md btn-press" disabled={isLoading}>
-                {isLoading ? "Loading..." : (isSignUp ? "Create Account" : "Sign In")}
+              <Button type="submit" className="w-full h-11 rounded-xl gradient-bg text-white font-medium shadow-md btn-press" disabled={anyLoading}>
+                {isLoading ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {isSignUp ? "Creating..." : "Signing in..."}</>
+                ) : (
+                  isSignUp ? "Create Account" : "Sign In"
+                )}
               </Button>
             </form>
             
@@ -254,16 +309,20 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
               variant="outline" 
               className="w-full h-11 rounded-xl font-medium btn-press border-primary/30 hover:bg-primary/5"
               onClick={handleDemoLogin}
-              disabled={isLoading}
+              disabled={anyLoading}
             >
-              <Zap className="w-4 h-4 mr-2 text-primary" />
-              Try Demo Account
+              {isDemoLoading ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Setting up demo...</>
+              ) : (
+                <><Zap className="w-4 h-4 mr-2 text-primary" /> Try Demo Account</>
+              )}
             </Button>
             
             <Button
               variant="link"
-              onClick={() => setIsSignUp(!isSignUp)}
+              onClick={() => { setIsSignUp(!isSignUp); setErrors({}); }}
               className="w-full text-sm text-muted-foreground hover:text-primary"
+              disabled={anyLoading}
             >
               {isSignUp ? "Already have an account? Sign in" : "Don't have an account? Sign up"}
             </Button>
