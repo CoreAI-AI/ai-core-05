@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +23,6 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
   const [displayName, setDisplayName] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string }>({});
@@ -101,34 +99,6 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-        extraParams: {
-          prompt: "select_account",
-        },
-      });
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      if (result.redirected) {
-        // Browser will redirect to Google — keep loading state
-        return;
-      }
-
-      // Tokens received and session set
-      toast.success("Signed in with Google! 🎉");
-      onAuthSuccess();
-    } catch (error: any) {
-      console.error('Google sign-in error:', error);
-      toast.error(error.message || "Google sign-in failed. Please try again.");
-      setIsGoogleLoading(false);
-    }
-  };
 
   const handleDemoLogin = async () => {
     setIsDemoLoading(true);
@@ -158,7 +128,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
     }
   };
 
-  const anyLoading = isLoading || isGoogleLoading || isDemoLoading;
+  const anyLoading = isLoading || isDemoLoading;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
