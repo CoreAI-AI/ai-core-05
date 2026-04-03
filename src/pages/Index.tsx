@@ -22,7 +22,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft, ImageIcon, Search, Star, Download, Palette } from "lucide-react";
+import { X, PanelLeft, ImageIcon, Search, Star, Download, Palette, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
