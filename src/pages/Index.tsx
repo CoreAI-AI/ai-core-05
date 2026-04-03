@@ -233,7 +233,7 @@ const Index = () => {
 
   // Show splash screen on initial load
   if (showSplash) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+    return <SplashScreen onComplete={() => { setShowSplash(false); sessionStorage.setItem('splash_shown', '1'); }} />;
   }
 
   // If loading, show skeleton
