@@ -22,7 +22,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft, ImageIcon, Search, Star, Download, Palette } from "lucide-react";
+import { X, PanelLeft, ImageIcon, Search, Star, Download, Palette, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
@@ -827,6 +827,21 @@ const Index = () => {
                       <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-8 w-8 p-0 text-muted-foreground" title="Image Styles">
                         <Palette className="h-4 w-4" />
                       </Button>
+                      {isAppInstalled && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-muted-foreground"
+                          title="Temporary Chat"
+                          onClick={() => {
+                            startNewChat();
+                            setChatMode('normal');
+                            toast.info("Temporary chat started — won't be saved to history");
+                          }}
+                        >
+                          <Clock className="h-4 w-4" />
+                        </Button>
+                      )}
                       {!isAppInstalled && (
                         <Button
                           variant="ghost"
