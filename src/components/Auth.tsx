@@ -99,34 +99,6 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
     }
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsGoogleLoading(true);
-    try {
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-        extraParams: {
-          prompt: "select_account",
-        },
-      });
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      if (result.redirected) {
-        // Browser will redirect to Google — keep loading state
-        return;
-      }
-
-      // Tokens received and session set
-      toast.success("Signed in with Google! 🎉");
-      onAuthSuccess();
-    } catch (error: any) {
-      console.error('Google sign-in error:', error);
-      toast.error(error.message || "Google sign-in failed. Please try again.");
-      setIsGoogleLoading(false);
-    }
-  };
 
   const handleDemoLogin = async () => {
     setIsDemoLoading(true);
