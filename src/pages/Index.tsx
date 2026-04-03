@@ -66,7 +66,10 @@ const Index = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(true);
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    const shown = sessionStorage.getItem('splash_shown');
+    return !shown;
+  });
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
