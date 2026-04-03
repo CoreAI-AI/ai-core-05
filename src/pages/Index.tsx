@@ -882,10 +882,6 @@ const Index = () => {
                       <Palette className="h-4 w-4" />
                       <span className="ml-2">Styles</span>
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => navigate('/tools')} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="AI Tools">
-                      <BookOpen className="h-4 w-4" />
-                      <span className="ml-2">AI Tools</span>
-                    </Button>
                   </div>
                 </div>
                 
