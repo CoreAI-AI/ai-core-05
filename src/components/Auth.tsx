@@ -128,7 +128,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
     }
   };
 
-  const anyLoading = isLoading || isGoogleLoading || isDemoLoading;
+  const anyLoading = isLoading || isDemoLoading;
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">
