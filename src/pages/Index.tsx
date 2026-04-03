@@ -22,7 +22,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft, ImageIcon, Search, Star, Download, Palette, BookOpen } from "lucide-react";
+import { X, PanelLeft, ImageIcon, Search, Star, Download, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
@@ -66,7 +66,10 @@ const Index = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isAppInstalled, setIsAppInstalled] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(true);
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    const shown = sessionStorage.getItem('splash_shown');
+    return !shown;
+  });
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
@@ -230,7 +233,7 @@ const Index = () => {
 
   // Show splash screen on initial load
   if (showSplash) {
-    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+    return <SplashScreen onComplete={() => { setShowSplash(false); sessionStorage.setItem('splash_shown', '1'); }} />;
   }
 
   // If loading, show skeleton
@@ -822,9 +825,6 @@ const Index = () => {
                       <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-8 w-8 p-0 text-muted-foreground" title="Image Styles">
                         <Palette className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="sm" onClick={() => navigate('/tools')} className="h-8 w-8 p-0 text-muted-foreground" title="AI Tools">
-                        <BookOpen className="h-4 w-4" />
-                      </Button>
                       {!isAppInstalled && (
                         <Button
                           variant="ghost"
@@ -884,10 +884,6 @@ const Index = () => {
                     <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Image Styles">
                       <Palette className="h-4 w-4" />
                       <span className="ml-2">Styles</span>
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => navigate('/tools')} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="AI Tools">
-                      <BookOpen className="h-4 w-4" />
-                      <span className="ml-2">AI Tools</span>
                     </Button>
                   </div>
                 </div>
