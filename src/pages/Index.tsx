@@ -827,6 +827,21 @@ const Index = () => {
                       <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-8 w-8 p-0 text-muted-foreground" title="Image Styles">
                         <Palette className="h-4 w-4" />
                       </Button>
+                      {isAppInstalled && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-muted-foreground"
+                          title="Temporary Chat"
+                          onClick={() => {
+                            startNewChat();
+                            setChatMode('normal');
+                            toast.info("Temporary chat started — won't be saved to history");
+                          }}
+                        >
+                          <Clock className="h-4 w-4" />
+                        </Button>
+                      )}
                       {!isAppInstalled && (
                         <Button
                           variant="ghost"
