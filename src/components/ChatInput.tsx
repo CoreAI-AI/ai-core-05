@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins, Bot, Brain, Zap } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -21,6 +21,8 @@ interface ChatInputProps {
   } | null;
   onCancelEdit?: () => void;
   onTypingChange?: (isTyping: boolean) => void;
+  isPremium?: boolean;
+  onModelChange?: (model: string) => void;
 }
 export const ChatInput = ({
   onSendMessage,
@@ -29,7 +31,9 @@ export const ChatInput = ({
   onModeChange,
   editingMessage,
   onCancelEdit,
-  onTypingChange
+  onTypingChange,
+  isPremium,
+  onModelChange
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const isMobile = useIsMobile();
@@ -266,6 +270,28 @@ export const ChatInput = ({
                   <Coins className="w-4 h-4 mr-2 text-gray-500" />
                   Poor Mode
                 </DropdownMenuItem>
+
+                {isPremium && (<>
+                  <div className="h-px bg-border my-2" />
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" /> Premium Models
+                  </p>
+                  <DropdownMenuItem onClick={() => { onModelChange?.('google/gemini-2.5-flash'); toast.success('Chat-Bot model activated!'); }} className="cursor-pointer rounded-lg">
+                    <Bot className="w-4 h-4 mr-2 text-blue-400" />
+                    Chat-Bot
+                    <span className="ml-auto text-[10px] text-muted-foreground">Fast & Smart</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { onModelChange?.('google/gemini-2.5-pro'); toast.success('Core-AI model activated!'); }} className="cursor-pointer rounded-lg">
+                    <Brain className="w-4 h-4 mr-2 text-purple-400" />
+                    Core-AI
+                    <span className="ml-auto text-[10px] text-muted-foreground">Advanced</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { onModelChange?.('openai/gpt-5'); toast.success('Chat-Pro model activated!'); }} className="cursor-pointer rounded-lg">
+                    <Zap className="w-4 h-4 mr-2 text-amber-400" />
+                    Chat-Pro
+                    <span className="ml-auto text-[10px] text-muted-foreground">Ultra Power</span>
+                  </DropdownMenuItem>
+                </>)}
                 
                 <div className="h-px bg-border my-2" />
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Attach</p>
