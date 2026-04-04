@@ -1,15 +1,10 @@
 import { useState, useEffect } from 'react';
 
 export const useSubscription = () => {
-  const [isPremium, setIsPremium] = useState(true);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Always set premium to true for testing - models are unlocked
-    setIsPremium(true);
-    localStorage.setItem('coreai_premium_status', 'active');
-    setIsLoading(false);
-  }, []);
+  const [isPremium, setIsPremium] = useState(() => {
+    return localStorage.getItem('coreai_premium_status') === 'active';
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
   const activatePremium = () => {
     setIsPremium(true);
