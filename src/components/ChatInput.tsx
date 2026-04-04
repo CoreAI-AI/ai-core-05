@@ -270,6 +270,28 @@ export const ChatInput = ({
                   <Coins className="w-4 h-4 mr-2 text-gray-500" />
                   Poor Mode
                 </DropdownMenuItem>
+
+                {isPremium && (<>
+                  <div className="h-px bg-border my-2" />
+                  <p className="text-xs font-semibold text-primary uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" /> Premium Models
+                  </p>
+                  <DropdownMenuItem onClick={() => { onModelChange?.('google/gemini-2.5-flash'); toast.success('Chat-Bot model activated!'); }} className="cursor-pointer rounded-lg">
+                    <Bot className="w-4 h-4 mr-2 text-blue-400" />
+                    Chat-Bot
+                    <span className="ml-auto text-[10px] text-muted-foreground">Fast & Smart</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { onModelChange?.('google/gemini-2.5-pro'); toast.success('Core-AI model activated!'); }} className="cursor-pointer rounded-lg">
+                    <Brain className="w-4 h-4 mr-2 text-purple-400" />
+                    Core-AI
+                    <span className="ml-auto text-[10px] text-muted-foreground">Advanced</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { onModelChange?.('openai/gpt-5'); toast.success('Chat-Pro model activated!'); }} className="cursor-pointer rounded-lg">
+                    <Zap className="w-4 h-4 mr-2 text-amber-400" />
+                    Chat-Pro
+                    <span className="ml-auto text-[10px] text-muted-foreground">Ultra Power</span>
+                  </DropdownMenuItem>
+                </>)}
                 
                 <div className="h-px bg-border my-2" />
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Attach</p>
