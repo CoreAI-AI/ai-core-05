@@ -816,10 +816,19 @@ const Index = () => {
                 <div className="border-b border-border px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2">
                   {/* Mobile Header: Logo + Name centered + Install */}
                   <div className="flex sm:hidden items-center justify-between w-full">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       {sidebarCollapsed && <Button variant="ghost" size="sm" onClick={() => setSidebarCollapsed(false)} className="h-8 w-8 p-0 shrink-0">
                         <PanelLeft className="h-4 w-4" />
                       </Button>}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-3 rounded-full bg-muted/80 text-primary font-semibold text-xs gap-1.5 hover:bg-muted"
+                        onClick={() => setShowSubscriptionPopup(true)}
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        Get Plus
+                      </Button>
                     </div>
                     {!isAppInstalled && (
                       <div className="flex items-center gap-2">
