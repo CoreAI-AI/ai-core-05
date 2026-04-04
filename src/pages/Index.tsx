@@ -12,6 +12,8 @@ import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
 import { SmartChatTabs } from "@/components/SmartChatTabs";
 import { PinnedMessages } from "@/components/PinnedMessages";
 import { QuickActionButtons } from "@/components/QuickActionButtons";
+import { SubscriptionPopup } from "@/components/SubscriptionPopup";
+import { useSubscription } from "@/hooks/useSubscription";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { MemoryControl } from "@/components/MemoryControl";
 import { ChatSearch } from "@/components/ChatSearch";
@@ -22,7 +24,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft, ImageIcon, Search, Star, Download, Palette, Clock } from "lucide-react";
+import { X, PanelLeft, ImageIcon, Search, Star, Download, Palette, Clock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
@@ -56,6 +58,8 @@ const Index = () => {
   const { saveDraft, removeDraft, isOnline } = useOfflineDraft();
   
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
+  const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  const { isPremium, activatePremium } = useSubscription();
   const [isLoading, setIsLoading] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -812,10 +816,19 @@ const Index = () => {
                 <div className="border-b border-border px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2">
                   {/* Mobile Header: Logo + Name centered + Install */}
                   <div className="flex sm:hidden items-center justify-between w-full">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
                       {sidebarCollapsed && <Button variant="ghost" size="sm" onClick={() => setSidebarCollapsed(false)} className="h-8 w-8 p-0 shrink-0">
                         <PanelLeft className="h-4 w-4" />
                       </Button>}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-3 rounded-full bg-muted/80 text-primary font-semibold text-xs gap-1.5 hover:bg-muted"
+                        onClick={() => setShowSubscriptionPopup(true)}
+                      >
+                        <Sparkles className="h-3.5 w-3.5" />
+                        Get Plus
+                      </Button>
                     </div>
                     {!isAppInstalled && (
                       <div className="flex items-center gap-2">
@@ -1060,6 +1073,15 @@ const Index = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <SubscriptionPopup
+        open={showSubscriptionPopup}
+        onOpenChange={setShowSubscriptionPopup}
+        onUpgrade={() => {
+          activatePremium();
+          setShowSubscriptionPopup(false);
+          toast.success("Premium activated! 🎉");
+        }}
+      />
     </div>;
 };
 export default Index;
