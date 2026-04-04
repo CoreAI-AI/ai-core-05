@@ -12,6 +12,8 @@ import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
 import { SmartChatTabs } from "@/components/SmartChatTabs";
 import { PinnedMessages } from "@/components/PinnedMessages";
 import { QuickActionButtons } from "@/components/QuickActionButtons";
+import { SubscriptionPopup } from "@/components/SubscriptionPopup";
+import { useSubscription } from "@/hooks/useSubscription";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { MemoryControl } from "@/components/MemoryControl";
 import { ChatSearch } from "@/components/ChatSearch";
