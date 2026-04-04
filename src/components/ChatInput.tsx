@@ -21,6 +21,8 @@ interface ChatInputProps {
   } | null;
   onCancelEdit?: () => void;
   onTypingChange?: (isTyping: boolean) => void;
+  isPremium?: boolean;
+  onModelChange?: (model: string) => void;
 }
 export const ChatInput = ({
   onSendMessage,
