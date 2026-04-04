@@ -1073,6 +1073,15 @@ const Index = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <SubscriptionPopup
+        open={showSubscriptionPopup}
+        onOpenChange={setShowSubscriptionPopup}
+        onUpgrade={() => {
+          activatePremium();
+          setShowSubscriptionPopup(false);
+          toast.success("Premium activated! 🎉");
+        }}
+      />
     </div>;
 };
 export default Index;
