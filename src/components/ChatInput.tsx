@@ -31,7 +31,9 @@ export const ChatInput = ({
   onModeChange,
   editingMessage,
   onCancelEdit,
-  onTypingChange
+  onTypingChange,
+  isPremium,
+  onModelChange
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const isMobile = useIsMobile();
