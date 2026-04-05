@@ -494,6 +494,22 @@ const Index = () => {
       return;
     }
     if (!user) return;
+
+    // Check daily limit for restricted modes
+    if (isLimitedMode(chatMode) && !canUse(chatMode)) {
+      const modeNames: Record<string, string> = {
+        'deep-search': 'Deep Research',
+        'code': 'Code Assistant',
+        'photo': 'Image Generator',
+      };
+      toast.error(`${modeNames[chatMode] || chatMode} ka daily limit (${DAILY_LIMIT} chats) khatam ho gaya! Premium lein unlimited access ke liye.`, {
+        action: {
+          label: 'Get Plus',
+          onClick: () => setShowSubscriptionPopup(true),
+        },
+      });
+      return;
+    }
     let chatToUse = currentChat;
 
     // Create a new chat if none exists
