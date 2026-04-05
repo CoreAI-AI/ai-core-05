@@ -14,6 +14,7 @@ import { PinnedMessages } from "@/components/PinnedMessages";
 import { QuickActionButtons } from "@/components/QuickActionButtons";
 import { SubscriptionPopup } from "@/components/SubscriptionPopup";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useDailyLimit } from "@/hooks/useDailyLimit";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { MemoryControl } from "@/components/MemoryControl";
 import { ChatSearch } from "@/components/ChatSearch";
@@ -60,6 +61,7 @@ const Index = () => {
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
   const { isPremium, activatePremium } = useSubscription();
+  const { canUse, recordUsage, getRemaining, isLimitedMode, DAILY_LIMIT } = useDailyLimit(user?.id, isPremium);
   const [isLoading, setIsLoading] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -492,6 +494,22 @@ const Index = () => {
       return;
     }
     if (!user) return;
+
+    // Check daily limit for restricted modes
+    if (isLimitedMode(chatMode) && !canUse(chatMode)) {
+      const modeNames: Record<string, string> = {
+        'deep-search': 'Deep Research',
+        'code': 'Code Assistant',
+        'photo': 'Image Generator',
+      };
+      toast.error(`${modeNames[chatMode] || chatMode} ka daily limit (${DAILY_LIMIT} chats) khatam ho gaya! Premium lein unlimited access ke liye.`, {
+        action: {
+          label: 'Get Plus',
+          onClick: () => setShowSubscriptionPopup(true),
+        },
+      });
+      return;
+    }
     let chatToUse = currentChat;
 
     // Create a new chat if none exists
@@ -510,6 +528,10 @@ const Index = () => {
     // Add user message to database with images
     const userMessage = await addMessage(chatToUse.id, content, true, messageImages);
     if (!userMessage) return;
+    
+    // Record daily usage for limited modes
+    recordUsage(chatMode);
+    
     setIsLoading(true);
     setIsAITyping(true);
     try {
@@ -1025,7 +1047,7 @@ const Index = () => {
                   </div>}
                 <div className="px-2 py-3 sm:p-4">
                   <div className="max-w-4xl mx-auto w-full">
-                    <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} onFileSelect={handleFileSelect} onModeChange={setChatMode} editingMessage={editingMessage} onCancelEdit={() => setEditingMessage(null)} onTypingChange={setIsUserTyping} isPremium={isPremium} onModelChange={setSelectedModel} />
+                    <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} onFileSelect={handleFileSelect} onModeChange={setChatMode} editingMessage={editingMessage} onCancelEdit={() => setEditingMessage(null)} onTypingChange={setIsUserTyping} isPremium={isPremium} onModelChange={setSelectedModel} getRemaining={getRemaining} />
                   </div>
                 </div>
               </div>}
