@@ -61,6 +61,7 @@ const Index = () => {
   
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  const [showGroupChatSheet, setShowGroupChatSheet] = useState(false);
   const { isPremium, activatePremium } = useSubscription();
   const { canUse, recordUsage, getRemaining, isLimitedMode, DAILY_LIMIT } = useDailyLimit(user?.id, isPremium);
   const [isLoading, setIsLoading] = useState(false);
