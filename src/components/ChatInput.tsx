@@ -23,6 +23,7 @@ interface ChatInputProps {
   onTypingChange?: (isTyping: boolean) => void;
   isPremium?: boolean;
   onModelChange?: (model: string) => void;
+  getRemaining?: (mode: string) => number;
 }
 export const ChatInput = ({
   onSendMessage,
