@@ -940,6 +940,10 @@ const Index = () => {
                     <Button variant="ghost" size="sm" onClick={() => setShowSearch(true)} className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground" title="Search (Ctrl+F)" disabled={messages.length === 0}>
                       <Search className="h-4 w-4" />
                     </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setShowGroupChatSheet(true)} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Group Chat">
+                      <UserPlus className="h-4 w-4" />
+                      <span className="ml-2">Group</span>
+                    </Button>
                     <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Image Styles">
                       <Palette className="h-4 w-4" />
                       <span className="ml-2">Styles</span>
