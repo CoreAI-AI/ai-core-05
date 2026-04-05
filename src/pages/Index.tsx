@@ -1115,6 +1115,11 @@ const Index = () => {
           toast.success("Premium activated! 🎉");
         }}
       />
+      <GroupChatSheet
+        open={showGroupChatSheet}
+        onOpenChange={setShowGroupChatSheet}
+        userEmail={user?.email}
+      />
     </div>;
 };
 export default Index;
