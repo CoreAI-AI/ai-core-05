@@ -528,6 +528,10 @@ const Index = () => {
     // Add user message to database with images
     const userMessage = await addMessage(chatToUse.id, content, true, messageImages);
     if (!userMessage) return;
+    
+    // Record daily usage for limited modes
+    recordUsage(chatMode);
+    
     setIsLoading(true);
     setIsAITyping(true);
     try {
