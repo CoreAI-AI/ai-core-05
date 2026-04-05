@@ -14,6 +14,7 @@ import { PinnedMessages } from "@/components/PinnedMessages";
 import { QuickActionButtons } from "@/components/QuickActionButtons";
 import { SubscriptionPopup } from "@/components/SubscriptionPopup";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useDailyLimit } from "@/hooks/useDailyLimit";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { MemoryControl } from "@/components/MemoryControl";
 import { ChatSearch } from "@/components/ChatSearch";
