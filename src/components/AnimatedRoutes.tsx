@@ -12,7 +12,7 @@ import Admin from '@/pages/Admin';
 import Tools from '@/pages/Tools';
 import Projects from '@/pages/Projects';
 import ProjectDetails from '@/pages/ProjectDetails';
-
+import GroupChats from '@/pages/GroupChats';
 import NotFound from '@/pages/NotFound';
 
 export const AnimatedRoutes = () => {
@@ -108,7 +108,7 @@ export const AnimatedRoutes = () => {
           path="/group-chats"
           element={
             <PageTransition>
-              <NotFound />
+              <GroupChats />
             </PageTransition>
           }
         />
