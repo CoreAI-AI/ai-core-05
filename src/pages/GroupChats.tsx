@@ -489,10 +489,31 @@ const GroupChats = () => {
             >
               <div className="space-y-3 max-w-3xl mx-auto">
                 {messages.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm">No messages yet</p>
-                    <p className="text-xs">Start the conversation!</p>
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                    <p className="text-sm">
+                      <span className="font-semibold text-foreground">{user?.email?.split('@')[0] || 'You'}</span> created the chat.
+                    </p>
+                    <p className="text-xs mt-2 max-w-[280px] text-center">
+                      Your personal CoreAI memory is never used in group chats.
+                    </p>
+                    <Button
+                      variant="secondary"
+                      className="mt-6 rounded-full px-6 h-10"
+                      onClick={() => navigate('/')}
+                    >
+                      Customize CoreAI
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      className="mt-3 rounded-full px-6 h-10"
+                      onClick={() => {
+                        const link = `${window.location.origin}/group-chats?invite=${currentGroup.id}`;
+                        navigator.clipboard.writeText(link);
+                        toast.success('Invite link copied!');
+                      }}
+                    >
+                      Invite with link
+                    </Button>
                   </div>
                 ) : (
                   messages.map((message) => {
