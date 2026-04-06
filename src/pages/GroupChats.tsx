@@ -93,11 +93,26 @@ const GroupChats = () => {
   useEffect(() => {
     if (!user || loading) return;
     const params = new URLSearchParams(window.location.search);
+    
+    // Handle create param from GroupChatSheet
+    const createName = params.get('create');
+    if (createName) {
+      const autoCreate = async () => {
+        const group = await createGroup(decodeURIComponent(createName));
+        if (group) {
+          selectGroup(group);
+          if (isMobile) setShowSidebar(false);
+        }
+        window.history.replaceState({}, '', '/group-chats');
+      };
+      autoCreate();
+      return;
+    }
+
     const inviteGroupId = params.get('invite');
     if (!inviteGroupId) return;
 
     const joinViaInvite = async () => {
-      // Check if already a member
       const { data: existing } = await supabase
         .from('group_members')
         .select('id')
@@ -117,7 +132,6 @@ const GroupChats = () => {
         }
       }
 
-      // Select the group
       const { data: group } = await supabase
         .from('group_chats')
         .select('*')
