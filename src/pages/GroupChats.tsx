@@ -4,7 +4,6 @@ import { useGroupChats } from "@/hooks/useGroupChats";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { 
   ArrowLeft, 
   Plus, 
@@ -20,7 +19,8 @@ import {
   X,
   MessageCircle,
   Link2,
-  Share2
+  Share2,
+  Bot
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -175,10 +175,34 @@ const GroupChats = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!messageInput.trim()) return;
-    
-    await sendMessage(messageInput.trim());
+    if (!messageInput.trim() || !currentGroup) return;
+    const userMsg = messageInput.trim();
     setMessageInput("");
+    
+    await sendMessage(userMsg);
+    
+    // Call CoreAI for auto-response
+    try {
+      const history = messages.map(m => ({
+        content: m.content,
+        isAI: m.user_id === 'coreai-bot',
+      }));
+      
+      const { data, error } = await supabase.functions.invoke('group-ai', {
+        body: { 
+          groupId: currentGroup.id, 
+          message: userMsg,
+          conversationHistory: history
+        }
+      });
+      
+      if (error) {
+        console.error('AI response error:', error);
+        toast.error('CoreAI could not respond');
+      }
+    } catch (e) {
+      console.error('Failed to get AI response:', e);
+    }
   };
 
   const handleAddMember = async () => {
@@ -518,6 +542,7 @@ const GroupChats = () => {
                 ) : (
                   messages.map((message) => {
                     const isMe = message.user_id === user.id;
+                    const isAI = message.user_id === 'coreai-bot';
                     return (
                       <motion.div
                         key={message.id}
@@ -527,20 +552,26 @@ const GroupChats = () => {
                       >
                         <div className="flex items-end gap-2 max-w-[85%] sm:max-w-[75%]">
                           {!isMe && (
-                            <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                              <User className="w-3.5 h-3.5 text-primary" />
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${isAI ? 'bg-primary' : 'bg-primary/20'}`}>
+                              {isAI ? (
+                                <Bot className="w-3.5 h-3.5 text-primary-foreground" />
+                              ) : (
+                                <User className="w-3.5 h-3.5 text-primary" />
+                              )}
                             </div>
                           )}
                           <div
                             className={`rounded-2xl px-3 py-2 ${
                               isMe
                                 ? 'bg-primary text-primary-foreground rounded-br-md'
+                                : isAI
+                                ? 'bg-accent rounded-bl-md'
                                 : 'bg-muted rounded-bl-md'
                             }`}
                           >
                             {!isMe && (
-                              <p className="text-[10px] text-muted-foreground mb-0.5 font-medium">
-                                {message.user_id.slice(0, 8)}...
+                              <p className={`text-[10px] mb-0.5 font-semibold ${isAI ? 'text-primary' : 'text-muted-foreground'}`}>
+                                {isAI ? 'CoreAI' : message.user_id.slice(0, 8) + '...'}
                               </p>
                             )}
                             <p className="text-sm leading-relaxed break-words whitespace-normal">{message.content}</p>
