@@ -12,9 +12,23 @@ interface GroupChatSheetProps {
 
 export const GroupChatSheet = ({ open, onOpenChange, userEmail }: GroupChatSheetProps) => {
   const navigate = useNavigate();
+  const [groupName, setGroupName] = useState("");
+  const [step, setStep] = useState<'intro' | 'name'>('intro');
 
   const displayName = userEmail?.split('@')[0] || 'User';
   const initials = displayName.slice(0, 2).toUpperCase();
+
+  const handleStartGroup = () => {
+    setStep('name');
+  };
+
+  const handleCreateGroup = () => {
+    const name = groupName.trim() || `${displayName}'s group`;
+    onOpenChange(false);
+    setStep('intro');
+    setGroupName("");
+    navigate(`/group-chats?create=${encodeURIComponent(name)}`);
+  };
 
   return (
     <AnimatePresence>
