@@ -175,10 +175,34 @@ const GroupChats = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!messageInput.trim()) return;
-    
-    await sendMessage(messageInput.trim());
+    if (!messageInput.trim() || !currentGroup) return;
+    const userMsg = messageInput.trim();
     setMessageInput("");
+    
+    await sendMessage(userMsg);
+    
+    // Call CoreAI for auto-response
+    try {
+      const history = messages.map(m => ({
+        content: m.content,
+        isAI: m.user_id === 'coreai-bot',
+      }));
+      
+      const { data, error } = await supabase.functions.invoke('group-ai', {
+        body: { 
+          groupId: currentGroup.id, 
+          message: userMsg,
+          conversationHistory: history
+        }
+      });
+      
+      if (error) {
+        console.error('AI response error:', error);
+        toast.error('CoreAI could not respond');
+      }
+    } catch (e) {
+      console.error('Failed to get AI response:', e);
+    }
   };
 
   const handleAddMember = async () => {
