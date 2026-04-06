@@ -4,7 +4,7 @@ import { useGroupChats } from "@/hooks/useGroupChats";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Bot } from "lucide-react";
 import { 
   ArrowLeft, 
   Plus, 
