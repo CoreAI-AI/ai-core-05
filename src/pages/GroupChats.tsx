@@ -542,6 +542,7 @@ const GroupChats = () => {
                 ) : (
                   messages.map((message) => {
                     const isMe = message.user_id === user.id;
+                    const isAI = message.user_id === 'coreai-bot';
                     return (
                       <motion.div
                         key={message.id}
@@ -551,20 +552,26 @@ const GroupChats = () => {
                       >
                         <div className="flex items-end gap-2 max-w-[85%] sm:max-w-[75%]">
                           {!isMe && (
-                            <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-                              <User className="w-3.5 h-3.5 text-primary" />
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${isAI ? 'bg-primary' : 'bg-primary/20'}`}>
+                              {isAI ? (
+                                <Bot className="w-3.5 h-3.5 text-primary-foreground" />
+                              ) : (
+                                <User className="w-3.5 h-3.5 text-primary" />
+                              )}
                             </div>
                           )}
                           <div
                             className={`rounded-2xl px-3 py-2 ${
                               isMe
                                 ? 'bg-primary text-primary-foreground rounded-br-md'
+                                : isAI
+                                ? 'bg-accent rounded-bl-md'
                                 : 'bg-muted rounded-bl-md'
                             }`}
                           >
                             {!isMe && (
-                              <p className="text-[10px] text-muted-foreground mb-0.5 font-medium">
-                                {message.user_id.slice(0, 8)}...
+                              <p className={`text-[10px] mb-0.5 font-semibold ${isAI ? 'text-primary' : 'text-muted-foreground'}`}>
+                                {isAI ? 'CoreAI' : message.user_id.slice(0, 8) + '...'}
                               </p>
                             )}
                             <p className="text-sm leading-relaxed break-words whitespace-normal">{message.content}</p>
