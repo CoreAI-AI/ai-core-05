@@ -982,7 +982,13 @@ const Index = () => {
                 />
                 
                 {/* Messages - ONLY scrollable area (ChatGPT-style) */}
-                <div className="chat-messages-container" ref={scrollAreaRef}>
+                <div className="chat-messages-container" ref={(el) => {
+                  (scrollAreaRef as any).current = el;
+                  (pullRef as any).current = el;
+                }}>
+                  {/* Pull to refresh indicator */}
+                  <PullToRefreshIndicator pullProgress={pullProgress} refreshing={refreshing} pulling={pulling} />
+                  
                   {/* Scroll to bottom button - only show when there are messages */}
                   {messages.length > 0 && <ScrollToBottom scrollAreaRef={scrollAreaRef} hasNewMessage={hasNewMessage} onScrollToBottom={() => setHasNewMessage(false)} />}
                   
