@@ -1041,7 +1041,7 @@ const Index = () => {
               </>}
             
             {/* Input - Always fixed at bottom with sticky positioning */}
-            {!showSettings && <div className="chat-input-fixed border-t border-border">
+            {!showSettings && <div className="chat-input-fixed glass-navbar border-t-0 glow-border">
                 {/* Quick Action Buttons - Desktop only */}
                 {messages.length > 0 && (
                   <div className="hidden md:flex justify-center py-2">
