@@ -103,6 +103,18 @@ const Index = () => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(messages.length);
 
+  // Pull to refresh
+  const { containerRef: pullRef, pulling, refreshing, pullProgress } = usePullToRefresh({
+    onRefresh: async () => {
+      haptics.medium();
+      // Re-select current chat to refresh messages
+      if (currentChat) {
+        selectChat(currentChat);
+      }
+    },
+    enabled: messages.length > 0,
+  });
+
   // Check if user is near bottom of scroll (native div, not Radix ScrollArea)
   const isNearBottom = useCallback(() => {
     const container = scrollAreaRef.current;
