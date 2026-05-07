@@ -32,6 +32,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
+import { haptics } from "@/lib/haptics";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -99,6 +102,18 @@ const Index = () => {
   } | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const prevMessageCountRef = useRef(messages.length);
+
+  // Pull to refresh
+  const { containerRef: pullRef, pulling, refreshing, pullProgress } = usePullToRefresh({
+    onRefresh: async () => {
+      haptics.medium();
+      // Re-select current chat to refresh messages
+      if (currentChat) {
+        selectChat(currentChat);
+      }
+    },
+    enabled: messages.length > 0,
+  });
 
   // Check if user is near bottom of scroll (native div, not Radix ScrollArea)
   const isNearBottom = useCallback(() => {
@@ -837,7 +852,7 @@ const Index = () => {
                 </div>
                 
                 {/* Header - Mobile: Logo + Name + Install | Desktop: Full controls */}
-                <div className="border-b border-border px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2">
+                <div className="glass-navbar px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2 z-20">
                   {/* Mobile Header: Logo + Name centered + Install */}
                   <div className="flex sm:hidden items-center justify-between w-full">
                     <div className="flex items-center gap-1">
@@ -967,7 +982,13 @@ const Index = () => {
                 />
                 
                 {/* Messages - ONLY scrollable area (ChatGPT-style) */}
-                <div className="chat-messages-container" ref={scrollAreaRef}>
+                <div className="chat-messages-container" ref={(el) => {
+                  (scrollAreaRef as any).current = el;
+                  (pullRef as any).current = el;
+                }}>
+                  {/* Pull to refresh indicator */}
+                  <PullToRefreshIndicator pullProgress={pullProgress} refreshing={refreshing} pulling={pulling} />
+                  
                   {/* Scroll to bottom button - only show when there are messages */}
                   {messages.length > 0 && <ScrollToBottom scrollAreaRef={scrollAreaRef} hasNewMessage={hasNewMessage} onScrollToBottom={() => setHasNewMessage(false)} />}
                   
@@ -1020,7 +1041,7 @@ const Index = () => {
               </>}
             
             {/* Input - Always fixed at bottom with sticky positioning */}
-            {!showSettings && <div className="chat-input-fixed border-t border-border">
+            {!showSettings && <div className="chat-input-fixed glass-navbar border-t-0 glow-border">
                 {/* Quick Action Buttons - Desktop only */}
                 {messages.length > 0 && (
                   <div className="hidden md:flex justify-center py-2">
