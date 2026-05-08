@@ -6,13 +6,11 @@ const corsHeaders = {
 }
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Create admin client with service role key
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -24,32 +22,51 @@ Deno.serve(async (req) => {
       }
     )
 
+    // Rate limiting: max 3 demo accounts per IP per hour
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+                     req.headers.get('x-real-ip') ||
+                     'unknown';
+
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+    // Check recent demo user creations from this IP using profiles
+    const { count } = await supabaseAdmin
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .like('email', 'demo-%@example.com')
+      .gte('created_at', oneHourAgo);
+
+    // Global rate limit: max 20 demo accounts per hour total
+    if (count !== null && count >= 20) {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Demo account creation is temporarily limited. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Generate unique demo account credentials
     const timestamp = Date.now()
-    const demoEmail = `demo-${timestamp}@example.com`
-    const demoPassword = "demo123456"
+    const randomSuffix = Math.random().toString(36).substring(2, 8)
+    const demoEmail = `demo-${timestamp}-${randomSuffix}@example.com`
+    const demoPassword = `demo-${randomSuffix}-${timestamp.toString(36)}`
 
-    console.log(`Creating demo user with email: ${demoEmail}`)
-
-    // Create the user account using admin client (bypasses email confirmation)
+    // Create the user account
     const { data: signUpData, error: signUpError } = await supabaseAdmin.auth.admin.createUser({
       email: demoEmail,
       password: demoPassword,
-      email_confirm: true, // Auto-confirm the email
+      email_confirm: true,
     })
 
     if (signUpError) {
-      console.error('Demo user creation error:', signUpError)
-      throw signUpError
+      console.error('Demo user creation error:', signUpError.message)
+      throw new Error('Failed to create demo account')
     }
 
     if (!signUpData.user) {
-      throw new Error('User creation failed - no user returned')
+      throw new Error('User creation failed')
     }
 
-    console.log(`Demo user created successfully: ${signUpData.user.id}`)
-
-    // Create profile for the demo user using admin client (bypasses RLS)
+    // Create profile for the demo user
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .insert({
@@ -59,11 +76,9 @@ Deno.serve(async (req) => {
       })
 
     if (profileError) {
-      console.error('Demo profile creation error:', profileError)
-      throw profileError
+      console.error('Demo profile creation error:', profileError.message)
+      throw new Error('Failed to create demo profile')
     }
-
-    console.log('Demo profile created successfully')
 
     return new Response(
       JSON.stringify({
@@ -79,11 +94,11 @@ Deno.serve(async (req) => {
     )
 
   } catch (error: any) {
-    console.error('Error in create-demo-user function:', error)
+    console.error('Error in create-demo-user function:', error.message)
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message || 'Failed to create demo user'
+        error: 'Failed to create demo account. Please try again later.'
       }),
       {
         status: 500,

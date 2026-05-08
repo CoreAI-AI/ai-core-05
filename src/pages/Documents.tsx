@@ -60,12 +60,25 @@ const Documents = () => {
     loadDocuments();
   }, [user]);
 
+  const getSignedUrl = async (filePath: string): Promise<string | null> => {
+    // If it's already a full URL (legacy), use it directly
+    if (filePath.startsWith('http')) return filePath;
+    const { data, error } = await supabase.storage
+      .from('documents')
+      .createSignedUrl(filePath, 3600); // 1 hour expiry
+    if (error) { console.error('Signed URL error:', error); return null; }
+    return data.signedUrl;
+  };
+
   const handleSummarize = async (doc: Document) => {
     setSummarizing(doc.id);
     try {
+      const signedUrl = await getSignedUrl(doc.file_url);
+      if (!signedUrl) throw new Error('Could not generate document URL');
+
       const { data, error } = await supabase.functions.invoke('document-summarize', {
         body: {
-          documentUrl: doc.file_url,
+          documentUrl: signedUrl,
           action: 'summarize',
           fileName: doc.file_name,
         },
@@ -88,7 +101,10 @@ const Documents = () => {
     try {
       const doc = documents.find(d => d.id === deleteId);
       if (doc) {
-        const filePath = doc.file_url.split('/').slice(-2).join('/');
+        // Handle both legacy full URLs and new path-only storage
+        const filePath = doc.file_url.startsWith('http')
+          ? doc.file_url.split('/').slice(-2).join('/')
+          : doc.file_url;
         await supabase.storage.from('documents').remove([filePath]);
       }
 
@@ -170,7 +186,11 @@ const Documents = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(doc.file_url, '_blank')}
+                          onClick={async () => {
+                            const url = await getSignedUrl(doc.file_url);
+                            if (url) window.open(url, '_blank');
+                            else toast.error('Could not open document');
+                          }}
                         >
                           <Download className="w-4 h-4" />
                         </Button>
