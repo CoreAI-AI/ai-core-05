@@ -186,7 +186,11 @@ const Documents = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => window.open(doc.file_url, '_blank')}
+                          onClick={async () => {
+                            const url = await getSignedUrl(doc.file_url);
+                            if (url) window.open(url, '_blank');
+                            else toast.error('Could not open document');
+                          }}
                         >
                           <Download className="w-4 h-4" />
                         </Button>
