@@ -86,7 +86,6 @@ const dailyTips = [
 
 const Explore = () => {
   const navigate = useNavigate();
-  const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const todayTip = dailyTips[new Date().getDay() % dailyTips.length];
