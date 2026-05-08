@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Sparkles, TrendingUp, Lightbulb, Zap, Image, Code, Search, BookOpen, Copy, Check, Brain, Palette, Globe, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
