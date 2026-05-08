@@ -676,4 +676,133 @@
   .list-item-active:active {
     background-color: hsl(var(--accent) / 0.8);
   }
+
+  /* ===== Native App Safe Areas ===== */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .safe-area-all {
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  }
+
+  /* ===== Native Status Bar Spacing ===== */
+  .status-bar-space {
+    padding-top: max(env(safe-area-inset-top, 0px), 0px);
+  }
+
+  /* ===== Prevent text selection on app-like elements ===== */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* ===== Smooth page transitions ===== */
+  .page-enter {
+    animation: page-slide-in 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  }
+
+  @keyframes page-slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  /* ===== Native bottom sheet handle ===== */
+  .sheet-handle {
+    width: 36px;
+    height: 5px;
+    border-radius: 3px;
+    background: hsl(var(--muted-foreground) / 0.3);
+    margin: 8px auto 4px;
+  }
+
+  /* ===== App-like header blur ===== */
+  .app-header {
+    background: hsl(var(--background) / 0.85);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 0.5px solid hsl(var(--border) / 0.5);
+  }
+
+  .dark .app-header {
+    background: hsl(var(--background) / 0.7);
+    border-bottom-color: hsl(var(--border) / 0.3);
+  }
+
+  /* ===== Native-feel bottom bar ===== */
+  .app-bottom-bar {
+    background: hsl(var(--background) / 0.9);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-top: 0.5px solid hsl(var(--border) / 0.4);
+    padding-bottom: env(safe-area-inset-bottom, 8px);
+  }
+
+  .dark .app-bottom-bar {
+    background: hsl(var(--background) / 0.75);
+    border-top-color: hsl(var(--border) / 0.25);
+  }
+
+  /* ===== Smooth overscroll rubber-band ===== */
+  .overscroll-rubber {
+    overscroll-behavior-y: none;
+  }
+
+  /* ===== Native-like list dividers ===== */
+  .native-divider {
+    height: 0.5px;
+    background: hsl(var(--border) / 0.5);
+    margin-left: 16px;
+  }
+
+  /* ===== Premium button styles ===== */
+  .btn-native {
+    @apply rounded-xl font-semibold transition-all duration-150;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-native:active {
+    transform: scale(0.96);
+    opacity: 0.9;
+  }
+
+  /* ===== Standalone mode adjustments ===== */
+  @media all and (display-mode: standalone) {
+    body {
+      overscroll-behavior-y: none;
+    }
+
+    .glass-navbar {
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    .chat-input-fixed {
+      padding-bottom: env(safe-area-inset-bottom, 8px);
+    }
+  }
+
+  /* ===== Subtle separator line (iOS-style) ===== */
+  .separator-subtle {
+    border-bottom: 0.5px solid hsl(var(--border) / 0.4);
+  }
+
+  /* ===== Smooth spring bounce on interactive elements ===== */
+  .spring-bounce {
+    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .spring-bounce:active {
+    transform: scale(0.92);
+  }
 }
