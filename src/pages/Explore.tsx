@@ -85,7 +85,7 @@ const dailyTips = [
 ];
 
 const Explore = () => {
-  const { user } = useAuth();
+  const navigate = useNavigate();
   const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
