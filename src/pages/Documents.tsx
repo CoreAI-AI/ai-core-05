@@ -101,7 +101,10 @@ const Documents = () => {
     try {
       const doc = documents.find(d => d.id === deleteId);
       if (doc) {
-        const filePath = doc.file_url.split('/').slice(-2).join('/');
+        // Handle both legacy full URLs and new path-only storage
+        const filePath = doc.file_url.startsWith('http')
+          ? doc.file_url.split('/').slice(-2).join('/')
+          : doc.file_url;
         await supabase.storage.from('documents').remove([filePath]);
       }
 
