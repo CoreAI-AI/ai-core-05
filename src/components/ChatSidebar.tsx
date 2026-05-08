@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, MessageSquare, Settings, Trash2, Image, MoreVertical, FileText, FileDown, PanelLeftClose, FolderKanban, Pin, PinOff, Plus } from "lucide-react";
+import { Search, MessageSquare, Settings, Trash2, Image, MoreVertical, FileText, FileDown, PanelLeftClose, Sparkles, Pin, PinOff, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
