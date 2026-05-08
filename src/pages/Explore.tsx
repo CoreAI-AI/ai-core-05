@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Sparkles, TrendingUp, Lightbulb, Zap, Image, Code, Search, BookOpen, Copy, Check, Brain, Palette, Globe, Shield } from "lucide-react";
+import { ArrowLeft, Sparkles, TrendingUp, Lightbulb, Zap, Code, Search, BookOpen, Copy, Check, Brain, Palette, Globe, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
