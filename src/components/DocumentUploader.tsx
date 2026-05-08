@@ -51,16 +51,13 @@ export const DocumentUploader = ({ userId, onUploadComplete }: DocumentUploaderP
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
-        .from('documents')
-        .getPublicUrl(fileName);
-
+      // Store the file path (not public URL) for signed URL generation
       const { error: dbError } = await supabase
         .from('documents')
         .insert({
           user_id: userId,
           file_name: file.name,
-          file_url: urlData.publicUrl,
+          file_url: fileName, // Store path, not public URL
           file_size: file.size,
           file_type: file.type,
         });
