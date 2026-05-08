@@ -88,18 +88,10 @@ export const AnimatedRoutes = () => {
           }
         />
         <Route
-          path="/projects"
+          path="/explore"
           element={
             <PageTransition>
-              <Projects />
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/projects/:projectId"
-          element={
-            <PageTransition>
-              <ProjectDetails />
+              <Explore />
             </PageTransition>
           }
         />
