@@ -100,8 +100,8 @@ const Explore = () => {
   };
 
   const handleUsePrompt = (prompt: string) => {
-    // Navigate to home and set the prompt via URL params
-    navigate(`/?prompt=${encodeURIComponent(prompt)}`);
+    sessionStorage.setItem('explore_prompt', prompt);
+    navigate('/');
   };
 
   return (
