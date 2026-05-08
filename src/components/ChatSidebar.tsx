@@ -75,8 +75,8 @@ export const ChatSidebar = ({
       onOpenSettings();
     } else if (action === 'photos') {
       navigate('/photos');
-    } else if (action === 'projects') {
-      navigate('/projects');
+    } else if (action === 'explore') {
+      navigate('/explore');
     }
   };
 
