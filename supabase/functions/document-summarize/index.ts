@@ -24,17 +24,81 @@ serve(async (req) => {
 
     const { data: { user } } = await supabaseClient.auth.getUser();
     if (!user) {
-      throw new Error('Not authenticated');
+      return new Response(
+        JSON.stringify({ error: 'Not authenticated' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const { documentUrl, action, fileName } = await req.json();
-    
-    console.log('Document summarization request:', { documentUrl, action, fileName });
 
-    // Download document
-    const docResponse = await fetch(documentUrl);
+    // Validate URL to prevent SSRF
+    if (!documentUrl || typeof documentUrl !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'Invalid document URL' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    try {
+      const url = new URL(documentUrl);
+
+      // Only allow HTTPS
+      if (url.protocol !== 'https:') {
+        return new Response(
+          JSON.stringify({ error: 'Only HTTPS URLs are allowed' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Restrict to Supabase storage domain
+      const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
+      const allowedHost = supabaseUrl.replace('https://', '').replace('http://', '');
+      if (!url.hostname.endsWith('.supabase.co') && url.hostname !== allowedHost) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid document source. Only project storage URLs are allowed.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      // Block internal/private IPs
+      if (url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname.startsWith('10.') || url.hostname.startsWith('192.168.') || url.hostname.startsWith('169.254.')) {
+        return new Response(
+          JSON.stringify({ error: 'Invalid document URL' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Invalid document URL format' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Document summarization request:', { action, fileName });
+
+    // Download document with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    let docResponse: Response;
+    try {
+      docResponse = await fetch(documentUrl, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+
     if (!docResponse.ok) {
       throw new Error('Failed to download document');
+    }
+
+    // Limit response size (10MB max)
+    const contentLength = docResponse.headers.get('content-length');
+    if (contentLength && parseInt(contentLength) > 10 * 1024 * 1024) {
+      return new Response(
+        JSON.stringify({ error: 'Document too large (max 10MB)' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const docText = await docResponse.text();
@@ -95,8 +159,6 @@ serve(async (req) => {
 
     if (noteError) throw noteError;
 
-    console.log('Document summarized successfully:', note.id);
-
     return new Response(
       JSON.stringify({ success: true, noteId: note.id, summary }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -105,7 +167,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in document-summarize function:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'An error occurred processing the document' }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
