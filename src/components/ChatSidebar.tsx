@@ -31,9 +31,9 @@ const sidebarItems = [{
   label: "Settings",
   action: 'settings'
 }, {
-  icon: FolderKanban,
-  label: "Projects",
-  action: 'projects'
+  icon: Sparkles,
+  label: "Explore AI",
+  action: 'explore'
 }];
 
 interface ChatSidebarProps {
