@@ -47,6 +47,15 @@ export const ChatInput = ({
     }
   }, [editingMessage]);
 
+  // Check for pre-filled prompt from Explore page
+  useEffect(() => {
+    const prefill = sessionStorage.getItem('explore_prompt');
+    if (prefill) {
+      setMessage(prefill);
+      sessionStorage.removeItem('explore_prompt');
+    }
+  }, []);
+
   // Notify parent when typing state changes
   useEffect(() => {
     onTypingChange?.(message.trim().length > 0);

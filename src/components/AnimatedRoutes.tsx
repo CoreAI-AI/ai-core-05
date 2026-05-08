@@ -10,8 +10,7 @@ import Notes from '@/pages/Notes';
 import Privacy from '@/pages/Privacy';
 import Admin from '@/pages/Admin';
 import Tools from '@/pages/Tools';
-import Projects from '@/pages/Projects';
-import ProjectDetails from '@/pages/ProjectDetails';
+import Explore from '@/pages/Explore';
 import GroupChats from '@/pages/GroupChats';
 import NotFound from '@/pages/NotFound';
 
@@ -89,18 +88,10 @@ export const AnimatedRoutes = () => {
           }
         />
         <Route
-          path="/projects"
+          path="/explore"
           element={
             <PageTransition>
-              <Projects />
-            </PageTransition>
-          }
-        />
-        <Route
-          path="/projects/:projectId"
-          element={
-            <PageTransition>
-              <ProjectDetails />
+              <Explore />
             </PageTransition>
           }
         />
