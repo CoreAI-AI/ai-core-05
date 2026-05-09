@@ -845,10 +845,8 @@ const Index = () => {
                         </Button>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <img src="/app-icon-192.png" alt="CoreAI" className="w-7 h-7 rounded-full" />
-                      <span className="text-base font-bold text-foreground">CoreAI</span>
-                    </div>
+                    <div className="flex items-center gap-2" />
+
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="sm" onClick={() => setShowGroupChatSheet(true)} className="h-8 w-8 p-0 text-muted-foreground" title="Group Chat">
                         <UserPlus className="h-4 w-4" />
