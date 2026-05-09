@@ -146,30 +146,6 @@ const Index = () => {
     }
   }, [messages, isAITyping, isNearBottom]);
 
-  // PWA Install prompt detection
-  useEffect(() => {
-    // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsAppInstalled(true);
-    }
-
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-
-    const installedHandler = () => {
-      setIsAppInstalled(true);
-      setDeferredPrompt(null);
-    };
-    window.addEventListener('appinstalled', installedHandler);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-      window.removeEventListener('appinstalled', installedHandler);
-    };
-  }, []);
 
 
   useEffect(() => {
