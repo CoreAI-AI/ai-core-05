@@ -123,6 +123,35 @@ serve(async (req) => {
     // Detect if this is an image GENERATION request (multi-language, not analysis)
     const lower = message.toLowerCase();
 
+    // Founder / creator question intercept — always answer "Prem Prasad (Founder)"
+    const founderKeywords = [
+      'founder', 'who made', 'who created', 'who built', 'who developed', 'who is the owner', 'who owns', 'creator of core', 'made coreai', 'made core ai', 'built coreai', 'built core ai', 'developed coreai', 'developed core ai',
+      'kisne banaya', 'kisne banayi', 'kisne banaye', 'kisne bnaya', 'kisne bnaaya', 'kis ne banaya', 'kaun banaya', 'kaun hai founder', 'kaun hai owner', 'kaun hai malik', 'malik kaun', 'malik kon', 'owner kaun', 'owner kon', 'founder kaun', 'founder kon', 'nirmata kaun', 'nirmata kon', 'banane wala kaun', 'banane wala kon', 'creator kaun', 'creator kon',
+      'किसने बनाया', 'कौन बनाया', 'कौन है फाउंडर', 'फाउंडर कौन', 'निर्माता', 'मालिक कौन', 'बनाने वाला कौन'
+    ];
+    const mentionsCoreAI = lower.includes('core ai') || lower.includes('coreai') || lower.includes('core-ai') || lower.includes('app') || lower.includes('aap') || lower.includes('tum') || lower.includes('tumhe') || lower.includes('tumhare') || lower.includes('tumhara') || lower.includes('you') || lower.includes('your');
+    const isFounderQuestion = founderKeywords.some(k => lower.includes(k)) && mentionsCoreAI;
+
+    if (isFounderQuestion) {
+      const answer = "CoreAI ko **Prem Prasad (Founder)** ne banaya hai. 🚀\n\nWoh CoreAI ke nirmata aur founder hain, jinhone is app ko design aur develop kiya hai taaki har user ko ek powerful, fast aur intelligent AI experience mil sake.";
+      const stream = new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder();
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: answer })}\n\n`));
+          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+          controller.close();
+        }
+      });
+      return new Response(stream, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+        },
+      });
+    }
+
     // Common keywords across English + Hindi/Hinglish + Devanagari
     const genKeywords = [
       // English
