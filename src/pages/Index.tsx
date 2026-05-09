@@ -871,12 +871,10 @@ const Index = () => {
                         </Button>
                       )}
                     </div>
-                    {!isAppInstalled && (
-                      <div className="flex items-center gap-2">
-                        <img src="/app-icon-192.png" alt="CoreAI" className="w-7 h-7 rounded-full" />
-                        <span className="text-base font-bold text-foreground">CoreAI</span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <img src="/app-icon-192.png" alt="CoreAI" className="w-7 h-7 rounded-full" />
+                      <span className="text-base font-bold text-foreground">CoreAI</span>
+                    </div>
                     <div className="flex items-center gap-1">
                       <Button variant="ghost" size="sm" onClick={() => setShowGroupChatSheet(true)} className="h-8 w-8 p-0 text-muted-foreground" title="Group Chat">
                         <UserPlus className="h-4 w-4" />
@@ -884,44 +882,19 @@ const Index = () => {
                       <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-8 w-8 p-0 text-muted-foreground" title="Image Styles">
                         <Palette className="h-4 w-4" />
                       </Button>
-                      {isAppInstalled && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 text-muted-foreground"
-                          title="Temporary Chat"
-                          onClick={() => {
-                            startNewChat();
-                            setChatMode('normal');
-                            toast.info("Temporary chat started — won't be saved to history");
-                          }}
-                        >
-                          <Clock className="h-4 w-4" />
-                        </Button>
-                      )}
-                      {!isAppInstalled && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-2 text-xs font-semibold text-primary gap-1"
-                          onClick={async () => {
-                            if (deferredPrompt) {
-                              deferredPrompt.prompt();
-                              const result = await deferredPrompt.userChoice;
-                              if (result.outcome === 'accepted') {
-                                setIsAppInstalled(true);
-                                toast.success("CoreAI installed successfully!");
-                              }
-                              setDeferredPrompt(null);
-                            } else {
-                              toast.info("Open this site in Chrome and tap 'Add to Home Screen'");
-                            }
-                          }}
-                        >
-                          <Download className="h-3.5 w-3.5" />
-                          Install
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-muted-foreground"
+                        title="Temporary Chat"
+                        onClick={() => {
+                          startNewChat();
+                          setChatMode('normal');
+                          toast.info("Temporary chat started — won't be saved to history");
+                        }}
+                      >
+                        <Clock className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
 
