@@ -247,20 +247,57 @@ const Index = () => {
   if (!user) {
     return <Auth onAuthSuccess={() => setShowAuth(false)} />;
   }
+  // Compress image to speed up upload + AI response
+  const compressImage = (file: File, maxDim = 1280, quality = 0.75): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return reject(new Error('Canvas not supported'));
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFileSelect = async (file: File) => {
     setSelectedFile(file);
 
-    // Create preview for images
     if (file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFilePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const compressed = await compressImage(file);
+        setFilePreview(compressed);
+        toast.success('Image ready');
+      } catch (err) {
+        // Fallback to raw
+        const reader = new FileReader();
+        reader.onloadend = () => setFilePreview(reader.result as string);
+        reader.readAsDataURL(file);
+      }
     } else {
       setFilePreview(null);
+      toast.success(`File selected: ${file.name}`);
     }
-    toast.success(`File selected: ${file.name}`);
   };
 
   // Handle editing a user message
