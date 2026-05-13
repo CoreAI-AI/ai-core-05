@@ -237,6 +237,7 @@ export const useChats = (userId: string | undefined) => {
     createChat,
     addMessage,
     updateMessage,
+    updateMessageLocal,
     deleteMessage,
     startNewChat,
     selectChat,
