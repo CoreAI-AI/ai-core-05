@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin
 
-Sitemap: https://ai-core-05.lovable.app/sitemap.xml
+Sitemap: https://coreaii.vercel.app/sitemap.xml
