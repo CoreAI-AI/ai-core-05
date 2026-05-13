@@ -683,11 +683,11 @@ const Index = () => {
                   const images = parsed.images;
                   if (content) {
                     accumulatedContent += content;
-                    await updateMessage(aiMessage.id, accumulatedContent);
+                    updateMessageLocal(aiMessage.id, accumulatedContent);
                   }
                   if (images && images.length > 0) {
                     receivedImages = images;
-                    await updateMessage(aiMessage.id, accumulatedContent, images);
+                    updateMessageLocal(aiMessage.id, accumulatedContent, images);
                   }
                 } catch {}
               }
@@ -715,15 +715,14 @@ const Index = () => {
             const images = parsed.images;
             if (content) {
               accumulatedContent += content;
-              await updateMessage(aiMessage.id, accumulatedContent);
+              updateMessageLocal(aiMessage.id, accumulatedContent);
             }
             if (images && images.length > 0) {
               receivedImages = images;
               setIsGeneratingImage(false); // Hide overlay when image is received
-              await updateMessage(aiMessage.id, accumulatedContent, images);
+              updateMessageLocal(aiMessage.id, accumulatedContent, images);
             }
           } catch (error) {
-            // Log parsing errors for debugging but continue processing
             console.log(`Failed to parse streaming data: ${data.substring(0, 50)}...`);
           }
         }
@@ -732,9 +731,8 @@ const Index = () => {
       if (!accumulatedContent.trim() && receivedImages.length === 0) {
         throw new Error("No content or images received from AI");
       }
-      if (receivedImages.length > 0) {
-        await updateMessage(aiMessage.id, accumulatedContent, receivedImages);
-      }
+      // Persist final result to DB once
+      await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
 
       // Clear selected file after sending
       setSelectedFile(null);
