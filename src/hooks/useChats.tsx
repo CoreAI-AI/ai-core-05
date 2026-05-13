@@ -130,15 +130,22 @@ export const useChats = (userId: string | undefined) => {
     }
   };
 
-  // Update a message (for streaming responses)
+  // Update local React state only — for streaming chunks (no DB write)
+  const updateMessageLocal = (messageId: string, content: string, images?: any[]) => {
+    setMessages(prev =>
+      prev.map(msg =>
+        msg.id === messageId
+          ? { ...msg, content, ...(images ? { images } : {}) }
+          : msg
+      )
+    );
+  };
+
+  // Update a message and persist to DB (call once at end of streaming)
   const updateMessage = async (messageId: string, content: string, images?: any[]) => {
     try {
       const updateData: any = { content };
-      
-      // Add images if provided
-      if (images && images.length > 0) {
-        updateData.images = images;
-      }
+      if (images && images.length > 0) updateData.images = images;
 
       const { error } = await sb
         .from('messages')
@@ -147,13 +154,7 @@ export const useChats = (userId: string | undefined) => {
 
       if (error) throw error;
 
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === messageId 
-            ? { ...msg, content, ...(images ? { images } : {}) }
-            : msg
-        )
-      );
+      updateMessageLocal(messageId, content, images);
     } catch (error: any) {
       console.error('Error updating message:', error);
     }
@@ -236,6 +237,7 @@ export const useChats = (userId: string | undefined) => {
     createChat,
     addMessage,
     updateMessage,
+    updateMessageLocal,
     deleteMessage,
     startNewChat,
     selectChat,
