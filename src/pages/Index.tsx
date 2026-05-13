@@ -55,6 +55,7 @@ const Index = () => {
     createChat,
     addMessage,
     updateMessage,
+    updateMessageLocal,
     deleteMessage,
     startNewChat,
     selectChat,
@@ -400,18 +401,17 @@ const Index = () => {
             const parsed = JSON.parse(data);
             if (parsed.content) {
               accumulatedContent += parsed.content;
-              await updateMessage(aiMessage.id, accumulatedContent);
+              updateMessageLocal(aiMessage.id, accumulatedContent);
             }
             if (parsed.images?.length > 0) {
               receivedImages = parsed.images;
-              await updateMessage(aiMessage.id, accumulatedContent, parsed.images);
+              updateMessageLocal(aiMessage.id, accumulatedContent, parsed.images);
             }
           } catch {}
         }
       }
-      if (receivedImages.length > 0) {
-        await updateMessage(aiMessage.id, accumulatedContent, receivedImages);
-      }
+      // Persist final result to DB once
+      await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
     } catch (error) {
       console.error('Error regenerating AI response:', error);
       toast.error("Failed to regenerate response. Please try again.");
@@ -494,18 +494,17 @@ const Index = () => {
             const parsed = JSON.parse(data);
             if (parsed.content) {
               accumulatedContent += parsed.content;
-              await updateMessage(aiMessageId, accumulatedContent);
+              updateMessageLocal(aiMessageId, accumulatedContent);
             }
             if (parsed.images?.length > 0) {
               receivedImages = parsed.images;
-              await updateMessage(aiMessageId, accumulatedContent, parsed.images);
+              updateMessageLocal(aiMessageId, accumulatedContent, parsed.images);
             }
           } catch {}
         }
       }
-      if (receivedImages.length > 0) {
-        await updateMessage(aiMessageId, accumulatedContent, receivedImages);
-      }
+      // Persist final result to DB once
+      await updateMessage(aiMessageId, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
       toast.success("Response regenerated");
     } catch (error) {
       console.error('Error regenerating response:', error);
