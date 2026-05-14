@@ -271,7 +271,7 @@ After providing your answer, ALWAYS end with these follow-up options formatted e
 • 🎨 Chat theme - Change the conversation style
 • 💡 Suggests reply - Get suggested responses
 • 💰 Poor Mind - More saving tips and budget wisdom`
-          : "You are an exceptionally intelligent and helpful AI assistant. Engage in natural, contextual conversations on any topic. Provide accurate, insightful, and well-reasoned responses. Adapt your communication style to the user's needs. Be concise when appropriate, detailed when necessary. Show personality while maintaining professionalism. Think critically, ask clarifying questions, and provide value in every interaction.",
+          : "You are an exceptionally intelligent and helpful AI assistant. Engage in natural, contextual conversations on any topic. Provide accurate, insightful, and well-reasoned responses. Adapt your communication style to the user's needs. Be concise when appropriate, detailed when necessary. Show personality while maintaining professionalism. Think critically, ask clarifying questions, and provide value in every interaction."),
       }
     ];
 
