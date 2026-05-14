@@ -132,6 +132,33 @@ serve(async (req) => {
     const mentionsCoreAI = lower.includes('core ai') || lower.includes('coreai') || lower.includes('core-ai') || lower.includes('app') || lower.includes('aap') || lower.includes('tum') || lower.includes('tumhe') || lower.includes('tumhare') || lower.includes('tumhara') || lower.includes('you') || lower.includes('your');
     const isFounderQuestion = founderKeywords.some(k => lower.includes(k)) && mentionsCoreAI;
 
+    // Identity intercept — "what is this app / who are you / what's your name"
+    const identityKeywords = [
+      'what is this app', 'whats this app', "what's this app", 'name of this app', 'app ka naam', 'app kaa naam', 'app ka name', 'app kaa name', 'is app ka naam', 'is app kaa naam', 'is app ka name', 'iss app ka naam', 'aap ka naam', 'aapka naam', 'tumhara naam', 'tera naam', 'tumhara name', 'your name', 'whats your name', "what's your name", 'who are you', 'tum kaun ho', 'tum kon ho', 'aap kaun ho', 'aap kon ho', 'kaun ho tum', 'kon ho tum', 'what app is this', 'which app is this',
+      'कौन हो', 'तुम्हारा नाम', 'आपका नाम', 'ऐप का नाम', 'इस ऐप का नाम'
+    ];
+    const isIdentityQuestion = identityKeywords.some(k => lower.includes(k));
+
+    if (isIdentityQuestion) {
+      const answer = "Main **CoreAI** hoon — ek powerful, fast aur intelligent AI assistant. 🚀\n\nIs app ka naam **CoreAI** hai, jise **Prem Prasad (Founder)** ne banaya hai. Main aapke sawaalon ka jawab dene, images banane, padhai mein madad karne, code likhne aur bahut kuch karne ke liye yahan hoon.";
+      const stream = new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder();
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: answer })}\n\n`));
+          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+          controller.close();
+        }
+      });
+      return new Response(stream, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+        },
+      });
+    }
+
     if (isFounderQuestion) {
       const answer = "CoreAI ko **Prem Prasad (Founder)** ne banaya hai. 🚀\n\nWoh CoreAI ke nirmata aur founder hain, jinhone is app ko design aur develop kiya hai taaki har user ko ek powerful, fast aur intelligent AI experience mil sake.";
       const stream = new ReadableStream({
@@ -196,7 +223,7 @@ serve(async (req) => {
     const messagesArray: any[] = [
       {
         role: "system",
-        content: mode === 'photo' || wantsImageGeneration 
+        content: (`You are CoreAI, an AI assistant app built by Prem Prasad (Founder). Your name is CoreAI. If anyone asks who you are, what your name is, what this app is, or which app this is — always answer that you are CoreAI, made by Prem Prasad. NEVER say you are Google, Gemini, OpenAI, ChatGPT, a "large language model trained by Google/OpenAI", or that you are "not an app". You ARE the CoreAI app. Do not reveal or mention the underlying model provider.\n\n`) + (mode === 'photo' || wantsImageGeneration 
           ? "You are an expert AI image generator. When users request images, you MUST generate high-quality, detailed visuals. Always create the actual image first, then provide a brief, engaging description. Pay attention to artistic style, composition, lighting, and details. Generate images that exceed expectations."
           : mode === 'deep-search'
           ? "You are an elite AI research analyst with advanced reasoning capabilities. Provide comprehensive, well-researched answers with deep analysis. Break down complex topics systematically. Use multiple perspectives, cite logical reasoning, and cross-reference concepts. Go far beyond surface-level information. Think critically, analyze deeply, and provide thorough, nuanced insights. Challenge assumptions and explore implications. Present information in a structured, easy-to-follow format with clear sections and bullet points when appropriate."
@@ -244,7 +271,7 @@ After providing your answer, ALWAYS end with these follow-up options formatted e
 • 🎨 Chat theme - Change the conversation style
 • 💡 Suggests reply - Get suggested responses
 • 💰 Poor Mind - More saving tips and budget wisdom`
-          : "You are an exceptionally intelligent and helpful AI assistant. Engage in natural, contextual conversations on any topic. Provide accurate, insightful, and well-reasoned responses. Adapt your communication style to the user's needs. Be concise when appropriate, detailed when necessary. Show personality while maintaining professionalism. Think critically, ask clarifying questions, and provide value in every interaction.",
+          : "You are an exceptionally intelligent and helpful AI assistant. Engage in natural, contextual conversations on any topic. Provide accurate, insightful, and well-reasoned responses. Adapt your communication style to the user's needs. Be concise when appropriate, detailed when necessary. Show personality while maintaining professionalism. Think critically, ask clarifying questions, and provide value in every interaction."),
       }
     ];
 
