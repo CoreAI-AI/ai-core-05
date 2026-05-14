@@ -132,6 +132,33 @@ serve(async (req) => {
     const mentionsCoreAI = lower.includes('core ai') || lower.includes('coreai') || lower.includes('core-ai') || lower.includes('app') || lower.includes('aap') || lower.includes('tum') || lower.includes('tumhe') || lower.includes('tumhare') || lower.includes('tumhara') || lower.includes('you') || lower.includes('your');
     const isFounderQuestion = founderKeywords.some(k => lower.includes(k)) && mentionsCoreAI;
 
+    // Identity intercept — "what is this app / who are you / what's your name"
+    const identityKeywords = [
+      'what is this app', 'whats this app', "what's this app", 'name of this app', 'app ka naam', 'app kaa naam', 'app ka name', 'app kaa name', 'is app ka naam', 'is app kaa naam', 'is app ka name', 'iss app ka naam', 'aap ka naam', 'aapka naam', 'tumhara naam', 'tera naam', 'tumhara name', 'your name', 'whats your name', "what's your name", 'who are you', 'tum kaun ho', 'tum kon ho', 'aap kaun ho', 'aap kon ho', 'kaun ho tum', 'kon ho tum', 'what app is this', 'which app is this',
+      'कौन हो', 'तुम्हारा नाम', 'आपका नाम', 'ऐप का नाम', 'इस ऐप का नाम'
+    ];
+    const isIdentityQuestion = identityKeywords.some(k => lower.includes(k));
+
+    if (isIdentityQuestion) {
+      const answer = "Main **CoreAI** hoon — ek powerful, fast aur intelligent AI assistant. 🚀\n\nIs app ka naam **CoreAI** hai, jise **Prem Prasad (Founder)** ne banaya hai. Main aapke sawaalon ka jawab dene, images banane, padhai mein madad karne, code likhne aur bahut kuch karne ke liye yahan hoon.";
+      const stream = new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder();
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: answer })}\n\n`));
+          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+          controller.close();
+        }
+      });
+      return new Response(stream, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+        },
+      });
+    }
+
     if (isFounderQuestion) {
       const answer = "CoreAI ko **Prem Prasad (Founder)** ne banaya hai. 🚀\n\nWoh CoreAI ke nirmata aur founder hain, jinhone is app ko design aur develop kiya hai taaki har user ko ek powerful, fast aur intelligent AI experience mil sake.";
       const stream = new ReadableStream({
