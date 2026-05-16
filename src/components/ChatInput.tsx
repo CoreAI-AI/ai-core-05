@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins, Bot, Brain, Zap } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins, Bot, Brain, Zap, ChefHat, BookOpen } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -13,7 +13,7 @@ interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   onFileSelect?: (file: File) => void;
-  onModeChange?: (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor') => void;
+  onModeChange?: (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework') => void;
   editingMessage?: {
     id: string;
     content: string;
@@ -60,7 +60,7 @@ export const ChatInput = ({
   useEffect(() => {
     onTypingChange?.(message.trim().length > 0);
   }, [message, onTypingChange]);
-  const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor'>('normal');
+  const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework'>('normal');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
   const {
@@ -77,7 +77,7 @@ export const ChatInput = ({
     onSendMessage(prompt);
     toast.success(`${modeName} activated!`);
   };
-  const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor') => {
+  const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework') => {
     setCurrentMode(mode);
     if (onModeChange) {
       onModeChange(mode);
@@ -91,7 +91,9 @@ export const ChatInput = ({
       'creative': 'Creative Writer',
       'analyze': 'Data Analyst',
       'rich': 'Rich Mode',
-      'poor': 'Poor Mode'
+      'poor': 'Poor Mode',
+      'recipe': 'Food Recipe',
+      'homework': 'Homework Helper'
     };
     toast.success(`${modeNames[mode]} activated!`);
   };
@@ -198,6 +200,10 @@ export const ChatInput = ({
         return <Crown className="h-5 w-5 text-amber-500" />;
       case 'poor':
         return <Coins className="h-5 w-5 text-gray-500" />;
+      case 'recipe':
+        return <ChefHat className="h-5 w-5 text-red-500" />;
+      case 'homework':
+        return <BookOpen className="h-5 w-5 text-emerald-500" />;
       default:
         return <img src={coreaiLogo} alt="CoreAI" className="h-6 w-6 rounded-full" />;
     }
@@ -270,6 +276,14 @@ export const ChatInput = ({
                 <DropdownMenuItem onClick={() => handleModeSelect('analyze')} className="cursor-pointer rounded-lg">
                   <BarChart3 className="w-4 h-4 mr-2 text-cyan-500" />
                   Data Analyst
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleModeSelect('recipe')} className="cursor-pointer rounded-lg">
+                  <ChefHat className="w-4 h-4 mr-2 text-red-500" />
+                  Food Recipe
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleModeSelect('homework')} className="cursor-pointer rounded-lg">
+                  <BookOpen className="w-4 h-4 mr-2 text-emerald-500" />
+                  Homework Helper
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleModeSelect('photo')} className="cursor-pointer rounded-lg">
                   <ImagePlus className="w-4 h-4 mr-2 text-purple-500" />
