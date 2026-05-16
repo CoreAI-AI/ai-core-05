@@ -200,6 +200,10 @@ export const ChatInput = ({
         return <Crown className="h-5 w-5 text-amber-500" />;
       case 'poor':
         return <Coins className="h-5 w-5 text-gray-500" />;
+      case 'recipe':
+        return <ChefHat className="h-5 w-5 text-red-500" />;
+      case 'homework':
+        return <BookOpen className="h-5 w-5 text-emerald-500" />;
       default:
         return <img src={coreaiLogo} alt="CoreAI" className="h-6 w-6 rounded-full" />;
     }
