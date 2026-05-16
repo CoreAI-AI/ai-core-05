@@ -91,7 +91,9 @@ export const ChatInput = ({
       'creative': 'Creative Writer',
       'analyze': 'Data Analyst',
       'rich': 'Rich Mode',
-      'poor': 'Poor Mode'
+      'poor': 'Poor Mode',
+      'recipe': 'Food Recipe',
+      'homework': 'Homework Helper'
     };
     toast.success(`${modeNames[mode]} activated!`);
   };
