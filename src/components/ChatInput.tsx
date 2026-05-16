@@ -277,6 +277,14 @@ export const ChatInput = ({
                   <BarChart3 className="w-4 h-4 mr-2 text-cyan-500" />
                   Data Analyst
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleModeSelect('recipe')} className="cursor-pointer rounded-lg">
+                  <ChefHat className="w-4 h-4 mr-2 text-red-500" />
+                  Food Recipe
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleModeSelect('homework')} className="cursor-pointer rounded-lg">
+                  <BookOpen className="w-4 h-4 mr-2 text-emerald-500" />
+                  Homework Helper
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleModeSelect('photo')} className="cursor-pointer rounded-lg">
                   <ImagePlus className="w-4 h-4 mr-2 text-purple-500" />
                   Image Generator
