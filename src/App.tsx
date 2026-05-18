@@ -26,6 +26,15 @@ const AppContent = () => {
     authenticateWithBiometric 
   } = useAppLock();
 
+  const [showIntro, setShowIntro] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem("coreai_intro_seen")) {
+      const t = setTimeout(() => setShowIntro(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, []);
+
   return (
     <>
       
