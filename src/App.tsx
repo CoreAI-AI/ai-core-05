@@ -54,6 +54,9 @@ const AppContent = () => {
             biometricEnabled={settings.biometricEnabled}
           />
         )}
+        {showIntro && (
+          <IntroExperience key="intro" onComplete={() => setShowIntro(false)} />
+        )}
       </AnimatePresence>
       <BrowserRouter>
         <AnimatedRoutes />
