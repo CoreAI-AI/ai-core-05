@@ -67,6 +67,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
             display_name: displayName.trim() || email.split('@')[0],
             email: email.trim(),
           });
+          localStorage.removeItem("coreai_intro_seen");
           toast.success("Account created! Welcome to CoreAI 🎉");
           onAuthSuccess();
         }

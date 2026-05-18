@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,7 @@ import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { useAppLock } from "@/hooks/useAppLock";
 import { AppLockScreen } from "@/components/AppLockScreen";
 import { AppLockSetup } from "@/components/AppLockSetup";
+import { IntroExperience } from "@/components/IntroExperience";
 
 import { AnimatePresence } from "framer-motion";
 
@@ -23,6 +25,15 @@ const AppContent = () => {
     verifyPin, 
     authenticateWithBiometric 
   } = useAppLock();
+
+  const [showIntro, setShowIntro] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem("coreai_intro_seen")) {
+      const t = setTimeout(() => setShowIntro(true), 600);
+      return () => clearTimeout(t);
+    }
+  }, []);
 
   return (
     <>
@@ -42,6 +53,9 @@ const AppContent = () => {
             onBiometricAuth={authenticateWithBiometric}
             biometricEnabled={settings.biometricEnabled}
           />
+        )}
+        {showIntro && (
+          <IntroExperience key="intro" onComplete={() => setShowIntro(false)} />
         )}
       </AnimatePresence>
       <BrowserRouter>
