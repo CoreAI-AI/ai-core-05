@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,9 +6,11 @@ import {
   Search, Sparkles, Shield, Zap, ArrowRight, X
 } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
+import { track } from "@/lib/analytics";
 
 interface IntroExperienceProps {
   onComplete: () => void;
+  source?: "first_visit" | "login" | "signup" | "manual";
 }
 
 const slides = [
@@ -67,20 +69,63 @@ const slides = [
   },
 ];
 
-export const IntroExperience = ({ onComplete }: IntroExperienceProps) => {
+export const IntroExperience = ({ onComplete, source = "first_visit" }: IntroExperienceProps) => {
   const [index, setIndex] = useState(0);
   const slide = slides[index];
   const isLast = index === slides.length - 1;
+  const startedAt = useRef<number>(Date.now());
 
-  // Auto-advance non-CTA slides
+  // Fire 'viewed' once when intro mounts
   useEffect(() => {
+    startedAt.current = Date.now();
+    track("intro_viewed", { source });
+  }, [source]);
+
+  // Track every slide view + auto-advance non-CTA slides
+  useEffect(() => {
+    track("intro_slide_viewed", {
+      source,
+      slide_index: index,
+      slide_id: (slide as any).id,
+    });
     if ((slide as any).kind === "cta") return;
     const t = setTimeout(() => setIndex((i) => Math.min(i + 1, slides.length - 1)), 3200);
     return () => clearTimeout(t);
   }, [index]);
 
+  const persistSeen = (status: "skipped" | "completed") => {
+    try {
+      localStorage.setItem(
+        "coreai_intro_seen",
+        JSON.stringify({
+          status,
+          source,
+          slide_index: index,
+          completed_at: new Date().toISOString(),
+        })
+      );
+    } catch {
+      localStorage.setItem("coreai_intro_seen", "1");
+    }
+  };
+
+  const handleSkip = () => {
+    track("intro_skipped", {
+      source,
+      slide_index: index,
+      slide_id: (slide as any).id,
+      duration_ms: Date.now() - startedAt.current,
+    });
+    persistSeen("skipped");
+    onComplete();
+  };
+
   const finish = () => {
-    localStorage.setItem("coreai_intro_seen", "1");
+    track("intro_completed", {
+      source,
+      duration_ms: Date.now() - startedAt.current,
+    });
+    persistSeen("completed");
     onComplete();
   };
 
@@ -123,7 +168,7 @@ export const IntroExperience = ({ onComplete }: IntroExperienceProps) => {
 
       {/* Skip button */}
       <button
-        onClick={finish}
+        onClick={handleSkip}
         className="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-card/60 backdrop-blur-md border border-border rounded-full transition-colors"
       >
         Skip <X className="h-3 w-3" />

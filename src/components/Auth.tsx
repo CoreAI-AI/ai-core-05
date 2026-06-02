@@ -68,6 +68,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
             email: email.trim(),
           });
           localStorage.removeItem("coreai_intro_seen");
+          localStorage.setItem("coreai_intro_source", "signup");
           toast.success("Account created! Welcome to CoreAI 🎉");
           onAuthSuccess();
         }
@@ -89,6 +90,10 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         } else {
           localStorage.removeItem('rememberedEmail');
         }
+
+        // Replay intro on every login so users re-see CoreAI features
+        localStorage.removeItem("coreai_intro_seen");
+        localStorage.setItem("coreai_intro_source", "login");
 
         toast.success("Welcome back! 👋");
         onAuthSuccess();
