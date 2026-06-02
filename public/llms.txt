@@ -1,0 +1,21 @@
+# CoreAI
+
+> CoreAI is a free, intelligent AI assistant for chat, homework help, image generation, voice, and coding — built for English and Hindi speakers.
+
+CoreAI is a web/PWA AI companion that combines smart conversational chat, AI image generation, voice transcription and text-to-speech, specialised modes (Food Recipe, Homework Helper, Code Assistant, Deep Research), and group chats. It runs free with no API keys required from users.
+
+## Pages
+
+- [Home](/): Start chatting with CoreAI — smart Hindi + English AI assistant.
+- [Features](/features): Full list of CoreAI features — chat, images, voice, modes.
+- [About](/about): What CoreAI is and who it's for.
+- [FAQ](/faq): Common questions about using CoreAI.
+- [Contact](/contact): Get in touch with the CoreAI team.
+- [Free AI Chatbot](/free-ai-chatbot): Free ChatGPT alternative for everyday questions.
+- [AI Homework Helper](/ai-homework-helper): Step-by-step homework help for class 1–12 and college.
+- [Hindi AI Assistant](/hindi-ai-assistant): Natural Hindi + Hinglish conversational AI.
+
+## Optional
+
+- [Privacy Policy](/privacy-policy): How CoreAI handles user data.
+- [Terms](/terms): Terms of service.

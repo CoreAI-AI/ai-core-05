@@ -1,5 +1,12 @@
 User-agent: *
 Allow: /
 Disallow: /admin
+Disallow: /documents
+Disallow: /notes
+Disallow: /photos
+Disallow: /images
+Disallow: /tools
+Disallow: /projects
+Disallow: /group-chats
 
 Sitemap: https://coreaii.vercel.app/sitemap.xml
