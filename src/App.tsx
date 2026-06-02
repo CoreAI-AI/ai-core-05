@@ -10,6 +10,7 @@ import { useAppLock } from "@/hooks/useAppLock";
 import { AppLockScreen } from "@/components/AppLockScreen";
 import { AppLockSetup } from "@/components/AppLockSetup";
 import { IntroExperience } from "@/components/IntroExperience";
+import { supabase } from "@/integrations/supabase/client";
 
 import { AnimatePresence } from "framer-motion";
 
@@ -27,13 +28,35 @@ const AppContent = () => {
   } = useAppLock();
 
   const [showIntro, setShowIntro] = useState(false);
+  const [introSource, setIntroSource] = useState<"first_visit" | "login" | "signup" | "manual">("first_visit");
+
+  const maybeShowIntro = () => {
+    if (localStorage.getItem("coreai_intro_seen")) return;
+    const src = (localStorage.getItem("coreai_intro_source") as any) || "first_visit";
+    setIntroSource(src);
+    setShowIntro(true);
+  };
 
   useEffect(() => {
-    if (!localStorage.getItem("coreai_intro_seen")) {
-      const t = setTimeout(() => setShowIntro(true), 600);
-      return () => clearTimeout(t);
-    }
+    const t = setTimeout(maybeShowIntro, 600);
+
+    // Re-trigger intro on sign-in events (e.g. login flow cleared the flag)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        setTimeout(maybeShowIntro, 300);
+      }
+    });
+
+    return () => {
+      clearTimeout(t);
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const handleIntroComplete = () => {
+    setShowIntro(false);
+    localStorage.removeItem("coreai_intro_source");
+  };
 
   return (
     <>
