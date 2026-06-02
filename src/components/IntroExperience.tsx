@@ -168,7 +168,7 @@ export const IntroExperience = ({ onComplete, source = "first_visit" }: IntroExp
 
       {/* Skip button */}
       <button
-        onClick={finish}
+        onClick={handleSkip}
         className="absolute top-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground bg-card/60 backdrop-blur-md border border-border rounded-full transition-colors"
       >
         Skip <X className="h-3 w-3" />
