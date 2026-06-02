@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,9 +6,11 @@ import {
   Search, Sparkles, Shield, Zap, ArrowRight, X
 } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
+import { track } from "@/lib/analytics";
 
 interface IntroExperienceProps {
   onComplete: () => void;
+  source?: "first_visit" | "login" | "signup" | "manual";
 }
 
 const slides = [
