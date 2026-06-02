@@ -78,7 +78,7 @@ const AppContent = () => {
           />
         )}
         {showIntro && (
-          <IntroExperience key="intro" onComplete={() => setShowIntro(false)} />
+          <IntroExperience key="intro" source={introSource} onComplete={handleIntroComplete} />
         )}
       </AnimatePresence>
       <BrowserRouter>
