@@ -68,6 +68,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
             email: email.trim(),
           });
           localStorage.removeItem("coreai_intro_seen");
+          localStorage.setItem("coreai_intro_source", "signup");
           toast.success("Account created! Welcome to CoreAI 🎉");
           onAuthSuccess();
         }
