@@ -95,6 +95,25 @@ serve(async (req) => {
   }
 
   try {
+    // Auth check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const authClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+    const { data: { user } } = await authClient.auth.getUser(authHeader.replace('Bearer ', ''));
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { imageUrl, styleName, secondImageUrl, isDiscover } = await req.json();
 
     if (!imageUrl || !styleName) {
@@ -102,6 +121,21 @@ serve(async (req) => {
         JSON.stringify({ error: "Image URL and style name are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // Validate image URLs (data URLs or https only) to prevent SSRF
+    const isValidImageUrl = (u: string) => {
+      if (typeof u !== 'string') return false;
+      if (u.startsWith('data:image/')) return true;
+      try {
+        const parsed = new URL(u);
+        return parsed.protocol === 'https:';
+      } catch { return false; }
+    };
+    if (!isValidImageUrl(imageUrl) || (secondImageUrl && !isValidImageUrl(secondImageUrl))) {
+      return new Response(JSON.stringify({ error: "Invalid image URL" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");

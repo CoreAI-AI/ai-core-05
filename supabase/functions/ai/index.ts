@@ -63,6 +63,13 @@ serve(async (req) => {
       userId = user?.id || null;
     }
 
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { 
       message, 
       model = "google/gemini-2.5-flash",
