@@ -146,6 +146,33 @@ serve(async (req) => {
     ];
     const isIdentityQuestion = identityKeywords.some(k => lower.includes(k));
 
+    // Website / link question intercept
+    const websiteKeywords = [
+      'website link', 'website ka link', 'website kaa link', 'site link', 'site ka link', 'app ka link', 'app kaa link', 'link of this app', 'link of this website', 'link of website', 'url of this app', 'url of this website', 'website url', 'which website', 'what website', 'website kaun', 'website kon', 'kaun si website', 'kon si website', 'kaunsi website', 'konsi website', 'website name', 'website kaa naam', 'website ka naam', 'is website ka naam', 'iss website ka naam', 'website batao', 'link batao', 'link bhejo', 'send link', 'share link',
+      'वेबसाइट', 'लिंक', 'कौन सी वेबसाइट', 'वेबसाइट का लिंक'
+    ];
+    const isWebsiteQuestion = websiteKeywords.some(k => lower.includes(k));
+
+    if (isWebsiteQuestion) {
+      const answer = "Aap abhi **CoreAI** website par chat kar rahe hain. 🌐\n\n🔗 Website link: **https://coreaii.vercel.app/**\n\nYahan aap AI ke saath chat, image generation, homework help, code aur bahut kuch kar sakte hain.";
+      const stream = new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder();
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: answer })}\n\n`));
+          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+          controller.close();
+        }
+      });
+      return new Response(stream, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive",
+        },
+      });
+    }
+
     if (isIdentityQuestion) {
       const answer = "Main **CoreAI** hoon — ek powerful, fast aur intelligent AI assistant. 🚀\n\nIs app ka naam **CoreAI** hai, jise **Prem Prasad (Founder)** ne banaya hai. Main aapke sawaalon ka jawab dene, images banane, padhai mein madad karne, code likhne aur bahut kuch karne ke liye yahan hoon.";
       const stream = new ReadableStream({
