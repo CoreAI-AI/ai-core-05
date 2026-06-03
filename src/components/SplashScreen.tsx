@@ -152,37 +152,6 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
           />
         </motion.div>
 
-        {/* Credit: built by + 3 brothers */}
-        <motion.div
-          className="flex flex-col items-center gap-1 mt-2"
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 1.6, ease: "easeOut" }}
-        >
-          <motion.p
-            className="text-sm sm:text-base font-semibold tracking-wide"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 1.7 }}
-          >
-            This website was built by{" "}
-            <span className="gradient-text font-bold">Prem Prasad</span>
-          </motion.p>
-          <motion.p
-            className="text-[11px] sm:text-xs text-muted-foreground tracking-wider uppercase"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 1.95 }}
-          >
-            <span className="text-primary/80">3 Brothers</span>
-            {" · "}
-            Dipak Prasad
-            {" • "}
-            <span className="text-foreground font-medium">Prem Prasad</span>
-            {" • "}
-            Manish Prasad
-          </motion.p>
-        </motion.div>
       </motion.div>
     </motion.div>
   );
