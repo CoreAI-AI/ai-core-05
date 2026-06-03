@@ -11,7 +11,7 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
       className="fixed inset-0 z-50 flex items-center justify-center bg-background overflow-hidden"
       initial={{ opacity: 1 }}
       animate={{ opacity: 0 }}
-      transition={{ duration: 0.6, delay: 2.2, ease: "easeInOut" }}
+      transition={{ duration: 0.6, delay: 2.8, ease: "easeInOut" }}
       onAnimationComplete={onComplete}
     >
       {/* Animated background particles */}
