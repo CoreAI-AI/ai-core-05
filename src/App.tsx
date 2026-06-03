@@ -85,6 +85,9 @@ const AppContent = () => {
       <BrowserRouter>
         <AnimatedRoutes />
       </BrowserRouter>
+      {!showIntro && !isLocked && !isSetupMode && (
+        <CreditNotice delay={800} duration={7000} />
+      )}
     </>
   );
 };
