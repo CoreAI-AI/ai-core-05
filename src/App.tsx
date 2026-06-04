@@ -29,10 +29,19 @@ const AppContent = () => {
   } = useAppLock();
 
   const [showIntro, setShowIntro] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [introSource, setIntroSource] = useState<"first_visit" | "login" | "signup" | "manual">("first_visit");
 
+  const maybeShowOnboarding = () => {
+    if (localStorage.getItem("coreai_onboarding_done")) return;
+    setShowOnboarding(true);
+  };
+
   const maybeShowIntro = () => {
-    if (localStorage.getItem("coreai_intro_seen")) return;
+    if (localStorage.getItem("coreai_intro_seen")) {
+      maybeShowOnboarding();
+      return;
+    }
     const src = (localStorage.getItem("coreai_intro_source") as any) || "first_visit";
     setIntroSource(src);
     setShowIntro(true);
@@ -57,6 +66,11 @@ const AppContent = () => {
   const handleIntroComplete = () => {
     setShowIntro(false);
     localStorage.removeItem("coreai_intro_source");
+    setTimeout(maybeShowOnboarding, 250);
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
   };
 
   return (
