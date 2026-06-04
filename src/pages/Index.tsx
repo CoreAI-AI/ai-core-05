@@ -35,6 +35,7 @@ import { useNavigate } from "react-router-dom";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { haptics } from "@/lib/haptics";
+import { ReadAloudHeaderPlayer } from "@/components/ReadAloudHeaderPlayer";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -944,6 +945,10 @@ const Index = () => {
                     </Button>
                   </div>
                 </div>
+
+                {/* Global Read-Aloud Player (mobile + desktop responsive) */}
+                <ReadAloudHeaderPlayer />
+                
                 
                 {/* Pinned Messages */}
                 <PinnedMessages 
