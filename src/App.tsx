@@ -10,6 +10,7 @@ import { useAppLock } from "@/hooks/useAppLock";
 import { AppLockScreen } from "@/components/AppLockScreen";
 import { AppLockSetup } from "@/components/AppLockSetup";
 import { IntroExperience } from "@/components/IntroExperience";
+import { OnboardingQuestions } from "@/components/OnboardingQuestions";
 import { supabase } from "@/integrations/supabase/client";
 
 import { AnimatePresence } from "framer-motion";
@@ -28,10 +29,19 @@ const AppContent = () => {
   } = useAppLock();
 
   const [showIntro, setShowIntro] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [introSource, setIntroSource] = useState<"first_visit" | "login" | "signup" | "manual">("first_visit");
 
+  const maybeShowOnboarding = () => {
+    if (localStorage.getItem("coreai_onboarding_done")) return;
+    setShowOnboarding(true);
+  };
+
   const maybeShowIntro = () => {
-    if (localStorage.getItem("coreai_intro_seen")) return;
+    if (localStorage.getItem("coreai_intro_seen")) {
+      maybeShowOnboarding();
+      return;
+    }
     const src = (localStorage.getItem("coreai_intro_source") as any) || "first_visit";
     setIntroSource(src);
     setShowIntro(true);
@@ -56,6 +66,11 @@ const AppContent = () => {
   const handleIntroComplete = () => {
     setShowIntro(false);
     localStorage.removeItem("coreai_intro_source");
+    setTimeout(maybeShowOnboarding, 250);
+  };
+
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
   };
 
   return (
@@ -79,6 +94,9 @@ const AppContent = () => {
         )}
         {showIntro && (
           <IntroExperience key="intro" source={introSource} onComplete={handleIntroComplete} />
+        )}
+        {showOnboarding && !showIntro && (
+          <OnboardingQuestions key="onboarding" onComplete={handleOnboardingComplete} />
         )}
       </AnimatePresence>
       <BrowserRouter>

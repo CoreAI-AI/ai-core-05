@@ -5,7 +5,11 @@ export type AnalyticsEvent =
   | "intro_viewed"
   | "intro_skipped"
   | "intro_completed"
-  | "intro_slide_viewed";
+  | "intro_slide_viewed"
+  | "onboarding_viewed"
+  | "onboarding_answered"
+  | "onboarding_skipped"
+  | "onboarding_completed";
 
 const STORAGE_KEY = "coreai_analytics_events";
 const MAX_EVENTS = 200;
