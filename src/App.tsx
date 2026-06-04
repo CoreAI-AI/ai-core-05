@@ -10,6 +10,7 @@ import { useAppLock } from "@/hooks/useAppLock";
 import { AppLockScreen } from "@/components/AppLockScreen";
 import { AppLockSetup } from "@/components/AppLockSetup";
 import { IntroExperience } from "@/components/IntroExperience";
+import { OnboardingQuestions } from "@/components/OnboardingQuestions";
 import { supabase } from "@/integrations/supabase/client";
 
 import { AnimatePresence } from "framer-motion";
