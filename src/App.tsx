@@ -11,6 +11,7 @@ import { AppLockScreen } from "@/components/AppLockScreen";
 import { AppLockSetup } from "@/components/AppLockSetup";
 import { IntroExperience } from "@/components/IntroExperience";
 import { OnboardingQuestions } from "@/components/OnboardingQuestions";
+import { TTSProvider } from "@/hooks/useTTSPlayer";
 import { supabase } from "@/integrations/supabase/client";
 
 import { AnimatePresence } from "framer-motion";
@@ -117,7 +118,9 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <AppContent />
+        <TTSProvider>
+          <AppContent />
+        </TTSProvider>
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
