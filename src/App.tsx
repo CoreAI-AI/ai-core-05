@@ -95,6 +95,9 @@ const AppContent = () => {
         {showIntro && (
           <IntroExperience key="intro" source={introSource} onComplete={handleIntroComplete} />
         )}
+        {showOnboarding && !showIntro && (
+          <OnboardingQuestions key="onboarding" onComplete={handleOnboardingComplete} />
+        )}
       </AnimatePresence>
       <BrowserRouter>
         <AnimatedRoutes />
