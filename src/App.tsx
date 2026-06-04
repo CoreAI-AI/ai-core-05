@@ -11,6 +11,7 @@ import { AppLockScreen } from "@/components/AppLockScreen";
 import { AppLockSetup } from "@/components/AppLockSetup";
 import { IntroExperience } from "@/components/IntroExperience";
 import { OnboardingQuestions } from "@/components/OnboardingQuestions";
+import { TTSProvider } from "@/hooks/useTTSPlayer";
 import { supabase } from "@/integrations/supabase/client";
 
 import { AnimatePresence } from "framer-motion";
@@ -38,10 +39,7 @@ const AppContent = () => {
   };
 
   const maybeShowIntro = () => {
-    if (localStorage.getItem("coreai_intro_seen")) {
-      maybeShowOnboarding();
-      return;
-    }
+    // Intro should appear every time the site opens (per user request)
     const src = (localStorage.getItem("coreai_intro_source") as any) || "first_visit";
     setIntroSource(src);
     setShowIntro(true);
@@ -117,7 +115,9 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <AppContent />
+        <TTSProvider>
+          <AppContent />
+        </TTSProvider>
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
