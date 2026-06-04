@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { pinMessage } from './PinnedMessages';
+import { useTTSPlayer } from '@/hooks/useTTSPlayer';
 
 interface MessageActionsProps {
   message: string;
@@ -114,14 +115,20 @@ export const MessageActions = ({
     }
   };
 
+  const tts = useTTSPlayer();
+  const isThisPlaying = tts.isActive && tts.text === message;
+
   const handleReadAloud = () => {
+    if (isThisPlaying) {
+      tts.stop();
+      return;
+    }
     if (onReadAloud) {
       onReadAloud();
-    } else {
-      const utterance = new SpeechSynthesisUtterance(message);
-      speechSynthesis.speak(utterance);
-      toast.success('Reading aloud...');
+      return;
     }
+    tts.play(message, { title: message.slice(0, 60) + (message.length > 60 ? "…" : "") });
+    toast.success('Reading aloud...');
   };
 
   const handleReport = () => {
