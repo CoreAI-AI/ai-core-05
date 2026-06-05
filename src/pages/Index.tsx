@@ -7,7 +7,7 @@ import { QuickActionCards } from "@/components/QuickActionCards";
 import { ScrollToBottom } from "@/components/ScrollToBottom";
 import { SplashScreen } from "@/components/SplashScreen";
 import { PageSkeleton } from "@/components/SkeletonLoader";
-import { ImageGeneratingOverlay } from "@/components/ImageGeneratingOverlay";
+
 import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
 import { SmartChatTabs } from "@/components/SmartChatTabs";
 import { PinnedMessages } from "@/components/PinnedMessages";
