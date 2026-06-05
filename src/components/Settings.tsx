@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
 import { useAppLock } from "@/hooks/useAppLock";
+import { AboutSection } from "@/components/AboutSection";
 
 interface SettingsProps {
   user: User | null;
