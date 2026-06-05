@@ -186,6 +186,7 @@ const VirtualizedChatMessages = memo(({
         <AnimatePresence>
           <TypingWaveform show={isAITyping} />
         </AnimatePresence>
+        {isGeneratingImage && <ImageGenerationBubble prompt={imagePrompt} />}
       </div>
     );
   }
@@ -239,6 +240,7 @@ const VirtualizedChatMessages = memo(({
             <AnimatePresence>
               <TypingWaveform show={isAITyping} />
             </AnimatePresence>
+            {isGeneratingImage && <ImageGenerationBubble prompt={imagePrompt} />}
           </div>
         </div>
       </div>

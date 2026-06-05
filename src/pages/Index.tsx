@@ -1016,6 +1016,8 @@ const Index = () => {
                           messages={messages}
                           chatId={currentChat?.id}
                           isAITyping={isAITyping}
+                          isGeneratingImage={isGeneratingImage}
+                          imagePrompt={imageGenerationPrompt}
                           onEditMessage={handleEditMessage}
                           onRegenerateResponse={handleRegenerateResponse}
                         />}
@@ -1089,11 +1091,7 @@ const Index = () => {
         isLoading={isLoading || isAITyping}
       />
       
-      {/* Image Generation Overlay */}
-      <ImageGeneratingOverlay 
-        isGenerating={isGeneratingImage} 
-        prompt={imageGenerationPrompt} 
-      />
+      {/* Image generation now shown inline as a ChatGPT-style bubble in the chat */}
       
       {/* Offline indicator */}
       <AnimatePresence>
