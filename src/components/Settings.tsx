@@ -693,6 +693,9 @@ export const Settings = ({ user }: SettingsProps) => {
         </Card>
       </motion.div>
 
+      {/* About */}
+      <AboutSection />
+
       {/* Save Button */}
       <motion.div 
         variants={cardVariants} 
