@@ -1,6 +1,7 @@
 import { memo, useRef, useEffect, useState, useCallback } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { TypingWaveform } from './TypingWaveform';
+import { ImageGenerationBubble } from './ImageGenerationBubble';
 import { AnimatePresence } from 'framer-motion';
 
 interface Message {
@@ -15,6 +16,8 @@ interface VirtualizedChatMessagesProps {
   messages: Message[];
   chatId?: string;
   isAITyping: boolean;
+  isGeneratingImage?: boolean;
+  imagePrompt?: string;
   onEditMessage?: (id: string, content: string, index: number) => void;
   onRegenerateResponse?: (id: string, index: number) => void;
 }
@@ -28,6 +31,8 @@ const VirtualizedChatMessages = memo(({
   messages, 
   chatId,
   isAITyping,
+  isGeneratingImage,
+  imagePrompt,
   onEditMessage,
   onRegenerateResponse 
 }: VirtualizedChatMessagesProps) => {
@@ -181,6 +186,7 @@ const VirtualizedChatMessages = memo(({
         <AnimatePresence>
           <TypingWaveform show={isAITyping} />
         </AnimatePresence>
+        {isGeneratingImage && <ImageGenerationBubble prompt={imagePrompt} />}
       </div>
     );
   }
@@ -234,6 +240,7 @@ const VirtualizedChatMessages = memo(({
             <AnimatePresence>
               <TypingWaveform show={isAITyping} />
             </AnimatePresence>
+            {isGeneratingImage && <ImageGenerationBubble prompt={imagePrompt} />}
           </div>
         </div>
       </div>
