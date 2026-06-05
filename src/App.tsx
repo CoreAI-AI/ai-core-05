@@ -38,9 +38,11 @@ const AppContent = () => {
     setShowOnboarding(true);
   };
 
-  const maybeShowIntro = () => {
-    // Intro should appear every time the site opens (per user request)
-    const src = (localStorage.getItem("coreai_intro_source") as any) || "first_visit";
+  const maybeShowIntro = (forceSource?: "first_visit" | "login" | "signup" | "manual") => {
+    const src = forceSource || (localStorage.getItem("coreai_intro_source") as any) || "first_visit";
+    // Only show intro if user has never seen it OR an explicit source (login/signup/manual) is set
+    const seen = localStorage.getItem("coreai_intro_seen");
+    if (seen && !forceSource && !localStorage.getItem("coreai_intro_source")) return;
     setIntroSource(src);
     setShowIntro(true);
   };
