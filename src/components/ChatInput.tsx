@@ -221,6 +221,20 @@ export const ChatInput = ({
       <input ref={anyFileInputRef} type="file" onChange={handleFileChange} className="hidden" />
       
       <div className="max-w-4xl mx-auto">
+        {!message.trim() && !editingMessage && MODE_META[currentMode]?.suggestions && (
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-1 scrollbar-none -mx-1 px-1 animate-fade-in">
+            {MODE_META[currentMode].suggestions.map((s, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setMessage(s)}
+                className="shrink-0 text-xs sm:text-sm px-3 py-1.5 rounded-full bg-accent/60 hover:bg-accent text-foreground border border-border/60 hover:border-primary/40 transition-all btn-press"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="relative">
           {/* Main input container */}
           <div className="flex items-end gap-1.5 sm:gap-2 bg-card border border-border rounded-2xl p-1.5 sm:p-2 shadow-sm focus-within:border-primary/50 focus-within:shadow-md transition-all duration-200">
