@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins, Bot, Brain, Zap, ChefHat, BookOpen } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins, Bot, Brain, Zap, ChefHat, BookOpen, Plus } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -205,7 +205,7 @@ export const ChatInput = ({
       case 'homework':
         return <BookOpen className="h-5 w-5 text-emerald-500" />;
       default:
-        return <img src={coreaiLogo} alt="CoreAI" className="h-6 w-6 rounded-full" />;
+        return <Plus className="h-5 w-5 text-foreground" strokeWidth={2.25} />;
     }
   };
   return <div className="border-t border-border bg-background/80 backdrop-blur-xl p-2 sm:p-4">
