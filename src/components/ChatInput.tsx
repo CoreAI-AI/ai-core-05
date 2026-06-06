@@ -205,7 +205,7 @@ export const ChatInput = ({
       case 'homework':
         return <BookOpen className="h-5 w-5 text-emerald-500" />;
       default:
-        return <img src={coreaiLogo} alt="CoreAI" className="h-6 w-6 rounded-full" />;
+        return <Plus className="h-5 w-5 text-foreground" strokeWidth={2.25} />;
     }
   };
   return <div className="border-t border-border bg-background/80 backdrop-blur-xl p-2 sm:p-4">
