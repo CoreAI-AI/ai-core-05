@@ -77,25 +77,33 @@ export const ChatInput = ({
     onSendMessage(prompt);
     toast.success(`${modeName} activated!`);
   };
+  const MODE_META: Record<string, { name: string; intro: string; suggestions: string[] }> = {
+    'normal': { name: 'Normal Chat', intro: 'Friendly all-purpose CoreAI chat. Kuch bhi poochho!', suggestions: ['Mujhe ek joke sunao', 'Aaj ka motivational quote', 'Explain quantum computing simply', 'Plan my day in 5 steps'] },
+    'deep-search': { name: 'Deep Research', intro: 'In-depth research mode — sources, comparisons, deep analysis.', suggestions: ['Research latest AI trends 2026', 'Compare iPhone 17 vs Samsung S26', 'Detailed report on Indian startups', 'History of cryptocurrency'] },
+    'study': { name: 'Study Tutor', intro: 'Aapka personal tutor — concepts simple bhasha mein.', suggestions: ['Explain photosynthesis', 'Solve: integral of x^2', 'Newton ke 3 laws batao', 'Help me revise for exam'] },
+    'photo': { name: 'Image Generator', intro: 'Text se image banao — sirf describe karo!', suggestions: ['A cyberpunk city at night, neon lights', 'Cute cat astronaut in space', 'Indian wedding mandap, cinematic', 'Logo for AI startup, minimal'] },
+    'code': { name: 'Code Assistant', intro: 'Coding partner — debug, build, explain.', suggestions: ['Write a React todo app', 'Explain async/await in JS', 'Fix this Python error', 'Build a REST API in Node'] },
+    'creative': { name: 'Creative Writer', intro: 'Stories, poems, scripts — creativity unleashed.', suggestions: ['Write a short story about time travel', 'Hindi shayari on love', 'Instagram caption ideas', 'Script for 1-min reel'] },
+    'analyze': { name: 'Data Analyst', intro: 'Data dijiye, insights milenge.', suggestions: ['Analyze monthly sales trends', 'Summarize this CSV', 'Find patterns in user data', 'Suggest KPIs for SaaS'] },
+    'rich': { name: 'Rich Mode', intro: 'Wealth, luxury aur investment mindset.', suggestions: ['Best stocks to invest in 2026', 'How to build passive income', 'Luxury car comparison', 'Mindset of billionaires'] },
+    'poor': { name: 'Poor Mode', intro: 'Saving, budgeting aur smart survival tips.', suggestions: ['Save ₹10,000 in a month', 'Cheap healthy meal ideas', 'Free tools for students', 'Side hustle without investment'] },
+    'recipe': { name: 'Food Recipe', intro: 'Chef CoreAI — recipes step by step.', suggestions: ['Paneer butter masala recipe', '5-min breakfast ideas', 'Healthy weight-loss meals', 'Authentic biryani recipe'] },
+    'homework': { name: 'Homework Helper', intro: 'Homework done right — step-by-step solutions.', suggestions: ['Solve my math homework', 'Essay on global warming', 'Science project ideas class 10', 'Hindi grammar help'] },
+  };
+
   const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework') => {
     setCurrentMode(mode);
     if (onModeChange) {
       onModeChange(mode);
     }
-    const modeNames: Record<string, string> = {
-      'normal': 'Normal Chat',
-      'deep-search': 'Deep Research',
-      'study': 'Study Tutor',
-      'photo': 'Image Generator',
-      'code': 'Code Assistant',
-      'creative': 'Creative Writer',
-      'analyze': 'Data Analyst',
-      'rich': 'Rich Mode',
-      'poor': 'Poor Mode',
-      'recipe': 'Food Recipe',
-      'homework': 'Homework Helper'
-    };
-    toast.success(`${modeNames[mode]} activated!`);
+    const meta = MODE_META[mode];
+    const seenKey = `coreai_mode_intro_${mode}`;
+    if (!localStorage.getItem(seenKey)) {
+      toast.success(`${meta.name} activated!`, { description: meta.intro, duration: 4500 });
+      localStorage.setItem(seenKey, '1');
+    } else {
+      toast.success(`${meta.name} activated!`);
+    }
   };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,6 +221,20 @@ export const ChatInput = ({
       <input ref={anyFileInputRef} type="file" onChange={handleFileChange} className="hidden" />
       
       <div className="max-w-4xl mx-auto">
+        {!message.trim() && !editingMessage && MODE_META[currentMode]?.suggestions && (
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-1 scrollbar-none -mx-1 px-1 animate-fade-in">
+            {MODE_META[currentMode].suggestions.map((s, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setMessage(s)}
+                className="shrink-0 text-xs sm:text-sm px-3 py-1.5 rounded-full bg-accent/60 hover:bg-accent text-foreground border border-border/60 hover:border-primary/40 transition-all btn-press"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="relative">
           {/* Main input container */}
           <div className="flex items-end gap-1.5 sm:gap-2 bg-card border border-border rounded-2xl p-1.5 sm:p-2 shadow-sm focus-within:border-primary/50 focus-within:shadow-md transition-all duration-200">
