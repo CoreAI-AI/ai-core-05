@@ -36,6 +36,7 @@ export const SiteFooter = () => {
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li><Link to="/privacy-policy" className="hover:text-foreground">Privacy Policy</Link></li>
             <li><Link to="/terms" className="hover:text-foreground">Terms</Link></li>
+            <li><Link to="/terms-and-conditions" className="hover:text-foreground">Terms &amp; Conditions</Link></li>
           </ul>
         </div>
       </div>
