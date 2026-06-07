@@ -15,6 +15,8 @@ import { QuickActionButtons } from "@/components/QuickActionButtons";
 import { SubscriptionPopup } from "@/components/SubscriptionPopup";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDailyLimit } from "@/hooks/useDailyLimit";
+import { useUsageLimits } from "@/hooks/useUsageLimits";
+import { UnlockPopup } from "@/components/UnlockPopup";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { MemoryControl } from "@/components/MemoryControl";
 import { ChatSearch } from "@/components/ChatSearch";
@@ -69,6 +71,8 @@ const Index = () => {
   const [showGroupChatSheet, setShowGroupChatSheet] = useState(false);
   const { isPremium, activatePremium } = useSubscription();
   const { canUse, recordUsage, getRemaining, isLimitedMode, DAILY_LIMIT } = useDailyLimit(user?.id, isPremium);
+  const usageLimits = useUsageLimits(user?.id, isPremium);
+  const [unlockPopup, setUnlockPopup] = useState<{ open: boolean; reason?: 'daily' | 'mode'; modeLabel?: string }>({ open: false });
   const [isLoading, setIsLoading] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -523,18 +527,14 @@ const Index = () => {
     }
     if (!user) return;
 
-    // Check daily limit for restricted modes
-    if (isLimitedMode(chatMode) && !canUse(chatMode)) {
-      const modeNames: Record<string, string> = {
-        'deep-search': 'Deep Research',
-        'code': 'Code Assistant',
-        'photo': 'Image Generator',
-      };
-      toast.error(`${modeNames[chatMode] || chatMode} ka daily limit (${DAILY_LIMIT} chats) khatam ho gaya! Premium lein unlimited access ke liye.`, {
-        action: {
-          label: 'Get Plus',
-          onClick: () => setShowSubscriptionPopup(true),
-        },
+    // Freemium gate: daily chat limit + per-mode limit (premium bypasses)
+    const gate = usageLimits.checkCanSend(chatMode);
+    if (!gate.allowed) {
+      const modeLabels: Record<string, string> = { chat: 'Chat', study: 'Study', image: 'Image', code: 'Code' };
+      setUnlockPopup({
+        open: true,
+        reason: gate.reason,
+        modeLabel: gate.limitMode ? modeLabels[gate.limitMode] : undefined,
       });
       return;
     }
@@ -559,6 +559,7 @@ const Index = () => {
     
     // Record daily usage for limited modes
     recordUsage(chatMode);
+    usageLimits.recordSend(chatMode);
     
     setIsLoading(true);
     setIsAITyping(true);
@@ -1122,6 +1123,17 @@ const Index = () => {
         open={showGroupChatSheet}
         onOpenChange={setShowGroupChatSheet}
         userEmail={user?.email}
+      />
+      <UnlockPopup
+        open={unlockPopup.open}
+        onOpenChange={(o) => setUnlockPopup(s => ({ ...s, open: o }))}
+        reason={unlockPopup.reason}
+        modeLabel={unlockPopup.modeLabel}
+        onUnlock={() => usageLimits.addBonusChats()}
+        onUpgrade={() => {
+          setUnlockPopup(s => ({ ...s, open: false }));
+          setShowSubscriptionPopup(true);
+        }}
       />
     </div>;
 };

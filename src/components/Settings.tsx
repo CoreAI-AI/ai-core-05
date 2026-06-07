@@ -33,6 +33,8 @@ import {
 import { motion } from "framer-motion";
 import { useAppLock } from "@/hooks/useAppLock";
 import { AboutSection } from "@/components/AboutSection";
+import { useUsageLimits, DAILY_CHAT_LIMIT, PER_MODE_LIMIT } from "@/hooks/useUsageLimits";
+import { useSubscription } from "@/hooks/useSubscription";
 
 interface SettingsProps {
   user: User | null;
@@ -49,6 +51,8 @@ export const Settings = ({ user }: SettingsProps) => {
   const [localSettings, setLocalSettings] = useState<UserSettings>(settings);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const appLock = useAppLock();
+  const { isPremium } = useSubscription();
+  const { state: usageState } = useUsageLimits(user?.id, isPremium);
 
   useEffect(() => {
     setLocalSettings(settings);
@@ -185,6 +189,53 @@ export const Settings = ({ user }: SettingsProps) => {
           </CardContent>
         </Card>
       </motion.div>
+
+      {/* Daily Usage */}
+      <motion.div variants={cardVariants} initial="hidden" animate="visible" transition={{ delay: 0.03 }}>
+        <Card className="border-border/50">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Sparkles className="w-5 h-5" />
+              Daily Usage
+            </CardTitle>
+            <CardDescription>
+              {isPremium ? 'Premium — unlimited access' : 'Free plan limits reset every day'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {isPremium ? (
+              <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-sm">
+                You have unlimited chats and modes. ✨
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Chats today</span>
+                  <span className="font-medium">{usageState.dailyChatsUsed} / {DAILY_CHAT_LIMIT}</span>
+                </div>
+                <Separator />
+                {([
+                  { key: 'chat', label: 'Chat Mode' },
+                  { key: 'study', label: 'Study Mode' },
+                  { key: 'image', label: 'Image Mode' },
+                  { key: 'code', label: 'Code Mode' },
+                ] as const).map(m => (
+                  <div key={m.key} className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">{m.label}</span>
+                    <span className="font-medium">{usageState.modeUsage[m.key] || 0} / {PER_MODE_LIMIT}</span>
+                  </div>
+                ))}
+                <Separator />
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Bonus Chats</span>
+                  <span className="font-medium text-primary">{usageState.bonusChats}</span>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
 
       {/* Appearance */}
       <motion.div variants={cardVariants} initial="hidden" animate="visible" transition={{ delay: 0.05 }}>
