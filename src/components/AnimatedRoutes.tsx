@@ -16,6 +16,7 @@ import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
 import Terms from '@/pages/Terms';
+import TermsAndConditions from '@/pages/TermsAndConditions';
 import Features from '@/pages/Features';
 import FAQ from '@/pages/FAQ';
 import FreeAIChatbot from '@/pages/seo/FreeAIChatbot';
