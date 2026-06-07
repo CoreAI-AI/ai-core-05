@@ -15,7 +15,7 @@ import { QuickActionButtons } from "@/components/QuickActionButtons";
 import { SubscriptionPopup } from "@/components/SubscriptionPopup";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDailyLimit } from "@/hooks/useDailyLimit";
-import { useUsageLimits, mapToLimitMode } from "@/hooks/useUsageLimits";
+import { useUsageLimits } from "@/hooks/useUsageLimits";
 import { UnlockPopup } from "@/components/UnlockPopup";
 import { FloatingActionButton } from "@/components/FloatingActionButton";
 import { MemoryControl } from "@/components/MemoryControl";
