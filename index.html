@@ -1,6 +1,46 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Watch Ad Unlock</title>
+</head>
+
+<body style="font-family:Arial;text-align:center;padding:50px;">
+
+<h1>Premium Content</h1>
+
+<button onclick="watchAd()">
+  Watch Ad To Unlock 🔓
+</button>
+
+<div id="content" style="display:none;margin-top:30px;">
+  <h2>🎉 Content Unlocked</h2>
+</div>
+
+<script>
+
+function watchAd(){
+
+  // Monetag Rewarded Ad SDK yaha connect hoga
+
+  setTimeout(() => {
+
+    document.getElementById("content").style.display = "block";
+
+    alert("Unlocked!");
+
+  }, 3000);
+
+}
+
+</script>
+
+</body>
+</html>
     <script src="https://quge5.com/88/tag.min.js" data-zone="247234" async data-cfasync="false"></script>
     <script async
       src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5155694514149693"
