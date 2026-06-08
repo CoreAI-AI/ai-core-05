@@ -16,20 +16,7 @@ import { TTSProvider } from "@/hooks/useTTSPlayer";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
 
-// ✅ LIMIT SYSTEM
-import LimitPopup from "./components/LimitPopup";
-import {
-  canUseChat,
-  canUseMode,
-  increaseChatCount,
-  increaseModeCount,
-} from "./utils/usageLimits";
-
 const queryClient = new QueryClient();
-
-/* =========================
-   APP CONTENT
-========================= */
 
 const AppContent = () => {
   const {
@@ -47,9 +34,6 @@ const AppContent = () => {
   const [introSource, setIntroSource] = useState<
     "first_visit" | "login" | "signup" | "manual"
   >("first_visit");
-
-  // ✅ LIMIT STATE
-  const [showLimitPopup, setShowLimitPopup] = useState(false);
 
   const maybeShowOnboarding = () => {
     if (localStorage.getItem("coreai_onboarding_done")) return;
@@ -97,34 +81,7 @@ const AppContent = () => {
 
   const handleOnboardingComplete = () => {
     setShowOnboarding(false);
-  };
-
-  /* =========================
-     CHAT HANDLER (LIMIT ACTIVE)
-  ========================= */
-
-  const handleSendMessage = async () => {
-    const mode = "chat";
-
-    // ❌ LIMIT CHECK
-    if (!canUseChat()) {
-      setShowLimitPopup(true);
-      return;
-    }
-
-    if (!canUseMode(mode)) {
-      setShowLimitPopup(true);
-      return;
-    }
-
-    try {
-      // 👉 YOUR AI LOGIC HERE
-
-      increaseChatCount();
-      increaseModeCount(mode);
-    } catch (err) {
-      console.error(err);
-    }
+    localStorage.setItem("coreai_onboarding_done", "true");
   };
 
   return (
@@ -163,23 +120,12 @@ const AppContent = () => {
         )}
       </AnimatePresence>
 
-      {/* MAIN APP ROUTES */}
       <BrowserRouter>
         <AnimatedRoutes />
       </BrowserRouter>
-
-      {/* LIMIT POPUP */}
-      <LimitPopup
-        open={showLimitPopup}
-        onClose={() => setShowLimitPopup(false)}
-      />
     </>
   );
 };
-
-/* =========================
-   ROOT APP
-========================= */
 
 const App = () => {
   return (
