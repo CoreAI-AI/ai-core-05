@@ -42,9 +42,25 @@ export const PaymentMethodSelector = ({
     setExpiry('');
     setCvv('');
     setUpiId('');
+    setRedeemCode('');
+    setRedeemError('');
   };
 
-  const handleSelectMethod = (method: string, type: string) => {
+  const handleRedeem = () => {
+    const code = redeemCode.trim().toUpperCase();
+    if (VALID_REDEEM_CODES.includes(code)) {
+      setRedeemError('');
+      setStep('success');
+      toast.success('Redeem code applied — Premium unlocked!');
+      setTimeout(() => {
+        onPaymentComplete();
+        onOpenChange(false);
+        resetState();
+      }, 1500);
+    } else {
+      setRedeemError('Invalid redeem code. Please check and try again.');
+    }
+  };
     setSelectedMethod(type);
     setStep('details');
   };
