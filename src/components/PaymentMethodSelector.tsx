@@ -61,6 +61,8 @@ export const PaymentMethodSelector = ({
       setRedeemError('Invalid redeem code. Please check and try again.');
     }
   };
+
+  const handleSelectMethod = (method: string, type: string) => {
     setSelectedMethod(type);
     setStep('details');
   };
