@@ -2,7 +2,10 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CreditCard, Smartphone, Loader2, CheckCircle2, Shield } from "lucide-react";
+import { CreditCard, Smartphone, Loader2, CheckCircle2, Shield, Gift } from "lucide-react";
+import { toast } from "sonner";
+
+const VALID_REDEEM_CODES = ["PREM-FCEO"];
 import { Input } from "@/components/ui/input";
 
 interface PaymentMethodSelectorProps {
