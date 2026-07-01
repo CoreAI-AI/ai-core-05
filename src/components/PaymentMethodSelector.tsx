@@ -132,11 +132,60 @@ export const PaymentMethodSelector = ({
                 </motion.div>
               ))}
             </div>
+
+            <div className="relative py-1">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border" /></div>
+              <div className="relative flex justify-center"><span className="bg-background px-2 text-[10px] uppercase tracking-wider text-muted-foreground">or</span></div>
+            </div>
+
+            <Button
+              onClick={() => setStep('redeem')}
+              variant="outline"
+              className="w-full justify-start gap-3 h-14 border-primary/40 hover:bg-primary/5"
+            >
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-500 to-pink-500 flex items-center justify-center">
+                <Gift className="w-5 h-5 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="text-base font-medium">Have a Redeem Code?</p>
+                <p className="text-[11px] text-muted-foreground">Unlock Premium instantly for free</p>
+              </div>
+            </Button>
+
             <p className="text-[10px] text-center text-muted-foreground flex items-center justify-center gap-1">
               <Shield className="w-3 h-3" /> Secure & encrypted payment
             </p>
           </div>
         )}
+
+        {step === 'redeem' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+            <div className="bg-gradient-to-br from-amber-500/10 to-pink-500/10 p-4 rounded-xl text-center border border-primary/20">
+              <Gift className="w-8 h-8 mx-auto text-primary mb-2" />
+              <p className="text-sm font-semibold">Enter your Redeem Code</p>
+              <p className="text-[11px] text-muted-foreground mt-1">Unlock CoreAI Premium instantly</p>
+            </div>
+            <div className="space-y-2">
+              <Input
+                placeholder="PREM-XXXX"
+                value={redeemCode}
+                onChange={(e) => { setRedeemCode(e.target.value.toUpperCase()); setRedeemError(''); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' && redeemCode.trim()) handleRedeem(); }}
+                className="text-center tracking-widest font-mono uppercase"
+                maxLength={20}
+                autoFocus
+              />
+              {redeemError && <p className="text-xs text-destructive text-center">{redeemError}</p>}
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => { setStep('select'); setRedeemError(''); }}>Back</Button>
+              <Button className="flex-1" disabled={!redeemCode.trim()} onClick={handleRedeem}>
+                Redeem
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
 
         {step === 'details' && selectedMethod === 'upi' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
