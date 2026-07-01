@@ -14,7 +14,7 @@ interface PaymentMethodSelectorProps {
   onPaymentComplete: () => void;
 }
 
-type PaymentStep = 'select' | 'details' | 'processing' | 'success';
+type PaymentStep = 'select' | 'details' | 'redeem' | 'processing' | 'success';
 
 export const PaymentMethodSelector = ({ 
   open, 
