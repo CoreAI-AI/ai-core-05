@@ -27,6 +27,8 @@ export const PaymentMethodSelector = ({
   const [expiry, setExpiry] = useState('');
   const [cvv, setCvv] = useState('');
   const [upiId, setUpiId] = useState('');
+  const [redeemCode, setRedeemCode] = useState('');
+  const [redeemError, setRedeemError] = useState('');
 
   const paymentMethods = [
     { name: "UPI Payment", icon: Smartphone, color: "bg-purple-600", type: "upi" },
