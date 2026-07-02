@@ -38,6 +38,9 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { haptics } from "@/lib/haptics";
 import { ReadAloudHeaderPlayer } from "@/components/ReadAloudHeaderPlayer";
+import { tryLocalReply } from "@/lib/smallTalk";
+import { getCached, setCached, isCacheable } from "@/lib/aiCache";
+
 
 const Index = () => {
   const navigate = useNavigate();
@@ -556,13 +559,32 @@ const Index = () => {
     // Add user message to database with images
     const userMessage = await addMessage(chatToUse.id, content, true, messageImages);
     if (!userMessage) return;
-    
+
+    // ---- COST-SAVER 1: Local (no-AI) reply for greetings, thanks, bye, tiny calc ----
+    if (!selectedFile && chatMode === 'normal') {
+      const local = tryLocalReply(content);
+      if (local) {
+        await addMessage(chatToUse.id, local, false);
+        return;
+      }
+    }
+
+    // ---- COST-SAVER 2: Return cached answer for repeat questions ----
+    if (!selectedFile && isCacheable(content, chatMode)) {
+      const cached = getCached(content, chatMode, selectedModel);
+      if (cached) {
+        await addMessage(chatToUse.id, cached, false);
+        return;
+      }
+    }
+
     // Record daily usage for limited modes
     recordUsage(chatMode);
     usageLimits.recordSend(chatMode);
-    
+
     setIsLoading(true);
     setIsAITyping(true);
+
     try {
       // Create AI message placeholder
       const aiMessage = await addMessage(chatToUse.id, "", false);
@@ -736,9 +758,15 @@ const Index = () => {
       // Persist final result to DB once
       await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
 
+      // ---- COST-SAVER 3: cache text answers so repeat questions skip AI ----
+      if (!selectedFile && receivedImages.length === 0 && isCacheable(content, chatMode)) {
+        setCached(content, chatMode, selectedModel, accumulatedContent);
+      }
+
       // Clear selected file after sending
       setSelectedFile(null);
       setFilePreview(null);
+
     } catch (error) {
       console.error('Error calling AI:', error);
       toast.error("Failed to get AI response. Please try again.");
