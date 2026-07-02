@@ -356,7 +356,7 @@ const Index = () => {
         ...msg,
         content
       } : msg);
-      const conversationHistory = updatedMessages.slice(-20).map(msg => ({
+      const conversationHistory = updatedMessages.slice(-12).map(msg => ({
         role: msg.is_user ? 'user' : 'assistant',
         content: msg.id === editingMessage.id ? content : msg.content,
         ...(msg.images && msg.images.length > 0 ? {
@@ -449,7 +449,7 @@ const Index = () => {
       const authToken = session?.session?.access_token;
 
       // Get conversation history up to (but not including) the AI message being regenerated
-      const conversationHistory = messages.slice(0, aiMessageIndex).slice(-20).map(msg => ({
+      const conversationHistory = messages.slice(0, aiMessageIndex).slice(-12).map(msg => ({
         role: msg.is_user ? 'user' : 'assistant',
         content: msg.content,
         ...(msg.images && msg.images.length > 0 ? {
@@ -608,7 +608,7 @@ const Index = () => {
       }
 
       // Limit conversation history to last 20 messages for better performance
-      const recentMessages = messages.slice(-20);
+      const recentMessages = messages.slice(-12);
       const conversationHistory = recentMessages.map(msg => {
         const historyItem: any = {
           role: msg.is_user ? 'user' : 'assistant',
