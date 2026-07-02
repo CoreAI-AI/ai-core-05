@@ -107,10 +107,15 @@ export const PaymentMethodSelector = ({
 
         {step === 'select' && (
           <div className="space-y-4">
-            <div className="bg-primary/10 p-4 rounded-xl text-center">
-              <p className="text-2xl font-bold text-primary">₹199/month</p>
-              <p className="text-xs text-muted-foreground mt-1">CoreAI Premium – All features unlocked</p>
+            <div className="bg-primary/10 p-4 rounded-xl text-center space-y-2">
+              <p className="text-2xl font-bold text-primary">₹249<span className="text-sm font-normal text-muted-foreground">/month</span></p>
+              <p className="text-xs text-muted-foreground">CoreAI Premium – All features unlocked</p>
+              <div className="flex items-center justify-center gap-2 pt-1 text-[11px]">
+                <span className="px-2 py-0.5 rounded-full bg-background border border-border">Quarterly · ₹599</span>
+                <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/20 to-pink-500/20 border border-primary/30 font-semibold text-primary">Yearly · ₹1,999 · Best Value</span>
+              </div>
             </div>
+
             <div className="space-y-2">
               {paymentMethods.map((method, index) => (
                 <motion.div
