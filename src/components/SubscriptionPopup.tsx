@@ -79,7 +79,7 @@ export const SubscriptionPopup = ({ open, onOpenChange, onUpgrade }: Subscriptio
             </div>
 
             <div className="bg-primary/10 p-3 rounded-lg text-center">
-              <p className="text-2xl font-bold text-primary">₹199/month</p>
+              <p className="text-2xl font-bold text-primary">₹249/month</p>
               <p className="text-xs text-muted-foreground mt-1">Full access to all premium features</p>
             </div>
 
