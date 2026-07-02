@@ -50,7 +50,9 @@ const AppContent = () => {
 
     setIntroSource(forceSource || "first_visit");
     setShowIntro(true);
-  };
+    // Mark seen immediately so even a mid-intro reload never replays it.
+    try { localStorage.setItem("coreai_intro_seen", "1"); } catch {}
+
 
   useEffect(() => {
     // Allow ?intro=1 to force-replay for testing.
