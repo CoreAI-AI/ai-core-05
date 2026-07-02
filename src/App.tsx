@@ -43,35 +43,23 @@ const AppContent = () => {
   const maybeShowIntro = (
     forceSource?: "first_visit" | "login" | "signup" | "manual"
   ) => {
-    const src =
-      forceSource ||
-      (localStorage.getItem("coreai_intro_source") as any) ||
-      "first_visit";
-
+    // Intro plays ONLY the very first time this browser opens CoreAI,
+    // OR when someone (dev/user) explicitly forces it via `?intro=1`.
     const seen = localStorage.getItem("coreai_intro_seen");
-    if (seen && !forceSource && !localStorage.getItem("coreai_intro_source"))
-      return;
+    if (seen && !forceSource) return;
 
-    setIntroSource(src);
+    setIntroSource(forceSource || "first_visit");
     setShowIntro(true);
   };
 
   useEffect(() => {
-    const t = setTimeout(maybeShowIntro, 600);
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") {
-        setTimeout(maybeShowIntro, 300);
-      }
-    });
-
-    return () => {
-      clearTimeout(t);
-      subscription.unsubscribe();
-    };
+    // Allow ?intro=1 to force-replay for testing.
+    const params = new URLSearchParams(window.location.search);
+    const force = params.get("intro") === "1" ? "manual" : undefined;
+    const t = setTimeout(() => maybeShowIntro(force as any), 600);
+    return () => clearTimeout(t);
   }, []);
+
 
   const handleIntroComplete = () => {
     setShowIntro(false);
