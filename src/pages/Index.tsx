@@ -14,6 +14,7 @@ import { PinnedMessages } from "@/components/PinnedMessages";
 import { QuickActionButtons } from "@/components/QuickActionButtons";
 import { SubscriptionPopup } from "@/components/SubscriptionPopup";
 import { useSubscription } from "@/hooks/useSubscription";
+import premiumLogo from "@/assets/coreai-premium-logo.png";
 import { useDailyLimit } from "@/hooks/useDailyLimit";
 import { useUsageLimits } from "@/hooks/useUsageLimits";
 import { UnlockPopup } from "@/components/UnlockPopup";
