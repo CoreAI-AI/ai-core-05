@@ -14,6 +14,7 @@ import { PinnedMessages } from "@/components/PinnedMessages";
 import { QuickActionButtons } from "@/components/QuickActionButtons";
 import { SubscriptionPopup } from "@/components/SubscriptionPopup";
 import { useSubscription } from "@/hooks/useSubscription";
+import premiumLogo from "@/assets/coreai-premium-logo.png";
 import { useDailyLimit } from "@/hooks/useDailyLimit";
 import { useUsageLimits } from "@/hooks/useUsageLimits";
 import { UnlockPopup } from "@/components/UnlockPopup";
@@ -560,8 +561,16 @@ const Index = () => {
     const userMessage = await addMessage(chatToUse.id, content, true, messageImages);
     if (!userMessage) return;
 
-    // ---- INTENT: user wants to buy premium / subscription ----
-    if (!isPremium && detectSubscriptionIntent(content)) {
+    // ---- INTENT: user asking about premium / subscription ----
+    if (detectSubscriptionIntent(content)) {
+      if (isPremium) {
+        await addMessage(
+          chatToUse.id,
+          "👑 Aap already **CoreAI Premium** member ho — aapka subscription **active** hai!\n\nAapke paas already unlocked hai:\n\n• ⚡ Unlimited chats & image generation\n• 🧠 Advanced models — Chat-Bot, Core-AI, Chat-Pro\n• 🔍 Deep Research mode (unlimited)\n• 💻 Code Assistant (unlimited)\n• 🎯 Priority response speed\n• 🚫 Ad-free premium experience\n\nEnjoy karo — aapka paisa sahi jagah invest hua hai. 💎",
+          false
+        );
+        return;
+      }
       await addMessage(
         chatToUse.id,
         "Bilkul! 🎉 CoreAI Premium mein aapko unlimited chats, advanced models (Core-AI, Chat-Pro), unlimited image generation, deep research, priority speed aur ad-free experience milta hai.\n\nNeeche **Premium** section khul raha hai — apna plan choose karein:\n\n• ⭐ Monthly — ₹249\n• 🔥 Quarterly — ₹599 (Save 20%)\n• 💎 Yearly — ₹1,999 (Best Value, Save 33%)\n\nRedeem code bhi available hai agar aapke paas ho. 🚀",
@@ -908,7 +917,7 @@ const Index = () => {
                       {sidebarCollapsed && <Button variant="ghost" size="sm" onClick={() => setSidebarCollapsed(false)} className="h-8 w-8 p-0 shrink-0">
                         <PanelLeft className="h-4 w-4" />
                       </Button>}
-                      {!isPremium && (
+                      {!isPremium ? (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -918,6 +927,15 @@ const Index = () => {
                           <Sparkles className="h-3.5 w-3.5" />
                           Get Plus
                         </Button>
+                      ) : (
+                        <button
+                          onClick={() => setShowSubscriptionPopup(true)}
+                          className="h-8 px-2.5 rounded-full flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 via-yellow-500/15 to-purple-500/15 border border-amber-500/30 hover:from-amber-500/25 hover:to-purple-500/25 transition-all shadow-[0_0_15px_rgba(234,179,8,0.15)]"
+                          title="CoreAI Premium — Active"
+                        >
+                          <img src={premiumLogo} alt="Premium" width={20} height={20} className="w-5 h-5 drop-shadow-[0_0_6px_rgba(234,179,8,0.6)]" />
+                          <span className="text-[11px] font-bold bg-gradient-to-r from-amber-400 to-purple-500 bg-clip-text text-transparent">PREMIUM</span>
+                        </button>
                       )}
                     </div>
                     <div className="flex items-center gap-2" />

@@ -2,9 +2,11 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Diamond, Check, Bot, Brain, Zap } from "lucide-react";
+import { Check, Bot, Brain, Zap, Sparkles } from "lucide-react";
 import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { PricingPlans, Plan } from "@/components/PricingPlans";
+import { useSubscription } from "@/hooks/useSubscription";
+import premiumLogo from "@/assets/coreai-premium-logo.png";
 
 interface SubscriptionPopupProps {
   open: boolean;
@@ -20,6 +22,7 @@ const premiumModels = [
 
 export const SubscriptionPopup = ({ open, onOpenChange, onUpgrade }: SubscriptionPopupProps) => {
   const [showPayment, setShowPayment] = useState(false);
+  const { isPremium } = useSubscription();
 
   const handleSelectPlan = (plan: Plan) => {
     if (plan.id === "free") return;
@@ -32,19 +35,74 @@ export const SubscriptionPopup = ({ open, onOpenChange, onUpgrade }: Subscriptio
     setShowPayment(true);
   };
 
+  // Already Premium — celebrate, don't upsell
+  if (isPremium) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[95vw] sm:max-w-md p-6 text-center overflow-hidden">
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 18 }}
+            className="mx-auto"
+          >
+            <img
+              src={premiumLogo}
+              alt="CoreAI Premium"
+              width={160}
+              height={160}
+              className="w-40 h-40 mx-auto drop-shadow-[0_0_35px_rgba(168,85,247,0.55)]"
+            />
+          </motion.div>
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-purple-500 bg-clip-text text-transparent">
+              You're a Premium Member 👑
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground -mt-1">
+            Aapka subscription active hai. Unlimited chats, advanced models, image generation & priority speed — sab unlocked.
+          </p>
+          <div className="grid grid-cols-3 gap-2 pt-2">
+            {premiumModels.map((m) => (
+              <div key={m.name} className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50 border border-border">
+                <m.icon className={`w-5 h-5 ${m.color}`} />
+                <span className="text-[10px] font-semibold">{m.name}</span>
+              </div>
+            ))}
+          </div>
+          <Button onClick={() => onOpenChange(false)} className="w-full mt-3 gradient-bg text-white">
+            <Sparkles className="w-4 h-4 mr-1.5" /> Continue with Premium
+          </Button>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
     <>
       <Dialog open={open && !showPayment} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-[95vw] sm:max-w-2xl lg:max-w-5xl max-h-[92vh] overflow-y-auto p-5 sm:p-7">
           <DialogHeader className="text-center sm:text-left">
-            <DialogTitle className="flex items-center justify-center sm:justify-start gap-2 text-2xl sm:text-3xl font-bold">
-              <Diamond className="w-6 h-6 text-primary" />
-              CoreAI Premium
-            </DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1">
-              Pick a plan that fits how you build. Cancel anytime.
-            </p>
+            <div className="flex items-center justify-center sm:justify-start gap-3">
+              <img
+                src={premiumLogo}
+                alt="CoreAI Premium"
+                width={56}
+                height={56}
+                loading="lazy"
+                className="w-14 h-14 drop-shadow-[0_0_20px_rgba(168,85,247,0.45)]"
+              />
+              <div>
+                <DialogTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-purple-500 bg-clip-text text-transparent">
+                  CoreAI Premium
+                </DialogTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Pick a plan that fits how you build. Cancel anytime.
+                </p>
+              </div>
+            </div>
           </DialogHeader>
+
 
           <div className="space-y-6 mt-4">
             {/* Premium models strip */}
