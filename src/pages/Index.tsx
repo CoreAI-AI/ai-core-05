@@ -560,8 +560,16 @@ const Index = () => {
     const userMessage = await addMessage(chatToUse.id, content, true, messageImages);
     if (!userMessage) return;
 
-    // ---- INTENT: user wants to buy premium / subscription ----
-    if (!isPremium && detectSubscriptionIntent(content)) {
+    // ---- INTENT: user asking about premium / subscription ----
+    if (detectSubscriptionIntent(content)) {
+      if (isPremium) {
+        await addMessage(
+          chatToUse.id,
+          "👑 Aap already **CoreAI Premium** member ho — aapka subscription **active** hai!\n\nAapke paas already unlocked hai:\n\n• ⚡ Unlimited chats & image generation\n• 🧠 Advanced models — Chat-Bot, Core-AI, Chat-Pro\n• 🔍 Deep Research mode (unlimited)\n• 💻 Code Assistant (unlimited)\n• 🎯 Priority response speed\n• 🚫 Ad-free premium experience\n\nEnjoy karo — aapka paisa sahi jagah invest hua hai. 💎",
+          false
+        );
+        return;
+      }
       await addMessage(
         chatToUse.id,
         "Bilkul! 🎉 CoreAI Premium mein aapko unlimited chats, advanced models (Core-AI, Chat-Pro), unlimited image generation, deep research, priority speed aur ad-free experience milta hai.\n\nNeeche **Premium** section khul raha hai — apna plan choose karein:\n\n• ⭐ Monthly — ₹249\n• 🔥 Quarterly — ₹599 (Save 20%)\n• 💎 Yearly — ₹1,999 (Best Value, Save 33%)\n\nRedeem code bhi available hai agar aapke paas ho. 🚀",
