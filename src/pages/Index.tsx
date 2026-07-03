@@ -38,7 +38,7 @@ import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
 import { haptics } from "@/lib/haptics";
 import { ReadAloudHeaderPlayer } from "@/components/ReadAloudHeaderPlayer";
-import { tryLocalReply } from "@/lib/smallTalk";
+import { tryLocalReply, detectSubscriptionIntent } from "@/lib/smallTalk";
 import { getCached, setCached, isCacheable } from "@/lib/aiCache";
 
 
