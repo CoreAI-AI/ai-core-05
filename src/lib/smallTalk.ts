@@ -93,3 +93,22 @@ export function tryLocalReply(raw: string): string | null {
 
   return null;
 }
+
+// Detect if user wants to buy/upgrade to premium subscription
+const SUB_PATTERNS: RegExp[] = [
+  /\b(buy|purchase|get|want|need|take|lena|lunga|loonga|chahiye|chahta|khareed|kharid)\b.*\b(subscription|premium|plan|pro|paid|upgrade|membership)\b/i,
+  /\b(subscription|premium|plan|pro|paid|upgrade|membership)\b.*\b(buy|purchase|lena|lunga|loonga|chahiye|chahta|khareed|kharid|price|cost|kitna|kitne|how much)\b/i,
+  /\b(upgrade|subscribe)\s+(to\s+)?(premium|pro|plan)?/i,
+  /\bpremium\s+(kaise|how)\b/i,
+  /\bhow\s+(much|to)\b.*\b(premium|subscription|plan|upgrade)\b/i,
+  /\b(premium|subscription)\s+(price|cost|pricing|kitna|kitne|charges?)\b/i,
+  /\b(pricing|plans)\b/i,
+  /\b(paid\s+plan|paid\s+version)\b/i,
+];
+
+export function detectSubscriptionIntent(input: string): boolean {
+  const t = input.trim();
+  if (!t || t.length > 200) return false;
+  return SUB_PATTERNS.some((r) => r.test(t));
+}
+
