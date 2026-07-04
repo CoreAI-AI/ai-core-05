@@ -1,11 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, Bot, Brain, Zap, Sparkles } from "lucide-react";
+import { Check, Bot, Brain, Zap, Sparkles, Settings2 } from "lucide-react";
 import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { PricingPlans, Plan } from "@/components/PricingPlans";
 import { useSubscription } from "@/hooks/useSubscription";
+import { ManageSubscriptionDialog } from "@/components/ManageSubscriptionDialog";
+import { track } from "@/lib/analytics";
 import premiumLogo from "@/assets/coreai-premium-logo.png";
 
 interface SubscriptionPopupProps {
@@ -23,6 +25,11 @@ const premiumModels = [
 export const SubscriptionPopup = ({ open, onOpenChange, onUpgrade }: SubscriptionPopupProps) => {
   const [showPayment, setShowPayment] = useState(false);
   const { isPremium } = useSubscription();
+  const [showManage, setShowManage] = useState(false);
+
+  useEffect(() => {
+    if (open) track("premium_popup_opened", { premium: isPremium });
+  }, [open, isPremium]);
 
   const handleSelectPlan = (plan: Plan) => {
     if (plan.id === "free") return;
@@ -31,6 +38,7 @@ export const SubscriptionPopup = ({ open, onOpenChange, onUpgrade }: Subscriptio
         id: plan.id, name: plan.name, price: plan.price, cadence: plan.cadence,
       }));
     } catch {}
+    track("premium_checkout_started", { plan: plan.id, price: plan.price });
     onOpenChange(false);
     setShowPayment(true);
   };
@@ -70,10 +78,20 @@ export const SubscriptionPopup = ({ open, onOpenChange, onUpgrade }: Subscriptio
               </div>
             ))}
           </div>
-          <Button onClick={() => onOpenChange(false)} className="w-full mt-3 gradient-bg text-white">
-            <Sparkles className="w-4 h-4 mr-1.5" /> Continue with Premium
-          </Button>
+          <div className="flex flex-col gap-2 mt-3">
+            <Button
+              variant="outline"
+              onClick={() => { onOpenChange(false); setShowManage(true); }}
+              className="w-full"
+            >
+              <Settings2 className="w-4 h-4 mr-1.5" /> Manage Subscription
+            </Button>
+            <Button onClick={() => onOpenChange(false)} className="w-full gradient-bg text-white">
+              <Sparkles className="w-4 h-4 mr-1.5" /> Continue with Premium
+            </Button>
+          </div>
         </DialogContent>
+        <ManageSubscriptionDialog open={showManage} onOpenChange={setShowManage} />
       </Dialog>
     );
   }

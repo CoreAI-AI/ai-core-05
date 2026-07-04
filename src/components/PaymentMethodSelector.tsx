@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { CreditCard, Smartphone, Loader2, CheckCircle2, Shield, Gift } from "lucide-react";
 import { toast } from "sonner";
+import { track } from "@/lib/analytics";
 
 const VALID_REDEEM_CODES = ["PREM-FCEO"];
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,7 @@ export const PaymentMethodSelector = ({
     if (VALID_REDEEM_CODES.includes(code)) {
       setRedeemError('');
       setStep('success');
+      track('premium_purchase_successful', { method: 'redeem', code });
       toast.success('Redeem code applied — Premium unlocked!');
       setTimeout(() => {
         onPaymentComplete();
@@ -65,12 +67,14 @@ export const PaymentMethodSelector = ({
   const handleSelectMethod = (method: string, type: string) => {
     setSelectedMethod(type);
     setStep('details');
+    track('premium_checkout_started', { method: type });
   };
 
   const handlePay = () => {
     setStep('processing');
     setTimeout(() => {
       setStep('success');
+      track('premium_purchase_successful', { method: selectedMethod });
       setTimeout(() => {
         onPaymentComplete();
         onOpenChange(false);

@@ -13,6 +13,8 @@ import { SmartChatTabs } from "@/components/SmartChatTabs";
 import { PinnedMessages } from "@/components/PinnedMessages";
 import { QuickActionButtons } from "@/components/QuickActionButtons";
 import { SubscriptionPopup } from "@/components/SubscriptionPopup";
+import { ManageSubscriptionDialog } from "@/components/ManageSubscriptionDialog";
+import { VoiceModeDialog } from "@/components/VoiceModeDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import premiumLogo from "@/assets/coreai-premium-logo.png";
 import { useDailyLimit } from "@/hooks/useDailyLimit";
@@ -72,6 +74,8 @@ const Index = () => {
   
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  const [showManageSubscription, setShowManageSubscription] = useState(false);
+  const [showVoiceMode, setShowVoiceMode] = useState(false);
   const [showGroupChatSheet, setShowGroupChatSheet] = useState(false);
   const { isPremium, activatePremium } = useSubscription();
   const { canUse, recordUsage, getRemaining, isLimitedMode, DAILY_LIMIT } = useDailyLimit(user?.id, isPremium);
@@ -829,7 +833,7 @@ const Index = () => {
       toast.error("Failed to export chat");
     }
   };
-  return <div className="flex h-screen bg-background overflow-hidden">
+  return <div className={`flex h-screen bg-background overflow-hidden ${isPremium ? "premium-mode" : ""}`}>
       {/* Sidebar */}
       <AnimatePresence mode="wait">
         {!sidebarCollapsed && <>
@@ -929,7 +933,7 @@ const Index = () => {
                         </Button>
                       ) : (
                         <button
-                          onClick={() => setShowSubscriptionPopup(true)}
+                          onClick={() => setShowManageSubscription(true)}
                           className="h-8 px-2.5 rounded-full flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 via-yellow-500/15 to-purple-500/15 border border-amber-500/30 hover:from-amber-500/25 hover:to-purple-500/25 transition-all shadow-[0_0_15px_rgba(234,179,8,0.15)]"
                           title="CoreAI Premium — Active"
                         >
@@ -1121,7 +1125,7 @@ const Index = () => {
                   </div>}
                 <div className="px-2 py-3 sm:p-4">
                   <div className="max-w-4xl mx-auto w-full">
-                    <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} onFileSelect={handleFileSelect} onModeChange={setChatMode} editingMessage={editingMessage} onCancelEdit={() => setEditingMessage(null)} onTypingChange={setIsUserTyping} isPremium={isPremium} onModelChange={setSelectedModel} getRemaining={getRemaining} />
+                    <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} onFileSelect={handleFileSelect} onModeChange={setChatMode} editingMessage={editingMessage} onCancelEdit={() => setEditingMessage(null)} onTypingChange={setIsUserTyping} isPremium={isPremium} onModelChange={setSelectedModel} getRemaining={getRemaining} onVoiceModeOpen={() => setShowVoiceMode(true)} />
                   </div>
                 </div>
               </div>}
@@ -1175,6 +1179,24 @@ const Index = () => {
           setShowSubscriptionPopup(false);
           toast.success("Premium activated! 🎉");
         }}
+      />
+      <ManageSubscriptionDialog
+        open={showManageSubscription}
+        onOpenChange={setShowManageSubscription}
+        onUpgradeClick={() => setShowSubscriptionPopup(true)}
+      />
+      <VoiceModeDialog
+        open={showVoiceMode}
+        onOpenChange={setShowVoiceMode}
+        onSubmit={(text) => handleSendMessage(text)}
+        latestAssistantText={(() => {
+          for (let i = messages.length - 1; i >= 0; i--) {
+            if (!messages[i].is_user && messages[i].content) return messages[i].content;
+          }
+          return "";
+        })()}
+        isAIBusy={isLoading || isAITyping}
+        isPremium={isPremium}
       />
       <GroupChatSheet
         open={showGroupChatSheet}

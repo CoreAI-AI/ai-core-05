@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins, Bot, Brain, Zap, ChefHat, BookOpen, Plus } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins, Bot, Brain, Zap, ChefHat, BookOpen, Plus, AudioLines } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -24,6 +24,7 @@ interface ChatInputProps {
   isPremium?: boolean;
   onModelChange?: (model: string) => void;
   getRemaining?: (mode: string) => number;
+  onVoiceModeOpen?: () => void;
 }
 export const ChatInput = ({
   onSendMessage,
@@ -35,7 +36,8 @@ export const ChatInput = ({
   onTypingChange,
   isPremium,
   onModelChange,
-  getRemaining
+  getRemaining,
+  onVoiceModeOpen
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const isMobile = useIsMobile();
@@ -383,6 +385,20 @@ export const ChatInput = ({
             
             {/* Action buttons - always visible */}
             <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+              {/* Hands-free Voice Mode button */}
+              {onVoiceModeOpen && (
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={onVoiceModeOpen}
+                  disabled={disabled}
+                  title="Start hands-free Voice Mode"
+                  className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl btn-press ${isPremium ? "text-amber-500 hover:bg-amber-500/10" : "text-primary hover:bg-primary/10"}`}
+                >
+                  <AudioLines className="w-4 h-4" />
+                </Button>
+              )}
               {/* Voice button */}
               <Button 
                 type="button" 
