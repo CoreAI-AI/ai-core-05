@@ -13,6 +13,8 @@ import { SmartChatTabs } from "@/components/SmartChatTabs";
 import { PinnedMessages } from "@/components/PinnedMessages";
 import { QuickActionButtons } from "@/components/QuickActionButtons";
 import { SubscriptionPopup } from "@/components/SubscriptionPopup";
+import { ManageSubscriptionDialog } from "@/components/ManageSubscriptionDialog";
+import { VoiceModeDialog } from "@/components/VoiceModeDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import premiumLogo from "@/assets/coreai-premium-logo.png";
 import { useDailyLimit } from "@/hooks/useDailyLimit";
@@ -72,6 +74,8 @@ const Index = () => {
   
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  const [showManageSubscription, setShowManageSubscription] = useState(false);
+  const [showVoiceMode, setShowVoiceMode] = useState(false);
   const [showGroupChatSheet, setShowGroupChatSheet] = useState(false);
   const { isPremium, activatePremium } = useSubscription();
   const { canUse, recordUsage, getRemaining, isLimitedMode, DAILY_LIMIT } = useDailyLimit(user?.id, isPremium);
