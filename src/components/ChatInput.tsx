@@ -24,6 +24,7 @@ interface ChatInputProps {
   isPremium?: boolean;
   onModelChange?: (model: string) => void;
   getRemaining?: (mode: string) => number;
+  onVoiceModeOpen?: () => void;
 }
 export const ChatInput = ({
   onSendMessage,
@@ -35,7 +36,8 @@ export const ChatInput = ({
   onTypingChange,
   isPremium,
   onModelChange,
-  getRemaining
+  getRemaining,
+  onVoiceModeOpen
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const isMobile = useIsMobile();
