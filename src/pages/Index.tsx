@@ -933,7 +933,7 @@ const Index = () => {
                         </Button>
                       ) : (
                         <button
-                          onClick={() => setShowSubscriptionPopup(true)}
+                          onClick={() => setShowManageSubscription(true)}
                           className="h-8 px-2.5 rounded-full flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 via-yellow-500/15 to-purple-500/15 border border-amber-500/30 hover:from-amber-500/25 hover:to-purple-500/25 transition-all shadow-[0_0_15px_rgba(234,179,8,0.15)]"
                           title="CoreAI Premium — Active"
                         >
