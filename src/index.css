@@ -805,4 +805,72 @@
   .spring-bounce:active {
     transform: scale(0.92);
   }
+
+  /* ===== Premium visual overlay ===== */
+  .premium-mode .glass-navbar {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--background) / 0.75),
+      hsl(var(--background) / 0.55)
+    );
+    backdrop-filter: blur(22px) saturate(1.15);
+    -webkit-backdrop-filter: blur(22px) saturate(1.15);
+    border-bottom: 1px solid rgba(234, 179, 8, 0.18);
+    box-shadow:
+      0 1px 0 rgba(168, 85, 247, 0.08) inset,
+      0 6px 22px -14px rgba(168, 85, 247, 0.35);
+  }
+  .premium-mode .gradient-bg {
+    background-image: linear-gradient(
+      135deg,
+      hsl(var(--primary)) 0%,
+      #a855f7 55%,
+      #eab308 110%
+    );
+    box-shadow: 0 8px 24px -10px rgba(168, 85, 247, 0.45);
+  }
+  .premium-mode .gradient-text {
+    background-image: linear-gradient(90deg, #eab308, #a855f7 60%, hsl(var(--primary)));
+  }
+  /* Animated ring for user avatars */
+  .premium-avatar-ring {
+    position: relative;
+    padding: 2px;
+    border-radius: 9999px;
+    background: conic-gradient(from 0deg, #eab308, #a855f7, #3b82f6, #eab308);
+    animation: premium-ring-spin 6s linear infinite;
+  }
+  .premium-avatar-ring > * {
+    background: hsl(var(--background));
+    border-radius: 9999px;
+  }
+  @keyframes premium-ring-spin {
+    to { transform: rotate(360deg); }
+  }
+  /* Consistent premium crown chip */
+  .premium-crown-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    background: linear-gradient(135deg, rgba(234,179,8,0.15), rgba(168,85,247,0.15));
+    border: 1px solid rgba(234, 179, 8, 0.4);
+    color: transparent;
+    background-clip: padding-box;
+    box-shadow: 0 0 12px -2px rgba(234, 179, 8, 0.35);
+  }
+  .premium-crown-chip .label {
+    background: linear-gradient(90deg, #eab308, #a855f7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .premium-glow {
+    box-shadow: 0 0 0 1px rgba(234,179,8,0.35), 0 0 22px -6px rgba(168,85,247,0.5);
+  }
 }
+
