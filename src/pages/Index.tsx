@@ -1125,7 +1125,7 @@ const Index = () => {
                   </div>}
                 <div className="px-2 py-3 sm:p-4">
                   <div className="max-w-4xl mx-auto w-full">
-                    <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} onFileSelect={handleFileSelect} onModeChange={setChatMode} editingMessage={editingMessage} onCancelEdit={() => setEditingMessage(null)} onTypingChange={setIsUserTyping} isPremium={isPremium} onModelChange={setSelectedModel} getRemaining={getRemaining} />
+                    <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} onFileSelect={handleFileSelect} onModeChange={setChatMode} editingMessage={editingMessage} onCancelEdit={() => setEditingMessage(null)} onTypingChange={setIsUserTyping} isPremium={isPremium} onModelChange={setSelectedModel} getRemaining={getRemaining} onVoiceModeOpen={() => setShowVoiceMode(true)} />
                   </div>
                 </div>
               </div>}
@@ -1179,6 +1179,24 @@ const Index = () => {
           setShowSubscriptionPopup(false);
           toast.success("Premium activated! 🎉");
         }}
+      />
+      <ManageSubscriptionDialog
+        open={showManageSubscription}
+        onOpenChange={setShowManageSubscription}
+        onUpgradeClick={() => setShowSubscriptionPopup(true)}
+      />
+      <VoiceModeDialog
+        open={showVoiceMode}
+        onOpenChange={setShowVoiceMode}
+        onSubmit={(text) => handleSendMessage(text)}
+        latestAssistantText={(() => {
+          for (let i = messages.length - 1; i >= 0; i--) {
+            if (!messages[i].is_user && messages[i].content) return messages[i].content;
+          }
+          return "";
+        })()}
+        isAIBusy={isLoading || isAITyping}
+        isPremium={isPremium}
       />
       <GroupChatSheet
         open={showGroupChatSheet}
