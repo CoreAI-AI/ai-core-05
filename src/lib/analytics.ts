@@ -9,7 +9,18 @@ export type AnalyticsEvent =
   | "onboarding_viewed"
   | "onboarding_answered"
   | "onboarding_skipped"
-  | "onboarding_completed";
+  | "onboarding_completed"
+  // Premium funnel
+  | "premium_popup_opened"
+  | "premium_checkout_started"
+  | "premium_purchase_successful"
+  | "premium_subscription_managed"
+  | "premium_subscription_cancelled"
+  | "premium_purchase_restored"
+  // Voice mode
+  | "voice_mode_started"
+  | "voice_mode_stopped"
+  | "voice_mode_message_sent";
 
 const STORAGE_KEY = "coreai_analytics_events";
 const MAX_EVENTS = 200;
