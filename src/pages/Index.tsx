@@ -14,7 +14,7 @@ import { PinnedMessages } from "@/components/PinnedMessages";
 import { QuickActionButtons } from "@/components/QuickActionButtons";
 import { SubscriptionPopup } from "@/components/SubscriptionPopup";
 import { ManageSubscriptionDialog } from "@/components/ManageSubscriptionDialog";
-import { VoiceModeDialog } from "@/components/VoiceModeDialog";
+
 import { useSubscription } from "@/hooks/useSubscription";
 import premiumLogo from "@/assets/coreai-premium-logo.png";
 import { useDailyLimit } from "@/hooks/useDailyLimit";
@@ -75,7 +75,7 @@ const Index = () => {
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
   const [showManageSubscription, setShowManageSubscription] = useState(false);
-  const [showVoiceMode, setShowVoiceMode] = useState(false);
+  
   const [showGroupChatSheet, setShowGroupChatSheet] = useState(false);
   const { isPremium, activatePremium } = useSubscription();
   const { canUse, recordUsage, getRemaining, isLimitedMode, DAILY_LIMIT } = useDailyLimit(user?.id, isPremium);
@@ -1125,7 +1125,7 @@ const Index = () => {
                   </div>}
                 <div className="px-2 py-3 sm:p-4">
                   <div className="max-w-4xl mx-auto w-full">
-                    <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} onFileSelect={handleFileSelect} onModeChange={setChatMode} editingMessage={editingMessage} onCancelEdit={() => setEditingMessage(null)} onTypingChange={setIsUserTyping} isPremium={isPremium} onModelChange={setSelectedModel} getRemaining={getRemaining} onVoiceModeOpen={() => setShowVoiceMode(true)} />
+                    <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} onFileSelect={handleFileSelect} onModeChange={setChatMode} editingMessage={editingMessage} onCancelEdit={() => setEditingMessage(null)} onTypingChange={setIsUserTyping} isPremium={isPremium} onModelChange={setSelectedModel} getRemaining={getRemaining} />
                   </div>
                 </div>
               </div>}
@@ -1184,19 +1184,6 @@ const Index = () => {
         open={showManageSubscription}
         onOpenChange={setShowManageSubscription}
         onUpgradeClick={() => setShowSubscriptionPopup(true)}
-      />
-      <VoiceModeDialog
-        open={showVoiceMode}
-        onOpenChange={setShowVoiceMode}
-        onSubmit={(text) => handleSendMessage(text)}
-        latestAssistantText={(() => {
-          for (let i = messages.length - 1; i >= 0; i--) {
-            if (!messages[i].is_user && messages[i].content) return messages[i].content;
-          }
-          return "";
-        })()}
-        isAIBusy={isLoading || isAITyping}
-        isPremium={isPremium}
       />
       <GroupChatSheet
         open={showGroupChatSheet}
