@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins, Bot, Brain, Zap, ChefHat, BookOpen, Plus, AudioLines } from "lucide-react";
+import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins, Bot, Brain, Zap, ChefHat, BookOpen, Plus, Loader2 } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -24,7 +24,7 @@ interface ChatInputProps {
   isPremium?: boolean;
   onModelChange?: (model: string) => void;
   getRemaining?: (mode: string) => number;
-  onVoiceModeOpen?: () => void;
+  
 }
 export const ChatInput = ({
   onSendMessage,
@@ -36,8 +36,7 @@ export const ChatInput = ({
   onTypingChange,
   isPremium,
   onModelChange,
-  getRemaining,
-  onVoiceModeOpen
+  getRemaining
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const isMobile = useIsMobile();
@@ -183,9 +182,17 @@ export const ChatInput = ({
     if (isRecording) {
       stopRecording();
       const text = await transcribe();
-      if (text) {
-        setMessage(text);
-        toast.success("Voice transcribed!");
+      if (text && text.trim()) {
+        try {
+          const sanitized = sanitizeInput(text.trim());
+          chatMessageSchema.parse({ content: sanitized });
+          onSendMessage(sanitized);
+          setMessage("");
+          toast.success("Voice sent!");
+        } catch (err) {
+          setMessage(text);
+          toast.error(err instanceof Error ? err.message : "Invalid message");
+        }
       }
       reset();
     } else {
@@ -385,21 +392,7 @@ export const ChatInput = ({
             
             {/* Action buttons - always visible */}
             <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-              {/* Hands-free Voice Mode button */}
-              {onVoiceModeOpen && (
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="ghost"
-                  onClick={onVoiceModeOpen}
-                  disabled={disabled}
-                  title="Start hands-free Voice Mode"
-                  className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl btn-press ${isPremium ? "text-amber-500 hover:bg-amber-500/10" : "text-primary hover:bg-primary/10"}`}
-                >
-                  <AudioLines className="w-4 h-4" />
-                </Button>
-              )}
-              {/* Voice button */}
+              {/* Voice button - tap to record, tap again to auto-send */}
               <Button 
                 type="button" 
                 size="icon" 
@@ -407,9 +400,10 @@ export const ChatInput = ({
                 onClick={handleVoiceRecording}
                 disabled={disabled || transcribing}
                 data-voice-input
-                className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl btn-press ${isRecording ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
+                title={isRecording ? "Stop and send" : transcribing ? "Transcribing..." : "Tap to speak"}
+                className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl btn-press ${isRecording ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30 animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
               >
-                {isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                {transcribing ? <Loader2 className="w-4 h-4 animate-spin" /> : isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               </Button>
 
               {/* Send button */}

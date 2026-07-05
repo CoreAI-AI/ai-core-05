@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.style-transform]
 verify_jwt = true
+
+[functions.elevenlabs-stt]
+verify_jwt = true

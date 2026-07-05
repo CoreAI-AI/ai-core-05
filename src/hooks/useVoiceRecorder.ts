@@ -1,34 +1,57 @@
 import { useState, useRef, useCallback } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useVoiceRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [transcribing, setTranscribing] = useState(false);
-  
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
+  const mimeTypeRef = useRef<string>('audio/webm');
+  const audioBlobRef = useRef<Blob | null>(null);
+  const stoppedPromiseRef = useRef<Promise<void> | null>(null);
+
+  const pickMimeType = () => {
+    const candidates = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/mp4',
+      'audio/mpeg',
+    ];
+    for (const t of candidates) {
+      if (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported?.(t)) {
+        return t;
+      }
+    }
+    return '';
+  };
 
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      const mime = pickMimeType();
+      const mediaRecorder = mime
+        ? new MediaRecorder(stream, { mimeType: mime })
+        : new MediaRecorder(stream);
+      mimeTypeRef.current = mediaRecorder.mimeType || mime || 'audio/webm';
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
+      audioBlobRef.current = null;
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          chunksRef.current.push(event.data);
-        }
+        if (event.data && event.data.size > 0) chunksRef.current.push(event.data);
       };
 
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        const url = URL.createObjectURL(blob);
-        setAudioUrl(url);
-        stream.getTracks().forEach(track => track.stop());
-      };
+      stoppedPromiseRef.current = new Promise<void>((resolve) => {
+        mediaRecorder.onstop = () => {
+          const type = mimeTypeRef.current || 'audio/webm';
+          audioBlobRef.current = new Blob(chunksRef.current, { type });
+          stream.getTracks().forEach((t) => t.stop());
+          resolve();
+        };
+      });
 
       mediaRecorder.start();
       setIsRecording(true);
@@ -36,7 +59,9 @@ export const useVoiceRecorder = () => {
       // Auto-stop after 60 seconds
       setTimeout(() => {
         if (mediaRecorderRef.current?.state === 'recording') {
-          stopRecording();
+          mediaRecorderRef.current.stop();
+          setIsRecording(false);
+          setIsPaused(false);
           toast.info('Recording stopped after 60 seconds');
         }
       }, 60000);
@@ -47,12 +72,12 @@ export const useVoiceRecorder = () => {
   }, []);
 
   const stopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && isRecording) {
+    if (mediaRecorderRef.current && (mediaRecorderRef.current.state === 'recording' || mediaRecorderRef.current.state === 'paused')) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
       setIsPaused(false);
     }
-  }, [isRecording]);
+  }, []);
 
   const pauseRecording = useCallback(() => {
     if (mediaRecorderRef.current?.state === 'recording') {
@@ -69,58 +94,60 @@ export const useVoiceRecorder = () => {
   }, []);
 
   const transcribe = useCallback(async (): Promise<string> => {
-    if (!audioUrl) return '';
-
     setTranscribing(true);
     try {
-      // Try Web Speech API first (browser native)
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        
-        return new Promise((resolve) => {
-          recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setTranscribing(false);
-            resolve(transcript);
-          };
-          
-          recognition.onerror = () => {
-            setTranscribing(false);
-            toast.error('Transcription failed');
-            resolve('');
-          };
-          
-          recognition.start();
-        });
-      } else {
-        toast.info('Browser speech recognition not available');
-        setTranscribing(false);
+      // Wait for MediaRecorder onstop to fire so blob is finalized
+      if (stoppedPromiseRef.current) {
+        await stoppedPromiseRef.current;
+      }
+      const blob = audioBlobRef.current;
+      if (!blob || blob.size < 500) {
+        toast.error('No audio captured. Try again.');
         return '';
       }
+
+      const ext = (blob.type.split('/')[1] || 'webm').split(';')[0];
+      const file = new File([blob], `recording.${ext}`, { type: blob.type });
+
+      const formData = new FormData();
+      formData.append('audio', file);
+
+      const { data, error } = await supabase.functions.invoke('elevenlabs-stt', {
+        body: formData,
+      });
+
+      if (error) {
+        console.error('STT error', error);
+        toast.error('Transcription failed. Please try again.');
+        return '';
+      }
+
+      const text = (data as any)?.text?.trim() ?? '';
+      if (!text) {
+        toast.error("Couldn't understand audio. Please try again.");
+        return '';
+      }
+      return text;
     } catch (error) {
       console.error('Transcription error:', error);
       toast.error('Transcription failed');
-      setTranscribing(false);
       return '';
+    } finally {
+      setTranscribing(false);
     }
-  }, [audioUrl]);
+  }, []);
 
   const reset = useCallback(() => {
-    if (audioUrl) {
-      URL.revokeObjectURL(audioUrl);
-    }
-    setAudioUrl(null);
+    audioBlobRef.current = null;
+    chunksRef.current = [];
     setIsRecording(false);
     setIsPaused(false);
     setTranscribing(false);
-    chunksRef.current = [];
-  }, [audioUrl]);
+  }, []);
 
   return {
     isRecording,
     isPaused,
-    audioUrl,
     transcribing,
     startRecording,
     stopRecording,
