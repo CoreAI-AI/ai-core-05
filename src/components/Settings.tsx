@@ -49,7 +49,6 @@ export const Settings = ({ user }: SettingsProps) => {
   const { settings, updateSettings } = useSettings(user?.id);
   const { theme, setTheme } = useTheme();
   const [localSettings, setLocalSettings] = useState<UserSettings>(settings);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const appLock = useAppLock();
   const { isPremium } = useSubscription();
   const { state: usageState } = useUsageLimits(user?.id, isPremium);
@@ -57,15 +56,6 @@ export const Settings = ({ user }: SettingsProps) => {
   useEffect(() => {
     setLocalSettings(settings);
   }, [settings]);
-
-  useEffect(() => {
-    const loadVoices = () => {
-      const availableVoices = window.speechSynthesis.getVoices();
-      setVoices(availableVoices);
-    };
-    loadVoices();
-    window.speechSynthesis.onvoiceschanged = loadVoices;
-  }, []);
 
   const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -94,13 +84,6 @@ export const Settings = ({ user }: SettingsProps) => {
     return 'U';
   };
 
-  const testVoice = () => {
-    const utterance = new SpeechSynthesisUtterance("This is a test of the selected voice.");
-    const voice = voices.find(v => v.name === localSettings.selectedVoice);
-    if (voice) utterance.voice = voice;
-    utterance.rate = localSettings.speechRate;
-    window.speechSynthesis.speak(utterance);
-  };
 
   const handleClearHistory = async () => {
     if (user) {
