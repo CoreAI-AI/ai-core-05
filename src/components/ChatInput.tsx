@@ -13,6 +13,7 @@ interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   onFileSelect?: (file: File) => void;
+  onFilesSelect?: (files: File[]) => void;
   onModeChange?: (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework') => void;
   editingMessage?: {
     id: string;
@@ -24,19 +25,21 @@ interface ChatInputProps {
   isPremium?: boolean;
   onModelChange?: (model: string) => void;
   getRemaining?: (mode: string) => number;
-  
+  maxFilesPerBatch?: number;
 }
 export const ChatInput = ({
   onSendMessage,
   disabled,
   onFileSelect,
+  onFilesSelect,
   onModeChange,
   editingMessage,
   onCancelEdit,
   onTypingChange,
   isPremium,
   onModelChange,
-  getRemaining
+  getRemaining,
+  maxFilesPerBatch = 5
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const isMobile = useIsMobile();
@@ -133,19 +136,37 @@ export const ChatInput = ({
     }
   };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && onFileSelect) {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Trim to per-batch cap
+    let accepted = files;
+    if (files.length > maxFilesPerBatch) {
+      accepted = files.slice(0, maxFilesPerBatch);
+      toast.warning(`Max ${maxFilesPerBatch} files at once — extras skipped`);
+    }
+
+    const validFiles: File[] = [];
+    for (const f of accepted) {
       try {
-        validateFile(file);
-        onFileSelect(file);
+        validateFile(f);
+        validFiles.push(f);
       } catch (error) {
-        if (error instanceof Error) {
-          toast.error(error.message);
-        } else {
-          toast.error("Invalid file");
-        }
+        toast.error(error instanceof Error ? `${f.name}: ${error.message}` : `Invalid file: ${f.name}`);
       }
     }
+    if (validFiles.length === 0) {
+      e.target.value = '';
+      return;
+    }
+
+    if (onFilesSelect) {
+      onFilesSelect(validFiles);
+    } else if (onFileSelect) {
+      // Legacy single-file callback: send each in sequence
+      validFiles.forEach((f) => onFileSelect(f));
+    }
+    e.target.value = '';
   };
   const openGallery = () => {
     fileInputRef.current?.click();
@@ -226,8 +247,8 @@ export const ChatInput = ({
     }
   };
   return <div className="border-t border-border bg-background/80 backdrop-blur-xl p-2 sm:p-4">
-      <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-      <input ref={anyFileInputRef} type="file" onChange={handleFileChange} className="hidden" />
+      <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleFileChange} className="hidden" />
+      <input ref={anyFileInputRef} type="file" multiple onChange={handleFileChange} className="hidden" />
       
       <div className="max-w-4xl mx-auto">
         {!message.trim() && !editingMessage && MODE_META[currentMode]?.suggestions && (
