@@ -133,14 +133,19 @@ export const PaymentMethodSelector = ({
                   transition={{ delay: index * 0.1 }}
                 >
                   <Button
-                    onClick={() => handleSelectMethod(method.name, method.type)}
-                    className="w-full justify-start gap-3 h-14"
+                    onClick={() => handleSelectMethod(method.name, method.type, method.comingSoon)}
+                    className="w-full justify-start gap-3 h-14 relative"
                     variant="outline"
                   >
                     <div className={`w-10 h-10 rounded-lg ${method.color} flex items-center justify-center`}>
                       <method.icon className="w-5 h-5 text-white" />
                     </div>
                     <span className="text-base font-medium">{method.name}</span>
+                    {method.comingSoon && (
+                      <span className="ml-auto text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30">
+                        Coming Soon
+                      </span>
+                    )}
                   </Button>
                 </motion.div>
               ))}
