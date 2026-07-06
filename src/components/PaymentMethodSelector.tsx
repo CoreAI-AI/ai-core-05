@@ -32,8 +32,8 @@ export const PaymentMethodSelector = ({
   const [redeemError, setRedeemError] = useState('');
 
   const paymentMethods = [
-    { name: "UPI Payment", icon: Smartphone, color: "bg-purple-600", type: "upi" },
-    { name: "Card Payment", icon: CreditCard, color: "bg-green-600", type: "card" },
+    { name: "UPI Payment", icon: Smartphone, color: "bg-purple-600", type: "upi", comingSoon: true },
+    { name: "Card Payment", icon: CreditCard, color: "bg-green-600", type: "card", comingSoon: true },
   ];
 
   const resetState = () => {
@@ -64,7 +64,11 @@ export const PaymentMethodSelector = ({
     }
   };
 
-  const handleSelectMethod = (method: string, type: string) => {
+  const handleSelectMethod = (method: string, type: string, comingSoon?: boolean) => {
+    if (comingSoon) {
+      toast.info('Payment gateway coming soon. Use a redeem code for now.');
+      return;
+    }
     setSelectedMethod(type);
     setStep('details');
     track('premium_checkout_started', { method: type });
