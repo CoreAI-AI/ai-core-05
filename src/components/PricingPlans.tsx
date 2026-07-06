@@ -201,7 +201,7 @@ export const PricingPlans = ({ onSelect, currentPlan = "free" }: PricingPlansPro
 
               {/* CTA */}
               <Button
-                disabled={isCurrent || isFree}
+                disabled={isCurrent}
                 onClick={() => onSelect(plan)}
                 className={cn(
                   "w-full font-semibold",
@@ -210,7 +210,7 @@ export const PricingPlans = ({ onSelect, currentPlan = "free" }: PricingPlansPro
                 )}
                 variant={plan.highlight ? "default" : isFree ? "outline" : "secondary"}
               >
-                {isCurrent ? "Current Plan" : plan.cta}
+                {isCurrent ? "Current Plan" : isFree ? "Current Plan" : "Redeem or Coming Soon"}
               </Button>
             </div>
           </motion.div>

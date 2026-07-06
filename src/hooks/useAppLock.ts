@@ -8,11 +8,13 @@ interface AppLockSettings {
   lastActivityTime: number;
 }
 
+// App Lock is enabled by default for ALL users.
+// User must configure a PIN via setup flow; they can disable it later from Settings.
 const DEFAULT_SETTINGS: AppLockSettings = {
-  enabled: false,
+  enabled: true,
   pin: null,
   biometricEnabled: false,
-  lockAfterMinutes: 1,
+  lockAfterMinutes: 5,
   lastActivityTime: Date.now(),
 };
 

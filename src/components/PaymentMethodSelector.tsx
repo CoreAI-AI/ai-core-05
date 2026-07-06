@@ -32,8 +32,8 @@ export const PaymentMethodSelector = ({
   const [redeemError, setRedeemError] = useState('');
 
   const paymentMethods = [
-    { name: "UPI Payment", icon: Smartphone, color: "bg-purple-600", type: "upi" },
-    { name: "Card Payment", icon: CreditCard, color: "bg-green-600", type: "card" },
+    { name: "UPI Payment", icon: Smartphone, color: "bg-purple-600", type: "upi", comingSoon: true },
+    { name: "Card Payment", icon: CreditCard, color: "bg-green-600", type: "card", comingSoon: true },
   ];
 
   const resetState = () => {
@@ -64,7 +64,11 @@ export const PaymentMethodSelector = ({
     }
   };
 
-  const handleSelectMethod = (method: string, type: string) => {
+  const handleSelectMethod = (method: string, type: string, comingSoon?: boolean) => {
+    if (comingSoon) {
+      toast.info('Payment gateway coming soon. Use a redeem code for now.');
+      return;
+    }
     setSelectedMethod(type);
     setStep('details');
     track('premium_checkout_started', { method: type });
@@ -129,14 +133,19 @@ export const PaymentMethodSelector = ({
                   transition={{ delay: index * 0.1 }}
                 >
                   <Button
-                    onClick={() => handleSelectMethod(method.name, method.type)}
-                    className="w-full justify-start gap-3 h-14"
+                    onClick={() => handleSelectMethod(method.name, method.type, method.comingSoon)}
+                    className="w-full justify-start gap-3 h-14 relative"
                     variant="outline"
                   >
                     <div className={`w-10 h-10 rounded-lg ${method.color} flex items-center justify-center`}>
                       <method.icon className="w-5 h-5 text-white" />
                     </div>
                     <span className="text-base font-medium">{method.name}</span>
+                    {method.comingSoon && (
+                      <span className="ml-auto text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 border border-amber-500/30">
+                        Coming Soon
+                      </span>
+                    )}
                   </Button>
                 </motion.div>
               ))}
