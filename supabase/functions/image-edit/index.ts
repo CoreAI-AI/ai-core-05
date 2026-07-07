@@ -39,28 +39,20 @@ serve(async (req) => {
       });
     }
 
-    const body = await req.json();
-    const { imageUrl, imageUrls, editPrompt } = body ?? {};
+    const { imageUrl, editPrompt } = await req.json();
 
-    // Accept either a single imageUrl OR an imageUrls[] (multi-reference edit).
-    const urls: string[] = Array.isArray(imageUrls) && imageUrls.length > 0
-      ? imageUrls
-      : (typeof imageUrl === 'string' ? [imageUrl] : []);
-
-    if (urls.length === 0 || !editPrompt) {
+    if (!imageUrl || !editPrompt) {
       return new Response(
-        JSON.stringify({ error: "At least one image URL and an edit prompt are required" }),
+        JSON.stringify({ error: "Image URL and edit prompt are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    for (const u of urls) {
-      if (!isValidImageUrl(u)) {
-        return new Response(
-          JSON.stringify({ error: "Invalid image URL" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    if (!isValidImageUrl(imageUrl)) {
+      return new Response(
+        JSON.stringify({ error: "Invalid image URL" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     if (typeof editPrompt !== 'string' || editPrompt.length > 2000) {
@@ -75,10 +67,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log(`Processing image edit request with ${urls.length} reference image(s)`);
-
-    const content: any[] = [{ type: "text", text: editPrompt }];
-    for (const u of urls) content.push({ type: "image_url", image_url: { url: u } });
+    console.log("Processing image edit request");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -88,7 +77,15 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-image-preview",
-        messages: [{ role: "user", content }],
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: editPrompt },
+              { type: "image_url", image_url: { url: imageUrl } }
+            ]
+          }
+        ],
         modalities: ["image", "text"]
       }),
     });

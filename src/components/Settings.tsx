@@ -49,6 +49,7 @@ export const Settings = ({ user }: SettingsProps) => {
   const { settings, updateSettings } = useSettings(user?.id);
   const { theme, setTheme } = useTheme();
   const [localSettings, setLocalSettings] = useState<UserSettings>(settings);
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const appLock = useAppLock();
   const { isPremium } = useSubscription();
   const { state: usageState } = useUsageLimits(user?.id, isPremium);
@@ -56,6 +57,15 @@ export const Settings = ({ user }: SettingsProps) => {
   useEffect(() => {
     setLocalSettings(settings);
   }, [settings]);
+
+  useEffect(() => {
+    const loadVoices = () => {
+      const availableVoices = window.speechSynthesis.getVoices();
+      setVoices(availableVoices);
+    };
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }, []);
 
   const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -84,6 +94,13 @@ export const Settings = ({ user }: SettingsProps) => {
     return 'U';
   };
 
+  const testVoice = () => {
+    const utterance = new SpeechSynthesisUtterance("This is a test of the selected voice.");
+    const voice = voices.find(v => v.name === localSettings.selectedVoice);
+    if (voice) utterance.voice = voice;
+    utterance.rate = localSettings.speechRate;
+    window.speechSynthesis.speak(utterance);
+  };
 
   const handleClearHistory = async () => {
     if (user) {
@@ -312,6 +329,27 @@ export const Settings = ({ user }: SettingsProps) => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
+            {/* Default Model */}
+            <div className="space-y-2">
+              <Label className="text-sm">Default Model</Label>
+              <Select
+                value={localSettings.defaultModel}
+                onValueChange={(value) => setLocalSettings(prev => ({ ...prev, defaultModel: value }))}
+              >
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select model" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gpt-4">GPT-4</SelectItem>
+                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                  <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
+                  <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Separator />
+
             {/* Response Length */}
             <div className="space-y-2">
               <Label className="text-sm">Response Length</Label>
@@ -379,6 +417,68 @@ export const Settings = ({ user }: SettingsProps) => {
                 onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, voiceInputEnabled: checked }))}
               />
             </div>
+
+            <Separator />
+
+            {/* Text-to-Speech */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="text-sm">Text-to-Speech</Label>
+                <p className="text-xs text-muted-foreground">Read AI responses aloud</p>
+              </div>
+              <Switch
+                checked={localSettings.textToSpeechEnabled}
+                onCheckedChange={(checked) => setLocalSettings(prev => ({ ...prev, textToSpeechEnabled: checked }))}
+              />
+            </div>
+
+
+            {localSettings.textToSpeechEnabled && (
+              <>
+                <Separator />
+                
+                {/* Voice Selection */}
+                <div className="space-y-2">
+                  <Label className="text-sm">Voice Selection</Label>
+                  <Select
+                    value={localSettings.selectedVoice}
+                    onValueChange={(value) => setLocalSettings(prev => ({ ...prev, selectedVoice: value }))}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue placeholder="Select a voice" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {voices.map((voice) => (
+                        <SelectItem key={voice.name} value={voice.name}>
+                          {voice.name} ({voice.lang})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Speech Speed */}
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <Label className="text-sm">Speech Speed</Label>
+                    <span className="text-sm text-muted-foreground">{localSettings.speechRate}x</span>
+                  </div>
+                  <Slider
+                    value={[localSettings.speechRate]}
+                    onValueChange={([value]) => setLocalSettings(prev => ({ ...prev, speechRate: value }))}
+                    min={0.5}
+                    max={2}
+                    step={0.1}
+                    className="w-full"
+                  />
+                </div>
+
+                <Button onClick={testVoice} variant="outline" size="sm" className="w-full">
+                  <Volume2 className="w-4 h-4 mr-2" />
+                  Test Voice
+                </Button>
+              </>
+            )}
           </CardContent>
         </Card>
       </motion.div>

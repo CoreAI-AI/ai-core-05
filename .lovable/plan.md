@@ -1,82 +1,225 @@
-# CoreAI Update Plan
 
-UI, design, branding, animations aur workflow same rahenge. Sirf functionality changes.
 
-## 1. Settings cleanup
-- `src/components/Settings.tsx`: remove "Default Model" (AI Preferences) aur pura "Text-to-Speech" block (TTS toggle, voice picker, speech rate).
-- `src/hooks/useSettings.tsx`: `defaultModel`, `textToSpeechEnabled`, `selectedVoice`, `speechRate` fields hataao.
-- Baaki jaha bhi ye fields read ho rahe hain (agar), unko safely remove ya default fallback.
+# Mobile Chat Layout Fix - ChatGPT-Style Implementation
 
-## 2. App Lock default ON
-- `src/hooks/useAppLock.ts`: default state `enabled: true` for all users (first-time bhi enabled ho).
-- Migration ke liye: agar user ke storage me flag hi nahi hai, treat as enabled. User baad me manually off kar sakta hai settings se.
+## Problem Analysis
 
-## 3. Central config file (future-ready, backend-swappable)
-Naya file: `src/config/planLimits.ts`
+Based on my exploration of the codebase, I've identified the following issues:
 
-```ts
-export type PlanId = 'free' | 'premium_monthly' | 'premium_quarterly' | 'premium_yearly';
+### Current Issues:
+1. **Layout Structure**: Using `ScrollArea` (Radix UI) which has internal viewport that doesn't play well with mobile keyboards
+2. **Height Calculation**: Using `h-[100dvh]` at root level but child containers don't properly subtract header and input heights
+3. **Overflow Handling**: The `overflow-hidden` on parent causes issues when keyboard opens on mobile
+4. **Message Bubbles**: Width set to 95% but text wrapping and line-height need optimization for readability
+5. **Input Bar Visibility**: Not using `position: sticky` approach, relies on flex layout which can fail when keyboard opens
+6. **VirtualizedChatMessages**: Has its own scrolling container conflicting with parent ScrollArea
 
-export interface PlanLimits {
-  uploads: { perBatch: number; perDay: number };          // -1 = unlimited
-  imageGen: { perDay: number; hdEnabled: boolean; styles: string[] };
-  imageEdit: { perDay: number };
-  features: { deepResearch: boolean; codeMode: boolean; pdfExport: boolean; proModels: boolean };
-}
+---
 
-export const PLAN_LIMITS: Record<PlanId, PlanLimits> = {
-  free:              { uploads:{perBatch:5,  perDay:10}, imageGen:{perDay:5,  hdEnabled:false, styles:['basic']},
-                       imageEdit:{perDay:3},  features:{deepResearch:false,codeMode:false,pdfExport:false,proModels:false} },
-  premium_monthly:   { uploads:{perBatch:10, perDay:50}, imageGen:{perDay:30, hdEnabled:true,  styles:['basic','pro']},
-                       imageEdit:{perDay:20}, features:{deepResearch:true, codeMode:true, pdfExport:true, proModels:false} },
-  premium_quarterly: { uploads:{perBatch:15, perDay:100},imageGen:{perDay:60, hdEnabled:true,  styles:['basic','pro','artistic']},
-                       imageEdit:{perDay:40}, features:{deepResearch:true, codeMode:true, pdfExport:true, proModels:true } },
-  premium_yearly:    { uploads:{perBatch:-1, perDay:-1}, imageGen:{perDay:-1, hdEnabled:true,  styles:['basic','pro','artistic','cinematic']},
-                       imageEdit:{perDay:-1}, features:{deepResearch:true, codeMode:true, pdfExport:true, proModels:true } },
-};
+## Implementation Plan
+
+### Phase 1: Fix Three-Section Layout Structure
+
+**File: `src/pages/Index.tsx`**
+
+Replace the current flex-based layout with a fixed three-section approach:
+
+```
+┌─────────────────────────────┐
+│         HEADER              │ ← Fixed height (shrink-0)
+├─────────────────────────────┤
+│                             │
+│      CHAT MESSAGES          │ ← flex-1, overflow-y-auto
+│   (ONLY scrollable area)    │   min-h-0 to enable shrinking
+│                             │
+├─────────────────────────────┤
+│        INPUT BAR            │ ← sticky bottom, shrink-0
+└─────────────────────────────┘
 ```
 
-Aap future me ye numbers ya poora object backend `plan_configs` table se load kar sakte ho — sirf ek fetch helper add karna hoga, UI code touch nahi hoga. Default values placeholder hain; final numbers aap dijiyega, main update kar dunga.
+Changes:
+- Remove `ScrollArea` wrapper from message container (use native div with overflow)
+- Add explicit CSS height calculation: `calc(100dvh - header - input)`
+- Ensure `min-h-0` on flex children to allow proper shrinking
+- Add `overscroll-behavior-y: contain` to prevent page bounce
 
-## 4. Upload limits (multi-file + daily)
-- Naya hook: `src/hooks/useUploadLimits.tsx` — localStorage me `uploads_YYYY-MM-DD` counter, plan ke `perBatch`/`perDay` se check.
-- `ImageUploadModal.tsx` / wherever `<input type="file">` hai: `multiple` attribute ON, selection me `perBatch` se zyaada aane par pehle N accept + toast "Max 5 files at once".
-- Daily quota exhausted → existing `LimitPopup` reuse with plan-specific message + "Upgrade" CTA.
+---
 
-## 5. Smart Image Editing (Gemini-style intent detection)
-- `src/lib/imageEditIntent.ts` (new): regex/keyword list — remove background, change dress, add/remove object, improve quality, make realistic, poster, edit this, change style, replace background, add text, extend, resize, upscale (Hindi + English).
-- Send flow (ChatInput → Index): agar attachments length ≥ 1 AND intent matches → route to existing `image-edit` edge function using **uploaded images as reference** (multi-image supported by passing array). Warna normal chat/image-gen flow.
-- Multi-image edit: `image-edit` function ko update — accept `images: string[]` (base64/URL) instead of single.
+### Phase 2: Mobile-Optimized CSS Classes
 
-## 6. Image Generator mode — hybrid
-- Photo/Image mode me:
-  - Attachments hain → edit path (reference-based).
-  - Attachments nahi → existing text-to-image (`local-image-gen`).
-- Same input, same button — branching internal.
+**File: `src/index.css`**
 
-## 7. Upload option in ALL modes
-- ChatInput ka "+" / attach button har mode me visible (currently kuch modes me hidden ho sakta hai). Chat, Study, Code, Photo, Deep Research — sab me file/image upload allowed. Backend prompt me file context inject already existing pipeline se.
+Add mobile-specific layout rules:
 
-## 8. Premium plans UI (Coming Soon + Redeem)
-- `PricingPlans.tsx` / `SubscriptionPopup.tsx`: 3 plan cards (Monthly ₹249, Quarterly ₹599, Yearly ₹1,999) — already partially present.
-- Pay button → disabled "Coming Soon" badge.
-- Redeem code input visible + active (existing `PREM-FCEO` flow already works in `PaymentMethodSelector`). Redeem successful → user's plan = `premium_yearly` (unlimited placeholder) until aap change karo.
-- `useSubscription`: `planId` field add, redeem/purchase sets it; `isPremium` = planId !== 'free'.
+```css
+/* Mobile chat container - fixed sections */
+.chat-layout-mobile {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  height: 100vh; /* Fallback */
+  overflow: hidden;
+}
 
-## 9. Feature gating via plan
-- `useFeatureAccess` / `isPremium` checks ko `PLAN_LIMITS[planId].features.*` se replace. Hardcoded unlimited hataana.
-- HD image, deep research, code, pdf export — plan features flag padhein.
+/* Scrollable message area only */
+.chat-messages-container {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
 
-## 10. Analytics
-- Existing `track()` events preserve. Add: `upload_limit_reached`, `image_edit_intent_detected`, `plan_gate_hit` (plan, feature).
+/* Fixed input bar at bottom */
+.chat-input-fixed {
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
+  background: var(--background);
+}
 
-## Out of scope (per your ask)
-- Payment gateway wiring — skip until aap bolo.
-- Final limit numbers — placeholder hain; aap batayenge to update kar dunga.
-- Koi UI redesign nahi.
+/* Mobile-specific overrides */
+@media (max-width: 768px) {
+  /* Disable any desktop flex/grid rules */
+  .chat-messages-container {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  /* Ensure bubbles don't create paragraph walls */
+  .chat-bubble-mobile {
+    max-width: 88%;
+    word-wrap: break-word;
+    white-space: normal;
+    line-height: 1.5;
+  }
+}
+```
 
-## Files touched (approx)
-- new: `src/config/planLimits.ts`, `src/hooks/useUploadLimits.tsx`, `src/lib/imageEditIntent.ts`
-- edit: `Settings.tsx`, `useSettings.tsx`, `useAppLock.ts`, `useSubscription.tsx`, `useFeatureAccess.tsx`, `ChatInput.tsx`, `ImageUploadModal.tsx`, `Index.tsx`, `PricingPlans.tsx`, `SubscriptionPopup.tsx`, `PaymentMethodSelector.tsx`, `supabase/functions/image-edit/index.ts`
+---
 
-Approve karo to main implement start karta hoon. Agar kisi placeholder limit ko abhi change karna ho batao.
+### Phase 3: Chat Message Bubble Fixes
+
+**File: `src/components/ChatMessage.tsx`**
+
+Update bubble styling for mobile:
+- Change max-width from `95%` to `88%` on mobile for better readability
+- Add proper `white-space: normal` and `word-wrap: break-word`
+- Ensure readable `line-height` (1.5)
+- Remove any `whitespace-pre-wrap` that creates paragraph blocks
+
+```tsx
+// User message bubble
+<div className="max-w-[88%] sm:max-w-[80%] lg:max-w-[70%]">
+  <p className="text-sm leading-relaxed break-words whitespace-normal">
+    {message}
+  </p>
+</div>
+```
+
+---
+
+### Phase 4: Virtualized Messages Scroll Fix
+
+**File: `src/components/VirtualizedChatMessages.tsx`**
+
+The VirtualizedChatMessages component creates its own scroll container, conflicting with the parent. Fix:
+
+1. For non-virtualized rendering (< 50 messages), remove internal scroll container
+2. Ensure the component works with parent's scroll container
+3. Add proper padding-bottom to prevent last message from hiding under input
+
+Changes:
+- Remove internal `overflow-y-auto` when not virtualized
+- Add `pb-safe` padding for iOS home indicator
+- Ensure proper auto-scroll behavior on new messages
+
+---
+
+### Phase 5: Input Bar Sticky Positioning
+
+**File: `src/components/ChatInput.tsx`** and **`src/pages/Index.tsx`**
+
+Make input bar truly sticky:
+- Add `position: sticky` with `bottom: 0`
+- Higher z-index than chat content
+- Add safe area padding for iOS
+
+```tsx
+<div className="sticky bottom-0 z-50 bg-background/95 backdrop-blur-sm">
+  <ChatInput ... />
+</div>
+```
+
+---
+
+### Phase 6: Keyboard Handling for Mobile
+
+**File: `src/index.css`**
+
+Add Visual Viewport API support for keyboard:
+
+```css
+/* Handle keyboard on iOS/Android */
+@supports (height: 100dvh) {
+  .chat-layout-mobile {
+    height: 100dvh;
+  }
+}
+
+/* Fallback for older browsers */
+@supports not (height: 100dvh) {
+  .chat-layout-mobile {
+    height: calc(var(--vh, 1vh) * 100);
+  }
+}
+```
+
+---
+
+## Technical Details
+
+### Files to Modify:
+
+| File | Changes |
+|------|---------|
+| `src/pages/Index.tsx` | Layout restructure, remove ScrollArea for messages, use native div with overflow |
+| `src/components/ChatMessage.tsx` | Mobile bubble widths, text wrapping fixes |
+| `src/components/VirtualizedChatMessages.tsx` | Remove internal scroll conflicts, fix padding |
+| `src/index.css` | Add mobile-specific CSS classes, keyboard handling |
+| `src/components/ChatInput.tsx` | Minor padding adjustments |
+
+### Key CSS Properties:
+
+1. **Message Container**:
+   - `flex: 1` + `min-height: 0` (crucial for flex shrinking)
+   - `overflow-y: auto` + `overflow-x: hidden`
+   - `-webkit-overflow-scrolling: touch`
+   - `overscroll-behavior-y: contain`
+
+2. **Input Bar**:
+   - `position: sticky` + `bottom: 0`
+   - `z-index: 50`
+   - `padding-bottom: env(safe-area-inset-bottom)`
+
+3. **Chat Bubbles**:
+   - `max-width: 88%` (mobile)
+   - `word-wrap: break-word`
+   - `line-height: 1.5`
+   - `white-space: normal`
+
+---
+
+## Expected Results
+
+After implementation:
+1. Only the chat messages area scrolls - header and input stay fixed
+2. Input bar always visible, even when keyboard opens
+3. No text clipping or overlap
+4. Clean line-by-line message display (no paragraph walls)
+5. Infinite scroll works correctly
+6. Auto-scroll to bottom on new messages
+7. Manual scroll up stops auto-scroll
+8. Works on small Android devices and low-performance phones
+9. ChatGPT-identical mobile experience
+

@@ -7,17 +7,17 @@ export interface UserSettings {
   fontSize: 'small' | 'medium' | 'large';
   chatDensity: 'comfortable' | 'compact';
   // AI Preferences
+  defaultModel: string;
   responseLength: 'short' | 'balanced' | 'detailed';
   creativityLevel: number;
-  // Voice & Audio (mic input only — TTS removed)
+  // Voice & Audio
   voiceInputEnabled: boolean;
+  textToSpeechEnabled: boolean;
+  selectedVoice: string;
+  speechRate: number;
+  
   // Data & History
   autoSaveConversations: boolean;
-  // --- Deprecated (kept optional for backwards-compat with old localStorage) ---
-  defaultModel?: string;
-  textToSpeechEnabled?: boolean;
-  selectedVoice?: string;
-  speechRate?: number;
 }
 
 const defaultSettings: UserSettings = {
@@ -25,9 +25,14 @@ const defaultSettings: UserSettings = {
   profilePicture: '',
   fontSize: 'medium',
   chatDensity: 'comfortable',
+  defaultModel: 'gpt-4',
   responseLength: 'balanced',
   creativityLevel: 50,
   voiceInputEnabled: false,
+  textToSpeechEnabled: false,
+  selectedVoice: '',
+  speechRate: 1,
+  
   autoSaveConversations: true,
 };
 
