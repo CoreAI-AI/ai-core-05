@@ -22,6 +22,7 @@ import FAQ from '@/pages/FAQ';
 import FreeAIChatbot from '@/pages/seo/FreeAIChatbot';
 import AIHomeworkHelper from '@/pages/seo/AIHomeworkHelper';
 import HindiAIAssistant from '@/pages/seo/HindiAIAssistant';
+import Onboarding from '@/pages/Onboarding';
 import NotFound from '@/pages/NotFound';
 
 export const AnimatedRoutes = () => {
@@ -120,6 +121,7 @@ export const AnimatedRoutes = () => {
         <Route path="/terms-and-conditions" element={<PageTransition><TermsAndConditions /></PageTransition>} />
         <Route path="/features" element={<PageTransition><Features /></PageTransition>} />
         <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
+        <Route path="/onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
         <Route path="/free-ai-chatbot" element={<PageTransition><FreeAIChatbot /></PageTransition>} />
         <Route path="/ai-homework-helper" element={<PageTransition><AIHomeworkHelper /></PageTransition>} />
         <Route path="/hindi-ai-assistant" element={<PageTransition><HindiAIAssistant /></PageTransition>} />
