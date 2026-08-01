@@ -84,7 +84,7 @@ export default function Onboarding() {
   const totalPages = 5;
 
   useEffect(() => {
-    track("onboarding_page_viewed", { page });
+    track("onboarding_viewed", { page });
   }, [page]);
 
   const canProceed = useMemo(() => {
