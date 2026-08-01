@@ -8,7 +8,6 @@ import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { IntroExperience } from "@/components/IntroExperience";
-import { OnboardingQuestions } from "@/components/OnboardingQuestions";
 import { TTSProvider } from "@/hooks/useTTSPlayer";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
@@ -19,15 +18,9 @@ const AppContent = () => {
 
 
   const [showIntro, setShowIntro] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const [introSource, setIntroSource] = useState<
     "first_visit" | "login" | "signup" | "manual"
   >("first_visit");
-
-  const maybeShowOnboarding = () => {
-    if (localStorage.getItem("coreai_onboarding_done")) return;
-    setShowOnboarding(true);
-  };
 
   const maybeShowIntro = (
     forceSource?: "first_visit" | "login" | "signup" | "manual"
