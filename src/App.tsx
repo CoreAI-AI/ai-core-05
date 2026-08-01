@@ -8,7 +8,6 @@ import { BrowserRouter } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { IntroExperience } from "@/components/IntroExperience";
-import { IntroExperience } from "@/components/IntroExperience";
 import { OnboardingQuestions } from "@/components/OnboardingQuestions";
 import { TTSProvider } from "@/hooks/useTTSPlayer";
 import { supabase } from "@/integrations/supabase/client";
