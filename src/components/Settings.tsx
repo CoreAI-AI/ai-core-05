@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Upload, User as UserIcon, Monitor, Moon, Sun, Palette, Brain, 
   Volume2, Database, Shield, LogOut, Trash2, Download, History,
-  Type, LayoutGrid, Sparkles, FileText, AlertTriangle, Lock, Fingerprint
+  Type, LayoutGrid, Sparkles, FileText, AlertTriangle
 } from "lucide-react";
 import { UserSettings, useSettings } from "@/hooks/useSettings";
 import { toast } from "sonner";
