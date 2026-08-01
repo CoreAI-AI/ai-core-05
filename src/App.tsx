@@ -16,15 +16,7 @@ import { AnimatePresence } from "framer-motion";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const {
-    isLocked,
-    settings,
-    isSetupMode,
-    setIsSetupMode,
-    enableLock,
-    verifyPin,
-    authenticateWithBiometric,
-  } = useAppLock();
+
 
   const [showIntro, setShowIntro] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
