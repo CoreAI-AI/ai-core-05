@@ -58,12 +58,6 @@ const AppContent = () => {
   const handleIntroComplete = () => {
     setShowIntro(false);
     localStorage.removeItem("coreai_intro_source");
-    setTimeout(maybeShowOnboarding, 250);
-  };
-
-  const handleOnboardingComplete = () => {
-    setShowOnboarding(false);
-    localStorage.setItem("coreai_onboarding_done", "true");
   };
 
   return (
@@ -76,14 +70,8 @@ const AppContent = () => {
             onComplete={handleIntroComplete}
           />
         )}
-
-        {showOnboarding && !showIntro && (
-          <OnboardingQuestions
-            key="onboarding"
-            onComplete={handleOnboardingComplete}
-          />
-        )}
       </AnimatePresence>
+
 
       <BrowserRouter>
         <AnimatedRoutes />
