@@ -69,23 +69,6 @@ const AppContent = () => {
   return (
     <>
       <AnimatePresence mode="wait">
-        {isSetupMode && (
-          <AppLockSetup
-            key="setup"
-            onComplete={enableLock}
-            onCancel={() => setIsSetupMode(false)}
-          />
-        )}
-
-        {isLocked && !isSetupMode && (
-          <AppLockScreen
-            key="lock"
-            onUnlock={verifyPin}
-            onBiometricAuth={authenticateWithBiometric}
-            biometricEnabled={settings.biometricEnabled}
-          />
-        )}
-
         {showIntro && (
           <IntroExperience
             key="intro"
