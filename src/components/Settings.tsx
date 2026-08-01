@@ -31,7 +31,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
-import { useAppLock } from "@/hooks/useAppLock";
 import { AboutSection } from "@/components/AboutSection";
 import { useUsageLimits, DAILY_CHAT_LIMIT, PER_MODE_LIMIT } from "@/hooks/useUsageLimits";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -50,7 +49,6 @@ export const Settings = ({ user }: SettingsProps) => {
   const { theme, setTheme } = useTheme();
   const [localSettings, setLocalSettings] = useState<UserSettings>(settings);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const appLock = useAppLock();
   const { isPremium } = useSubscription();
   const { state: usageState } = useUsageLimits(user?.id, isPremium);
 
