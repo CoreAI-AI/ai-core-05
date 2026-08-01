@@ -31,15 +31,27 @@ export const AnimatedRoutes = () => {
   // Enable swipe-back gesture on mobile
   useSwipeBack({ threshold: 80, edgeWidth: 25 });
 
+  const needsOnboarding = (() => {
+    try {
+      return !localStorage.getItem("coreai_onboarding_done");
+    } catch {
+      return false;
+    }
+  })();
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route
           path="/"
           element={
-            <PageTransition>
-              <Index />
-            </PageTransition>
+            needsOnboarding ? (
+              <Navigate to="/onboarding" replace />
+            ) : (
+              <PageTransition>
+                <Index />
+              </PageTransition>
+            )
           }
         />
         <Route
