@@ -436,11 +436,40 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist: {
+        Row: {
+          country: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string | null
+          use_case: string | null
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name?: string | null
+          use_case?: string | null
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string | null
+          use_case?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_waitlist_count: { Args: never; Returns: number }
+      get_waitlist_position: { Args: { _email: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
