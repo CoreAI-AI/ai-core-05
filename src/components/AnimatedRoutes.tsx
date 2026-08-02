@@ -137,6 +137,8 @@ export const AnimatedRoutes = () => {
         <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
         <Route path="/onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
         <Route path="/free-ai-chatbot" element={<PageTransition><FreeAIChatbot /></PageTransition>} />
+        <Route path="/waitlist" element={<PageTransition><Waitlist /></PageTransition>} />
+        <Route path="/admin/waitlist" element={<PageTransition><AdminWaitlist /></PageTransition>} />
         <Route path="/ai-homework-helper" element={<PageTransition><AIHomeworkHelper /></PageTransition>} />
         <Route path="/hindi-ai-assistant" element={<PageTransition><HindiAIAssistant /></PageTransition>} />
         <Route
