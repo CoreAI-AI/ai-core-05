@@ -40,6 +40,8 @@ const AppContent = () => {
 
 
   useEffect(() => {
+    // Public marketing/waitlist routes never show the app intro overlay.
+    if (window.location.pathname.startsWith("/waitlist")) return;
     // Allow ?intro=1 to force-replay for testing.
     const params = new URLSearchParams(window.location.search);
     const force = params.get("intro") === "1" ? "manual" : undefined;
