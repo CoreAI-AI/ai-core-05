@@ -23,6 +23,8 @@ import FreeAIChatbot from '@/pages/seo/FreeAIChatbot';
 import AIHomeworkHelper from '@/pages/seo/AIHomeworkHelper';
 import HindiAIAssistant from '@/pages/seo/HindiAIAssistant';
 import Onboarding from '@/pages/Onboarding';
+import Waitlist from '@/pages/Waitlist';
+import AdminWaitlist from '@/pages/AdminWaitlist';
 import NotFound from '@/pages/NotFound';
 
 export const AnimatedRoutes = () => {
