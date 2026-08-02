@@ -874,3 +874,46 @@
   }
 }
 
+
+/* ── CoreAI Waitlist scope: white + black theme with green accent (#00A651) ── */
+.waitlist-scope {
+  --background: 0 0% 100%;
+  --foreground: 0 0% 6%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 6%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 6%;
+  --primary: 149 100% 33%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 6%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 40%;
+  --accent: 149 100% 96%;
+  --accent-foreground: 149 100% 24%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 149 100% 33%;
+  --radius: 1rem;
+}
+.dark .waitlist-scope {
+  --background: 0 0% 4%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 7%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 7%;
+  --popover-foreground: 0 0% 98%;
+  --secondary: 0 0% 12%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 12%;
+  --muted-foreground: 0 0% 65%;
+  --accent: 149 60% 12%;
+  --accent-foreground: 149 100% 70%;
+  --border: 0 0% 16%;
+  --input: 0 0% 16%;
+}
+.waitlist-glass {
+  background: hsl(var(--background) / 0.72);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+}
