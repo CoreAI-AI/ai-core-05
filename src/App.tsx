@@ -11,11 +11,14 @@ import { IntroExperience } from "@/components/IntroExperience";
 import { TTSProvider } from "@/hooks/useTTSPlayer";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
+import { AccessCodeGate, hasAccessGranted } from "@/components/AccessCodeGate";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
 
+  const isPublicRoute = window.location.pathname.startsWith("/waitlist");
+  const [locked, setLocked] = useState(() => !isPublicRoute && !hasAccessGranted());
 
   const [showIntro, setShowIntro] = useState(false);
   const [introSource, setIntroSource] = useState<
