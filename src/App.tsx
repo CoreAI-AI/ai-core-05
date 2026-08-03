@@ -11,11 +11,14 @@ import { IntroExperience } from "@/components/IntroExperience";
 import { TTSProvider } from "@/hooks/useTTSPlayer";
 import { supabase } from "@/integrations/supabase/client";
 import { AnimatePresence } from "framer-motion";
+import { AccessCodeGate, hasAccessGranted } from "@/components/AccessCodeGate";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
 
+  const isPublicRoute = window.location.pathname.startsWith("/waitlist");
+  const [locked, setLocked] = useState(() => !isPublicRoute && !hasAccessGranted());
 
   const [showIntro, setShowIntro] = useState(false);
   const [introSource, setIntroSource] = useState<
@@ -40,6 +43,7 @@ const AppContent = () => {
 
 
   useEffect(() => {
+    if (locked) return;
     // Public marketing/waitlist routes never show the app intro overlay.
     if (window.location.pathname.startsWith("/waitlist")) return;
     // Allow ?intro=1 to force-replay for testing.
@@ -47,7 +51,7 @@ const AppContent = () => {
     const force = params.get("intro") === "1" ? "manual" : undefined;
     const t = setTimeout(() => maybeShowIntro(force as any), 600);
     return () => clearTimeout(t);
-  }, []);
+  }, [locked]);
 
 
   const handleIntroComplete = () => {
@@ -58,7 +62,11 @@ const AppContent = () => {
   return (
     <>
       <AnimatePresence mode="wait">
-        {showIntro && (
+        {locked && <AccessCodeGate key="gate" onUnlock={() => setLocked(false)} />}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {!locked && showIntro && (
           <IntroExperience
             key="intro"
             source={introSource}
@@ -66,6 +74,7 @@ const AppContent = () => {
           />
         )}
       </AnimatePresence>
+
 
 
       <BrowserRouter>
