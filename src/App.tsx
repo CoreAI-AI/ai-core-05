@@ -43,6 +43,7 @@ const AppContent = () => {
 
 
   useEffect(() => {
+    if (locked) return;
     // Public marketing/waitlist routes never show the app intro overlay.
     if (window.location.pathname.startsWith("/waitlist")) return;
     // Allow ?intro=1 to force-replay for testing.
@@ -50,7 +51,7 @@ const AppContent = () => {
     const force = params.get("intro") === "1" ? "manual" : undefined;
     const t = setTimeout(() => maybeShowIntro(force as any), 600);
     return () => clearTimeout(t);
-  }, []);
+  }, [locked]);
 
 
   const handleIntroComplete = () => {
@@ -61,7 +62,11 @@ const AppContent = () => {
   return (
     <>
       <AnimatePresence mode="wait">
-        {showIntro && (
+        {locked && <AccessCodeGate key="gate" onUnlock={() => setLocked(false)} />}
+      </AnimatePresence>
+
+      <AnimatePresence mode="wait">
+        {!locked && showIntro && (
           <IntroExperience
             key="intro"
             source={introSource}
@@ -69,6 +74,7 @@ const AppContent = () => {
           />
         )}
       </AnimatePresence>
+
 
 
       <BrowserRouter>
