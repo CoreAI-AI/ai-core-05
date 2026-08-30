@@ -1,0 +1,10 @@
+REVOKE EXECUTE ON FUNCTION public.has_role(uuid, app_role) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.is_group_admin(uuid, uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.is_group_member(uuid, uuid) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_waitlist_position(text) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION public.get_waitlist_count() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_waitlist_count() TO anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.get_waitlist_position(text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.has_role(uuid, app_role) TO service_role;
+GRANT EXECUTE ON FUNCTION public.is_group_admin(uuid, uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.is_group_member(uuid, uuid) TO service_role;
