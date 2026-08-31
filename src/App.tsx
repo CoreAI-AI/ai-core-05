@@ -66,7 +66,7 @@ const AppContent = () => {
   return (
     <>
       <AnimatePresence mode="wait">
-        {locked && <AccessCodeGate key="gate" onUnlock={() => setLocked(false)} />}
+        {locked && <AccessCodeGate key="gate" onUnlock={handleUnlock} />}
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
