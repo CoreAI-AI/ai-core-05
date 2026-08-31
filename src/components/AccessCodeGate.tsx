@@ -24,9 +24,6 @@ export const AccessCodeGate = ({ onUnlock }: AccessCodeGateProps) => {
     if (code.toLowerCase() === ACCESS_CODE) {
       setError(false);
       setUnlocking(true);
-      try {
-        localStorage.setItem(STORAGE_KEY, "1");
-      } catch {}
       setTimeout(onUnlock, 1100);
     } else {
       setError(true);
