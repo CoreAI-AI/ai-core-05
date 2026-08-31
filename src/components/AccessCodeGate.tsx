@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Lock, ShieldCheck, Loader2 } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
 
-const ACCESS_CODE = "premcf";
-const STORAGE_KEY = "coreai_access_granted";
+const ACCESS_CODE = "prempp";
 const LENGTH = 6;
 
 interface AccessCodeGateProps {
