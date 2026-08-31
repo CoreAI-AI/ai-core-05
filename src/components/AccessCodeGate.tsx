@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Lock, ShieldCheck, Loader2 } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
 
-const ACCESS_CODE = "premcf";
-const STORAGE_KEY = "coreai_access_granted";
+const ACCESS_CODE = "prempp";
 const LENGTH = 6;
 
 interface AccessCodeGateProps {
@@ -25,9 +24,6 @@ export const AccessCodeGate = ({ onUnlock }: AccessCodeGateProps) => {
     if (code.toLowerCase() === ACCESS_CODE) {
       setError(false);
       setUnlocking(true);
-      try {
-        localStorage.setItem(STORAGE_KEY, "1");
-      } catch {}
       setTimeout(onUnlock, 1100);
     } else {
       setError(true);
@@ -196,10 +192,5 @@ export const AccessCodeGate = ({ onUnlock }: AccessCodeGateProps) => {
   );
 };
 
-export const hasAccessGranted = () => {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === "1";
-  } catch {
-    return true;
-  }
-};
+// Access is never persisted — the code must be entered on every visit.
+export const hasAccessGranted = () => false;

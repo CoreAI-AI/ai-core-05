@@ -28,15 +28,19 @@ const AppContent = () => {
   const maybeShowIntro = (
     forceSource?: "first_visit" | "login" | "signup" | "manual"
   ) => {
-    // Intro plays ONLY the very first time this browser opens CoreAI,
-    // OR when someone (dev/user) explicitly forces it via `?intro=1`.
-    const seen = localStorage.getItem("coreai_intro_seen");
-    if (seen && !forceSource) return;
-
+    // Intro plays every time access is unlocked with the code.
     setIntroSource(forceSource || "first_visit");
     setShowIntro(true);
-    // Mark seen immediately so even a mid-intro reload never replays it.
-    try { localStorage.setItem("coreai_intro_seen", "1"); } catch {}
+  };
+
+  // Every successful code entry restarts the full first-run experience.
+  const handleUnlock = () => {
+    try {
+      localStorage.removeItem("coreai_intro_seen");
+      localStorage.removeItem("coreai_onboarding_done");
+      sessionStorage.removeItem("splash_shown");
+    } catch {}
+    setLocked(false);
   };
 
 
@@ -62,7 +66,7 @@ const AppContent = () => {
   return (
     <>
       <AnimatePresence mode="wait">
-        {locked && <AccessCodeGate key="gate" onUnlock={() => setLocked(false)} />}
+        {locked && <AccessCodeGate key="gate" onUnlock={handleUnlock} />}
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
