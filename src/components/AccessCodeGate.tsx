@@ -192,10 +192,5 @@ export const AccessCodeGate = ({ onUnlock }: AccessCodeGateProps) => {
   );
 };
 
-export const hasAccessGranted = () => {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === "1";
-  } catch {
-    return true;
-  }
-};
+// Access is never persisted — the code must be entered on every visit.
+export const hasAccessGranted = () => false;
