@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { PageTransition } from './PageTransition';
 import { useSwipeBack } from '@/hooks/useSwipeBack';
@@ -22,7 +22,6 @@ import FAQ from '@/pages/FAQ';
 import FreeAIChatbot from '@/pages/seo/FreeAIChatbot';
 import AIHomeworkHelper from '@/pages/seo/AIHomeworkHelper';
 import HindiAIAssistant from '@/pages/seo/HindiAIAssistant';
-import Onboarding from '@/pages/Onboarding';
 import Waitlist from '@/pages/Waitlist';
 import AdminWaitlist from '@/pages/AdminWaitlist';
 import NotFound from '@/pages/NotFound';
@@ -33,27 +32,15 @@ export const AnimatedRoutes = () => {
   // Enable swipe-back gesture on mobile
   useSwipeBack({ threshold: 80, edgeWidth: 25 });
 
-  const needsOnboarding = (() => {
-    try {
-      return !localStorage.getItem("coreai_onboarding_done");
-    } catch {
-      return false;
-    }
-  })();
-
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route
           path="/"
           element={
-            needsOnboarding ? (
-              <Navigate to="/onboarding" replace />
-            ) : (
-              <PageTransition>
-                <Index />
-              </PageTransition>
-            )
+            <PageTransition>
+              <Index />
+            </PageTransition>
           }
         />
         <Route
@@ -135,7 +122,6 @@ export const AnimatedRoutes = () => {
         <Route path="/terms-and-conditions" element={<PageTransition><TermsAndConditions /></PageTransition>} />
         <Route path="/features" element={<PageTransition><Features /></PageTransition>} />
         <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
-        <Route path="/onboarding" element={<PageTransition><Onboarding /></PageTransition>} />
         <Route path="/free-ai-chatbot" element={<PageTransition><FreeAIChatbot /></PageTransition>} />
         <Route path="/waitlist" element={<PageTransition><Waitlist /></PageTransition>} />
         <Route path="/admin/waitlist" element={<PageTransition><AdminWaitlist /></PageTransition>} />
