@@ -5,7 +5,6 @@ import { Auth } from "@/components/Auth";
 import { Settings } from "@/components/Settings";
 import { QuickActionCards } from "@/components/QuickActionCards";
 import { ScrollToBottom } from "@/components/ScrollToBottom";
-import { SplashScreen } from "@/components/SplashScreen";
 import { PageSkeleton } from "@/components/SkeletonLoader";
 
 import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
@@ -89,10 +88,6 @@ const Index = () => {
   const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework'>('normal');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 768);
   const [showQuickActions, setShowQuickActions] = useState(true);
-  const [showSplash, setShowSplash] = useState(() => {
-    const shown = sessionStorage.getItem('splash_shown');
-    return !shown;
-  });
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
@@ -241,11 +236,6 @@ const Index = () => {
       handleSendMessage(actionPrompts[action]);
     }
   };
-
-  // Show splash screen on initial load
-  if (showSplash) {
-    return <SplashScreen onComplete={() => { setShowSplash(false); sessionStorage.setItem('splash_shown', '1'); }} />;
-  }
 
   // If loading, show skeleton
   if (authLoading) {
