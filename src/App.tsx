@@ -11,13 +11,14 @@ import { TTSProvider } from "@/hooks/useTTSPlayer";
 import { AnimatePresence } from "framer-motion";
 import { AccessCodeGate } from "@/components/AccessCodeGate";
 import { SplashScreen } from "@/components/SplashScreen";
+import { TestingFeedback } from "@/components/TestingFeedback";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
   const isPublicRoute = window.location.pathname.startsWith("/waitlist");
-  // Launch flow: splash animation -> access code -> CoreAI home
-  const [stage, setStage] = useState<"splash" | "code" | "app">(
+  // Launch flow: splash animation -> access code -> testing & feedback -> CoreAI home
+  const [stage, setStage] = useState<"splash" | "code" | "testing" | "app">(
     isPublicRoute ? "app" : "splash"
   );
 
@@ -28,9 +29,13 @@ const AppContent = () => {
           <SplashScreen key="splash" onComplete={() => setStage("code")} />
         )}
         {stage === "code" && (
-          <AccessCodeGate key="gate" onUnlock={() => setStage("app")} />
+          <AccessCodeGate key="gate" onUnlock={() => setStage("testing")} />
+        )}
+        {stage === "testing" && (
+          <TestingFeedback key="testing" onContinue={() => setStage("app")} />
         )}
       </AnimatePresence>
+
 
       {stage === "app" && (
         <BrowserRouter>
