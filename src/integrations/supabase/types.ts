@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      app_feedback: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          message: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          message: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          message?: string
+        }
+        Relationships: []
+      }
       chats: {
         Row: {
           created_at: string
