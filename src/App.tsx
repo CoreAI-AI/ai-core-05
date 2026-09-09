@@ -32,9 +32,11 @@ const AppContent = () => {
         )}
       </AnimatePresence>
 
-      <BrowserRouter>
-        <AnimatedRoutes />
-      </BrowserRouter>
+      {stage === "app" && (
+        <BrowserRouter>
+          <AnimatedRoutes />
+        </BrowserRouter>
+      )}
     </>
   );
 };
