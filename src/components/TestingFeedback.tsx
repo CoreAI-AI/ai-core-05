@@ -74,17 +74,18 @@ export const TestingFeedback = ({ onContinue }: TestingFeedbackProps) => {
           "radial-gradient(120% 90% at 20% 0%, #dfe3ff 0%, transparent 60%), radial-gradient(100% 80% at 90% 20%, #d6f3ff 0%, transparent 55%), radial-gradient(120% 100% at 50% 110%, #e6e2ff 0%, transparent 60%), #eef1fd",
       }}
     >
-      <div className="flex min-h-full items-start justify-center p-4 sm:items-center sm:p-6">
+      <div className="flex min-h-full items-start justify-center p-4 sm:items-center sm:p-6 lg:p-10">
         <motion.div
           initial={{ opacity: 0, y: 24, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-[560px] rounded-[2.25rem] border border-white/60 bg-white/50 p-5 shadow-[0_30px_80px_-30px_rgba(80,90,180,0.55)] backdrop-blur-2xl sm:p-8"
+          className="w-full max-w-[560px] rounded-[2.25rem] border border-white/60 bg-white/50 p-5 shadow-[0_30px_80px_-30px_rgba(80,90,180,0.55)] backdrop-blur-2xl sm:p-8 lg:grid lg:max-w-[1120px] lg:grid-cols-[1fr_1.05fr] lg:items-center lg:gap-14 lg:p-12 2xl:max-w-[1340px]"
         >
+          <div className="lg:order-1">
           {/* Branding */}
           <div className="flex items-center gap-2.5">
-            <img src={coreaiLogo} alt="CoreAI logo" className="h-10 w-10 rounded-full shadow-md" />
-            <span className="text-2xl font-bold tracking-tight text-slate-800">
+            <img src={coreaiLogo} alt="CoreAI logo" className="h-10 w-10 rounded-full shadow-md lg:h-14 lg:w-14" />
+            <span className="text-2xl font-bold tracking-tight text-slate-800 lg:text-4xl">
               Core
               <span className="bg-gradient-to-r from-cyan-500 to-emerald-500 bg-clip-text text-transparent">
                 AI
@@ -95,27 +96,29 @@ export const TestingFeedback = ({ onContinue }: TestingFeedbackProps) => {
           <motion.img
             src={heroArt}
             alt="CoreAI 3D assistant illustration"
-            className="mx-auto mt-1 w-[62%] max-w-[240px] drop-shadow-[0_20px_30px_rgba(110,110,200,0.28)]"
+            className="mx-auto mt-1 w-[62%] max-w-[240px] drop-shadow-[0_20px_30px_rgba(110,110,200,0.28)] lg:mt-6 lg:w-full lg:max-w-[420px] 2xl:max-w-[500px]"
             animate={{ y: [0, -8, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           />
 
-          <div className="text-center">
-            <h1 className="text-[1.5rem] font-extrabold leading-tight tracking-tight text-slate-800 sm:text-[1.85rem]">
+          <div className="text-center lg:mt-4 lg:text-left">
+            <h1 className="text-[1.5rem] font-extrabold leading-tight tracking-tight text-slate-800 sm:text-[1.85rem] lg:text-[2.5rem] 2xl:text-[2.9rem]">
               🚀 CoreAI is Currently
               <br />
               <span className="bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
                 in Testing
               </span>
             </h1>
-            <p className="mx-auto mt-2 max-w-[420px] text-sm text-slate-500 sm:text-base">
+            <p className="mx-auto mt-2 max-w-[420px] text-sm text-slate-500 sm:text-base lg:mx-0 lg:max-w-none lg:text-lg">
               CoreAI is currently being tested. Try all features and help us improve by sharing your
               feedback.
             </p>
           </div>
+          </div>
 
+          <div className="lg:order-2">
           {/* Feedback card */}
-          <div className="mt-5 rounded-3xl border border-white/70 bg-white/70 p-4 shadow-[0_18px_40px_-28px_rgba(80,90,180,0.7)]">
+          <div className="mt-5 rounded-3xl border border-white/70 bg-white/70 p-4 shadow-[0_18px_40px_-28px_rgba(80,90,180,0.7)] lg:mt-0 lg:p-6">
             <div className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100">
                 <MessageSquare className="h-4.5 w-4.5 text-indigo-500" />
@@ -234,10 +237,11 @@ export const TestingFeedback = ({ onContinue }: TestingFeedbackProps) => {
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={onContinue}
-            className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-slate-900 text-base font-semibold text-white shadow-[0_18px_36px_-18px_rgba(15,23,42,0.9)]"
+            className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-slate-900 text-base font-semibold text-white shadow-[0_18px_36px_-18px_rgba(15,23,42,0.9)] lg:h-16 lg:text-lg"
           >
             <Rocket className="h-5 w-5" /> Continue to CoreAI
           </motion.button>
+          </div>
         </motion.div>
       </div>
     </motion.div>
