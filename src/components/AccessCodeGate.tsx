@@ -168,7 +168,7 @@ export const AccessCodeGate = ({ onUnlock }: AccessCodeGateProps) => {
                 maxLength={LENGTH}
                 aria-label={`Access code character ${i + 1}`}
                 className={[
-                  "h-[3.1rem] w-[2.6rem] rounded-2xl border bg-white/85 text-center text-xl font-bold uppercase text-slate-700 outline-none transition-all duration-200 sm:h-14 sm:w-12 sm:text-2xl",
+                  "h-[3.1rem] w-[2.6rem] rounded-2xl border bg-white/85 text-center text-xl font-bold uppercase text-slate-700 outline-none transition-all duration-200 sm:h-14 sm:w-12 sm:text-2xl lg:h-16 lg:w-14 lg:text-3xl",
                   error
                     ? "border-rose-300 shadow-[0_0_0_3px_rgba(244,114,182,0.18)]"
                     : "border-white shadow-[0_8px_18px_-10px_rgba(80,90,180,0.6)] focus:border-cyan-400 focus:shadow-[0_0_0_4px_rgba(56,189,248,0.2)]",
@@ -183,7 +183,7 @@ export const AccessCodeGate = ({ onUnlock }: AccessCodeGateProps) => {
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="mt-3 text-center text-sm font-medium text-rose-500"
+                className="mt-3 text-center text-sm font-medium text-rose-500 lg:text-left"
               >
                 Invalid Access Code — please try again.
               </motion.p>
@@ -196,7 +196,7 @@ export const AccessCodeGate = ({ onUnlock }: AccessCodeGateProps) => {
             onClick={submit}
             disabled={!filled || loading}
             className={[
-              "mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-full text-base font-semibold text-white transition-all duration-300",
+              "mt-6 flex h-14 w-full items-center justify-center gap-2 rounded-full text-base font-semibold text-white transition-all duration-300 lg:h-16 lg:max-w-[420px] lg:text-lg",
               filled
                 ? "bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-400 shadow-[0_16px_34px_-14px_rgba(20,184,166,0.9)]"
                 : "cursor-not-allowed bg-gradient-to-r from-cyan-500/40 to-emerald-400/40",
@@ -212,6 +212,7 @@ export const AccessCodeGate = ({ onUnlock }: AccessCodeGateProps) => {
               </>
             )}
           </motion.button>
+          </div>
         </motion.div>
       </div>
     </motion.div>
