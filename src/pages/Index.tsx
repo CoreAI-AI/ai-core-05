@@ -563,6 +563,7 @@ const Index = () => {
           "👑 Aap already **CoreAI Premium** member ho — aapka subscription **active** hai!\n\nAapke paas already unlocked hai:\n\n• ⚡ Unlimited chats & image generation\n• 🧠 Advanced models — Chat-Bot, Core-AI, Chat-Pro\n• 🔍 Deep Research mode (unlimited)\n• 💻 Code Assistant (unlimited)\n• 🎯 Priority response speed\n• 🚫 Ad-free premium experience\n\nEnjoy karo — aapka paisa sahi jagah invest hua hai. 💎",
           false
         );
+        setTimeout(() => setShowManageSubscription(true), 400);
         return;
       }
       await addMessage(
