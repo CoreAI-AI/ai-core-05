@@ -95,25 +95,27 @@ export const AccessCodeGate = ({ onUnlock }: AccessCodeGateProps) => {
           "radial-gradient(120% 90% at 20% 0%, #dfe3ff 0%, transparent 60%), radial-gradient(100% 80% at 90% 20%, #d6f3ff 0%, transparent 55%), radial-gradient(120% 100% at 50% 110%, #e6e2ff 0%, transparent 60%), #eef1fd",
       }}
     >
-      <div className="flex min-h-full items-center justify-center p-4 sm:p-6">
+      <div className="flex min-h-full items-center justify-center p-4 sm:p-6 lg:p-10">
         <motion.div
           initial={{ opacity: 0, y: 24, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="w-full max-w-[440px] rounded-[2.25rem] border border-white/60 bg-white/50 p-5 shadow-[0_30px_80px_-30px_rgba(80,90,180,0.55)] backdrop-blur-2xl sm:p-8"
+          className="w-full max-w-[440px] rounded-[2.25rem] border border-white/60 bg-white/50 p-5 shadow-[0_30px_80px_-30px_rgba(80,90,180,0.55)] backdrop-blur-2xl sm:p-8 lg:grid lg:max-w-[1040px] lg:grid-cols-[1.05fr_1fr] lg:items-center lg:gap-14 lg:p-12 xl:max-w-[1180px] 2xl:max-w-[1320px]"
         >
+          {/* Left / brand + hero */}
+          <div className="lg:order-1">
           {/* Branding */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <img src={coreaiLogo} alt="CoreAI logo" className="h-10 w-10 rounded-full shadow-md" />
-              <span className="text-2xl font-bold tracking-tight text-slate-800">
+              <img src={coreaiLogo} alt="CoreAI logo" className="h-10 w-10 rounded-full shadow-md lg:h-14 lg:w-14" />
+              <span className="text-2xl font-bold tracking-tight text-slate-800 lg:text-4xl">
                 Core
                 <span className="bg-gradient-to-r from-cyan-500 to-emerald-500 bg-clip-text text-transparent">
                   AI
                 </span>
               </span>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/70 bg-white/80 shadow-sm">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/70 bg-white/80 shadow-sm lg:hidden">
               <ShieldCheck className="h-5 w-5 text-indigo-500" />
             </div>
           </div>
@@ -122,26 +124,32 @@ export const AccessCodeGate = ({ onUnlock }: AccessCodeGateProps) => {
           <motion.img
             src={heroArt}
             alt="CoreAI 3D assistant illustration"
-            className="mx-auto mt-2 w-[72%] max-w-[260px] drop-shadow-[0_20px_30px_rgba(110,110,200,0.28)]"
+            className="mx-auto mt-2 w-[72%] max-w-[260px] drop-shadow-[0_20px_30px_rgba(110,110,200,0.28)] lg:mt-6 lg:w-full lg:max-w-[460px] 2xl:max-w-[540px]"
             animate={{ y: [0, -8, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
           />
+          </div>
 
+          {/* Right / form */}
+          <div className="lg:order-2">
           {/* Heading */}
-          <div className="mt-1 text-center">
-            <h1 className="text-[1.55rem] font-extrabold leading-tight tracking-tight text-slate-800 sm:text-[1.9rem]">
+          <div className="mt-1 text-center lg:mt-0 lg:text-left">
+            <span className="mb-4 hidden h-12 w-12 items-center justify-center rounded-2xl border border-white/70 bg-white/80 shadow-sm lg:inline-flex">
+              <ShieldCheck className="h-6 w-6 text-indigo-500" />
+            </span>
+            <h1 className="text-[1.55rem] font-extrabold leading-tight tracking-tight text-slate-800 sm:text-[1.9rem] lg:text-[2.6rem] 2xl:text-[3rem]">
               Enter Your
               <br />
               <span className="bg-gradient-to-r from-blue-600 via-cyan-500 to-emerald-500 bg-clip-text text-transparent">
                 6-Character Access Code
               </span>
             </h1>
-            <p className="mt-1.5 text-sm text-slate-500">Your secure access to CoreAI</p>
+            <p className="mt-1.5 text-sm text-slate-500 lg:text-lg">Your secure access to CoreAI</p>
           </div>
 
           {/* Inputs */}
           <motion.div
-            className="mt-6 flex items-center justify-center gap-1.5 sm:gap-2.5"
+            className="mt-6 flex items-center justify-center gap-1.5 sm:gap-2.5 lg:justify-start lg:gap-3"
             animate={error ? { x: [0, -10, 9, -6, 4, 0] } : { x: 0 }}
             transition={{ duration: 0.45 }}
           >
