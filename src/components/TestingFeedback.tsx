@@ -237,10 +237,11 @@ export const TestingFeedback = ({ onContinue }: TestingFeedbackProps) => {
           <motion.button
             whileTap={{ scale: 0.97 }}
             onClick={onContinue}
-            className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-slate-900 text-base font-semibold text-white shadow-[0_18px_36px_-18px_rgba(15,23,42,0.9)]"
+            className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-full bg-slate-900 text-base font-semibold text-white shadow-[0_18px_36px_-18px_rgba(15,23,42,0.9)] lg:h-16 lg:text-lg"
           >
             <Rocket className="h-5 w-5" /> Continue to CoreAI
           </motion.button>
+          </div>
         </motion.div>
       </div>
     </motion.div>
