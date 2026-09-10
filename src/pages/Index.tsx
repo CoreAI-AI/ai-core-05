@@ -560,7 +560,7 @@ const Index = () => {
       if (isPremium) {
         await addMessage(
           chatToUse.id,
-          "👑 Aap already **CoreAI Premium** member ho — aapka subscription **active** hai!\n\nAapke paas already unlocked hai:\n\n• ⚡ Unlimited chats & image generation\n• 🧠 Advanced models — Chat-Bot, Core-AI, Chat-Pro\n• 🔍 Deep Research mode (unlimited)\n• 💻 Code Assistant (unlimited)\n• 🎯 Priority response speed\n• 🚫 Ad-free premium experience\n\nEnjoy karo — aapka paisa sahi jagah invest hua hai. 💎",
+          "👑 Aap already **CoreAI Premium** member ho — aapka subscription **active** hai!\n\nAapke paas already unlocked hai:\n\n• ⚡ Unlimited chats & image generation\n• 🧠 Advanced models — Chat-Bot, Core-AI, Chat-Pro\n• 🔍 Deep Research mode (unlimited)\n• 💻 Code Assistant (unlimited)\n• 🎯 Priority response speed\n• 🚫 Ad-free premium experience\n\nEnjoy karo — aapka paisa sahi jagah invest hua hai. 💎\n\nNeeche **Manage Subscription** khul raha hai — waha se aap plan details dekh sakte ho, purchase restore kar sakte ho ya subscription cancel kar sakte ho.",
           false
         );
         setTimeout(() => setShowManageSubscription(true), 400);
