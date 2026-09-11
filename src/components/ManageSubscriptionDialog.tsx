@@ -55,16 +55,8 @@ export const ManageSubscriptionDialog = ({
   };
 
   const handleRestore = () => {
-    // Simulated restore — re-activate premium if a plan is remembered
-    if (plan) {
-      activatePremium();
-      track("premium_purchase_restored", { plan: plan?.id, source: "local" });
-      toast.success("Purchase restored — Premium re-activated 👑");
-      onOpenChange(false);
-    } else {
-      track("premium_purchase_restored", { restored: false });
-      toast.info("No previous purchase found on this device.");
-    }
+    track("premium_purchase_restored", { restored: false });
+    toast.info("Restore is unavailable until online payments launch. Please use a valid redeem code.");
   };
 
   return (

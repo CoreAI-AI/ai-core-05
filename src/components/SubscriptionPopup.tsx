@@ -2,11 +2,10 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Check, Bot, Brain, Zap, Sparkles, Settings2 } from "lucide-react";
+import { Check, Bot, Brain, Zap } from "lucide-react";
 import { PaymentMethodSelector } from "@/components/PaymentMethodSelector";
 import { PricingPlans, Plan } from "@/components/PricingPlans";
 import { useSubscription } from "@/hooks/useSubscription";
-import { ManageSubscriptionDialog } from "@/components/ManageSubscriptionDialog";
 import { track } from "@/lib/analytics";
 import premiumLogo from "@/assets/coreai-premium-logo.png";
 
@@ -25,7 +24,6 @@ const premiumModels = [
 export const SubscriptionPopup = ({ open, onOpenChange, onUpgrade }: SubscriptionPopupProps) => {
   const [showPayment, setShowPayment] = useState(false);
   const { isPremium } = useSubscription();
-  const [showManage, setShowManage] = useState(false);
 
   useEffect(() => {
     if (open) track("premium_popup_opened", { premium: isPremium });
@@ -43,58 +41,16 @@ export const SubscriptionPopup = ({ open, onOpenChange, onUpgrade }: Subscriptio
     setShowPayment(true);
   };
 
-  // Already Premium — celebrate, don't upsell
-  if (isPremium) {
-    return (
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-[95vw] sm:max-w-md p-6 text-center overflow-hidden">
-          <motion.div
-            initial={{ scale: 0.7, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 200, damping: 18 }}
-            className="mx-auto"
-          >
-            <img
-              src={premiumLogo}
-              alt="CoreAI Premium"
-              width={160}
-              height={160}
-              className="w-40 h-40 mx-auto drop-shadow-[0_0_35px_rgba(168,85,247,0.55)]"
-            />
-          </motion.div>
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-purple-500 bg-clip-text text-transparent">
-              You're a Premium Member 👑
-            </DialogTitle>
-          </DialogHeader>
-          <p className="text-sm text-muted-foreground -mt-1">
-            Aapka subscription active hai. Unlimited chats, advanced models, image generation & priority speed — sab unlocked.
-          </p>
-          <div className="grid grid-cols-3 gap-2 pt-2">
-            {premiumModels.map((m) => (
-              <div key={m.name} className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/50 border border-border">
-                <m.icon className={`w-5 h-5 ${m.color}`} />
-                <span className="text-[10px] font-semibold">{m.name}</span>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col gap-2 mt-3">
-            <Button
-              variant="outline"
-              onClick={() => { onOpenChange(false); setShowManage(true); }}
-              className="w-full"
-            >
-              <Settings2 className="w-4 h-4 mr-1.5" /> Manage Subscription
-            </Button>
-            <Button onClick={() => onOpenChange(false)} className="w-full gradient-bg text-white">
-              <Sparkles className="w-4 h-4 mr-1.5" /> Continue with Premium
-            </Button>
-          </div>
-        </DialogContent>
-        <ManageSubscriptionDialog open={showManage} onOpenChange={setShowManage} />
-      </Dialog>
-    );
-  }
+  const currentPlan = (() => {
+    if (!isPremium) return "free" as const;
+    try {
+      const saved = localStorage.getItem("coreai_selected_plan");
+      const id = saved ? JSON.parse(saved)?.id : null;
+      return (["monthly", "quarterly", "yearly"].includes(id) ? id : "free") as "free" | "monthly" | "quarterly" | "yearly";
+    } catch {
+      return "free" as const;
+    }
+  })();
 
   return (
     <>
@@ -115,7 +71,7 @@ export const SubscriptionPopup = ({ open, onOpenChange, onUpgrade }: Subscriptio
                   CoreAI Premium
                 </DialogTitle>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Pick a plan that fits how you build. Cancel anytime.
+                  {isPremium ? "Your current plan is active. You can compare all plans anytime." : "Pick the plan that fits you best."}
                 </p>
               </div>
             </div>
@@ -144,15 +100,14 @@ export const SubscriptionPopup = ({ open, onOpenChange, onUpgrade }: Subscriptio
 
             {/* Pricing grid */}
             <div className="pt-3">
-              <PricingPlans onSelect={handleSelectPlan} currentPlan="free" />
+              <PricingPlans onSelect={handleSelectPlan} currentPlan={currentPlan} />
             </div>
 
             {/* Trust row */}
             <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-muted-foreground pt-2 border-t border-border">
-              <span className="inline-flex items-center gap-1"><Check className="w-3 h-3 text-primary" /> Secure payments</span>
-              <span className="inline-flex items-center gap-1"><Check className="w-3 h-3 text-primary" /> Instant activation</span>
-              <span className="inline-flex items-center gap-1"><Check className="w-3 h-3 text-primary" /> Cancel anytime</span>
-              <span className="inline-flex items-center gap-1"><Check className="w-3 h-3 text-primary" /> Redeem code supported</span>
+              <span className="inline-flex items-center gap-1"><Check className="w-3 h-3 text-primary" /> Redeem-code activation only</span>
+              <span className="inline-flex items-center gap-1"><Check className="w-3 h-3 text-primary" /> UPI coming soon</span>
+              <span className="inline-flex items-center gap-1"><Check className="w-3 h-3 text-primary" /> Card payments coming soon</span>
             </div>
 
             <div className="flex justify-center">
