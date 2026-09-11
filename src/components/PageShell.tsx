@@ -35,6 +35,7 @@ export const PageShell = ({ title, description, children }: PageShellProps) => {
           </Button>
           <nav className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
             <Link to="/features" className="hover:text-foreground">Features</Link>
+            <Link to="/plans" className="hover:text-foreground">Plans</Link>
             <Link to="/about" className="hover:text-foreground">About</Link>
             <Link to="/faq" className="hover:text-foreground">FAQ</Link>
             <Link to="/contact" className="hover:text-foreground">Contact</Link>

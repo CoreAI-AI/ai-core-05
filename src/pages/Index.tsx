@@ -558,12 +558,17 @@ const Index = () => {
     // ---- INTENT: user asking about premium / subscription ----
     if (detectSubscriptionIntent(content)) {
       if (isPremium) {
+        let savedPlanName = "Premium";
+        try {
+          const savedPlan = localStorage.getItem("coreai_selected_plan");
+          if (savedPlan) savedPlanName = JSON.parse(savedPlan)?.name || "Premium";
+        } catch {}
         await addMessage(
           chatToUse.id,
-          "👑 Aap already **CoreAI Premium** member ho — aapka subscription **active** hai!\n\nAapke paas already unlocked hai:\n\n• ⚡ Unlimited chats & image generation\n• 🧠 Advanced models — Chat-Bot, Core-AI, Chat-Pro\n• 🔍 Deep Research mode (unlimited)\n• 💻 Code Assistant (unlimited)\n• 🎯 Priority response speed\n• 🚫 Ad-free premium experience\n\nEnjoy karo — aapka paisa sahi jagah invest hua hai. 💎\n\nNeeche **Manage Subscription** khul raha hai — waha se aap plan details dekh sakte ho, purchase restore kar sakte ho ya subscription cancel kar sakte ho.",
+          `👑 You already have the **CoreAI ${savedPlanName} plan**.\n\nYour plan includes:\n\n• Unlimited chats and image generation\n• Chat-Bot, Core-AI, and Chat-Pro models\n• Unlimited Deep Research and Code Assistant\n• Priority response speed\n• Ad-free Premium access\n\nI’m showing all plans again below, as requested.`,
           false
         );
-        setTimeout(() => setShowManageSubscription(true), 400);
+        setTimeout(() => setShowSubscriptionPopup(true), 400);
         return;
       }
       await addMessage(
