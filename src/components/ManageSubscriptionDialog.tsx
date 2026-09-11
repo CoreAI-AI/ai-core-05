@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crown, RefreshCw, XCircle, Settings2, CheckCircle2, Sparkles } from "lucide-react";
+import { Crown, RefreshCw, XCircle, Settings2, CheckCircle2, Sparkles, List } from "lucide-react";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { track } from "@/lib/analytics";
@@ -97,6 +97,20 @@ export const ManageSubscriptionDialog = ({
                 <CheckCircle2 className="w-4 h-4" />
                 Premium access is active
               </div>
+
+              <div className="rounded-lg border border-border bg-muted/40 px-3 py-3 text-sm">
+                <p className="font-semibold">You already have the {plan?.name || "Premium"} plan.</p>
+                <p className="mt-1 text-xs text-muted-foreground">Unlimited chats, Premium models, image generation, deep research, code tools, and priority responses are included.</p>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full justify-start h-11"
+                onClick={() => { onOpenChange(false); onUpgradeClick?.(); }}
+              >
+                <List className="w-4 h-4 mr-2 text-primary" />
+                View All Plans
+              </Button>
 
               <Button
                 variant="outline"

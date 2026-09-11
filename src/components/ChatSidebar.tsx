@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Search, MessageSquare, Settings, Trash2, Image, MoreVertical, FileText, FileDown, PanelLeftClose, Sparkles, Pin, PinOff, Plus } from "lucide-react";
+import { Search, MessageSquare, Settings, Trash2, Image, MoreVertical, FileText, FileDown, PanelLeftClose, Sparkles, Pin, PinOff, Plus, Crown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -34,6 +34,10 @@ const sidebarItems = [{
   icon: Sparkles,
   label: "Explore AI",
   action: 'explore'
+}, {
+  icon: Crown,
+  label: "Plans",
+  action: 'plans'
 }];
 
 interface ChatSidebarProps {
@@ -77,6 +81,8 @@ export const ChatSidebar = ({
       navigate('/photos');
     } else if (action === 'explore') {
       navigate('/explore');
+    } else if (action === 'plans') {
+      navigate('/plans');
     }
   };
 

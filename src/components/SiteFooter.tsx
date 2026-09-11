@@ -16,6 +16,7 @@ export const SiteFooter = () => {
           <h4 className="text-sm font-semibold mb-3">Product</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li><Link to="/features" className="hover:text-foreground">Features</Link></li>
+            <li><Link to="/plans" className="hover:text-foreground">Plans</Link></li>
             <li><Link to="/free-ai-chatbot" className="hover:text-foreground">Free AI Chatbot</Link></li>
             <li><Link to="/ai-homework-helper" className="hover:text-foreground">Homework Helper</Link></li>
             <li><Link to="/hindi-ai-assistant" className="hover:text-foreground">Hindi AI</Link></li>

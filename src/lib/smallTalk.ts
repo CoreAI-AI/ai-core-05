@@ -108,6 +108,9 @@ const SUB_PATTERNS: RegExp[] = [
   /\b(premium|subscription|membership)\b.*\b(dikhao|dikha|batao|bata|show|details|info|about|renew|cancel|manage)\b/i,
   /\b(renew|cancel|manage|restore)\b.*\b(premium|subscription|plan|membership)\b/i,
   /\b(premium|subscription)\s+(lena|lu|lunga|loonga|chahiye)\b/i,
+  /\b(show|open|display|dikhao|dikha|batao)\b.*\b(all\s+)?plans?\b/i,
+  /\b(plans?)\b.*\b(again|repeat|one\s+more\s+time|phir|fir|dobara|wapas)\b/i,
+  /\b(one\s+more\s+time|again|phir\s+se|fir\s+se|ek\s+baar\s+phir|dobara)\b.*\b(plans?|premium|subscription)\b/i,
 ];
 
 export function detectSubscriptionIntent(input: string): boolean {
