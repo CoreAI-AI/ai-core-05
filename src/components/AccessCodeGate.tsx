@@ -4,7 +4,7 @@ import { ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
 import heroArt from "@/assets/access-hero-3d.png";
 
-const ACCESS_CODE = "PREMPP";
+const ACCESS_CODE = "FOUNDE";
 const LENGTH = 6;
 
 interface AccessCodeGateProps {
