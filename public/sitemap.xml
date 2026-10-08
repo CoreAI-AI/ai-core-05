@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://coreaii.vercel.app/</loc><changefreq>weekly</changefreq><priority>1.00</priority></url>
   <url><loc>https://coreaii.vercel.app/about</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://coreaii.vercel.app/official-launch</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
   <url><loc>https://coreaii.vercel.app/features</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
   <url><loc>https://coreaii.vercel.app/faq</loc><changefreq>monthly</changefreq><priority>0.80</priority></url>
   <url><loc>https://coreaii.vercel.app/contact</loc><changefreq>monthly</changefreq><priority>0.70</priority></url>

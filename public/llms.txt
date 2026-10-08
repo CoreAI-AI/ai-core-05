@@ -1,5 +1,13 @@
 # CoreAI
 
+## Official identity
+
+CoreAI is owned by Prem Prasad, CoreAI founder & CEO. CoreAI made by Prem Prasad.
+Official website: https://coreaii.vercel.app/. This project is not affiliated with unrelated CoreAI apps or companies.
+Founder profile and portrait: [Prem Prasad](/about).
+Approved announcement: Prem Prasad announced CoreAI — Official Launch 2028–30.
+2028–30 is a future launch window, not a completed launch. [Official Launch](/official-launch).
+
 > CoreAI is a free, intelligent AI assistant for chat, homework help, image generation, voice, and coding — built for English and Hindi speakers.
 
 CoreAI is a web/PWA AI companion that combines smart conversational chat, AI image generation, voice transcription and text-to-speech, specialised modes (Food Recipe, Homework Helper, Code Assistant, Deep Research), and group chats. It runs free with no API keys required from users.

@@ -1,6 +1,8 @@
 // Local (no-AI) responder for small-talk, greetings, thanks, bye, and
 // tiny utility asks (calculator, word/character count). Saves AI credits.
 
+import { getBrandIdentityReply } from './brandIdentity';
+
 const norm = (s: string) => s.trim().toLowerCase().replace(/[!?.,]+$/g, "");
 
 const GREETINGS = [
@@ -45,6 +47,8 @@ function pick<T>(arr: T[]): T {
  */
 export function tryLocalReply(raw: string): string | null {
   if (!raw) return null;
+  const identity = getBrandIdentityReply(raw);
+  if (identity) return identity;
   const msg = norm(raw);
   if (msg.length === 0 || msg.length > 60) return null;
 
@@ -71,7 +75,7 @@ export function tryLocalReply(raw: string): string | null {
     return "Main bilkul theek hoon aur aapki madad ke liye ready hoon. ✨ Aap sunao?";
   }
   if (WHO_ARE_YOU.some((p) => msg.includes(p))) {
-    return "Main **CoreAI** hoon — Prem Prasad ka banaya hua intelligent AI assistant.";
+    return "Main **CoreAI** hoon — **Prem Prasad, CoreAI founder & CEO**, ka banaya hua AI assistant.";
   }
   if (WEBSITE_LINK.some((p) => msg.includes(p))) {
     return "Yeh website hai: **https://coreaii.vercel.app/**";

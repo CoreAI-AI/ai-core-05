@@ -26,6 +26,7 @@ import Waitlist from '@/pages/Waitlist';
 import AdminWaitlist from '@/pages/AdminWaitlist';
 import NotFound from '@/pages/NotFound';
 import Plans from '@/pages/Plans';
+import OfficialLaunch from '@/pages/OfficialLaunch';
 
 export const AnimatedRoutes = () => {
   const location = useLocation();
@@ -117,6 +118,7 @@ export const AnimatedRoutes = () => {
           }
         />
         <Route path="/about" element={<PageTransition><About /></PageTransition>} />
+        <Route path="/official-launch" element={<PageTransition><OfficialLaunch /></PageTransition>} />
         <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
         <Route path="/privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
         <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
