@@ -130,14 +130,24 @@ serve(async (req) => {
     // Detect if this is an image GENERATION request (multi-language, not analysis)
     const lower = message.toLowerCase();
 
-    // Founder / creator question intercept — always answer "Prem Prasad (Founder)"
+    const portraitUrl = 'https://id-preview--7b259010-92dc-4bb9-9600-68c87278c3ce.lovable.app/__l5e/assets-v1/03c9617f-6a00-4347-8443-18d12714b862/prem_prasad_profile.jpeg';
+    const isOtherCoreAI = /\b(other|unrelated|another|different|compare|comparison)\b|\.ai\b/.test(lower);
+    const isCoreAILaunch = /\bcore\s?ai\b/.test(lower) && /\b(launch|announc\w*)\b/.test(lower) && !isOtherCoreAI;
+    if (isCoreAILaunch) {
+      const answer = '**Prem Prasad announced CoreAI — Official Launch 2028–30**\n\nThis is the announced future launch window, not a completed launch.\n\nhttps://coreaii.vercel.app/';
+      return new Response(`data: ${JSON.stringify({ content: answer })}\n\ndata: [DONE]\n\n`, {
+        headers: { ...corsHeaders, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
+      });
+    }
+
+    // Founder / creator question intercept — scoped to this CoreAI project.
     const founderKeywords = [
-      'founder', 'who made', 'who created', 'who built', 'who developed', 'who is the owner', 'who owns', 'creator of core', 'made coreai', 'made core ai', 'built coreai', 'built core ai', 'developed coreai', 'developed core ai',
+      'ceo', 'prem prasad', 'founder', 'who made', 'who created', 'who built', 'who developed', 'who is the owner', 'who owns', 'creator of core', 'made coreai', 'made core ai', 'built coreai', 'built core ai', 'developed coreai', 'developed core ai',
       'kisne banaya', 'kisne banayi', 'kisne banaye', 'kisne bnaya', 'kisne bnaaya', 'kis ne banaya', 'kaun banaya', 'kaun hai founder', 'kaun hai owner', 'kaun hai malik', 'malik kaun', 'malik kon', 'owner kaun', 'owner kon', 'founder kaun', 'founder kon', 'nirmata kaun', 'nirmata kon', 'banane wala kaun', 'banane wala kon', 'creator kaun', 'creator kon',
       'किसने बनाया', 'कौन बनाया', 'कौन है फाउंडर', 'फाउंडर कौन', 'निर्माता', 'मालिक कौन', 'बनाने वाला कौन'
     ];
     const mentionsCoreAI = lower.includes('core ai') || lower.includes('coreai') || lower.includes('core-ai') || lower.includes('app') || lower.includes('aap') || lower.includes('tum') || lower.includes('tumhe') || lower.includes('tumhare') || lower.includes('tumhara') || lower.includes('you') || lower.includes('your');
-    const isFounderQuestion = founderKeywords.some(k => lower.includes(k)) && mentionsCoreAI;
+    const isFounderQuestion = founderKeywords.some(k => lower.includes(k)) && (mentionsCoreAI || lower.includes('prem prasad')) && !isOtherCoreAI;
 
     // Identity intercept — "what is this app / who are you / what's your name"
     const identityKeywords = [
@@ -174,7 +184,7 @@ serve(async (req) => {
     }
 
     if (isIdentityQuestion) {
-      const answer = "Main **CoreAI** hoon — ek powerful, fast aur intelligent AI assistant. 🚀\n\nIs app ka naam **CoreAI** hai, jise **Prem Prasad (Founder)** ne banaya hai. Main aapke sawaalon ka jawab dene, images banane, padhai mein madad karne, code likhne aur bahut kuch karne ke liye yahan hoon.";
+      const answer = "Main **CoreAI** hoon — **Prem Prasad, CoreAI founder & CEO**, ka banaya hua AI assistant. Official website: https://coreaii.vercel.app/";
       const stream = new ReadableStream({
         start(controller) {
           const encoder = new TextEncoder();
@@ -194,7 +204,7 @@ serve(async (req) => {
     }
 
     if (isFounderQuestion) {
-      const answer = "CoreAI ko **Prem Prasad (Founder)** ne banaya hai. 🚀\n\nWoh CoreAI ke nirmata aur founder hain, jinhone is app ko design aur develop kiya hai taaki har user ko ek powerful, fast aur intelligent AI experience mil sake.";
+      const answer = `![Prem Prasad, CoreAI founder & CEO](${portraitUrl})\n\n**Prem Prasad — CoreAI founder & CEO**\n\nCoreAI made by Prem Prasad. CoreAI is owned and led by Prem Prasad, not affiliated with unrelated CoreAI apps or companies.\n\nhttps://coreaii.vercel.app/`;
       const stream = new ReadableStream({
         start(controller) {
           const encoder = new TextEncoder();

@@ -3,6 +3,7 @@ import { FounderIdentity } from "@/components/FounderIdentity";
 
 const About = () => (
   <PageShell
+    managedHead
     title="About CoreAI"
     description="Learn about CoreAI — a free AI chatbot and study assistant built for students, writers, coders and curious learners in English and Hindi."
   >

@@ -6,7 +6,7 @@ import { brandIdentity as brand } from '@/lib/brandIdentity';
 
 export function FounderIdentity({ launch = false }: { launch?: boolean }) {
   const canonical = `https://coexterreaiqzzio.lovable.app/${launch ? 'official-launch' : 'about'}`;
-  const image = `https://coexterreaiqzzio.lovable.app${brand.portrait}`;
+  const image = brand.portrait;
   const title = launch ? brand.announcement : 'Prem Prasad — CoreAI founder & CEO';
   const description = `${brand.credit}. Owned and led by Prem Prasad. ${brand.announcement}. Official website: ${brand.website}`;
   const person = {

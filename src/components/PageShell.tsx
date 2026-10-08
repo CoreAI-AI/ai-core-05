@@ -8,12 +8,14 @@ interface PageShellProps {
   title: string;
   description: string;
   children: ReactNode;
+  managedHead?: boolean;
 }
 
-export const PageShell = ({ title, description, children }: PageShellProps) => {
+export const PageShell = ({ title, description, children, managedHead = false }: PageShellProps) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (managedHead) return;
     document.title = `${title} | CoreAI`;
     const meta = document.querySelector('meta[name="description"]');
     if (meta) meta.setAttribute("content", description);
@@ -24,7 +26,7 @@ export const PageShell = ({ title, description, children }: PageShellProps) => {
       document.head.appendChild(canonical);
     }
     canonical.href = window.location.href;
-  }, [title, description]);
+  }, [title, description, managedHead]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

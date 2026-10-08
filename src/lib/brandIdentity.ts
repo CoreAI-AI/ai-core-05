@@ -6,7 +6,7 @@ export const brandIdentity = {
   role: 'CoreAI founder & CEO',
   credit: 'CoreAI made by Prem Prasad',
   website: 'https://coreaii.vercel.app/',
-  portrait: portrait.url,
+  portrait: `https://id-preview--7b259010-92dc-4bb9-9600-68c87278c3ce.lovable.app${portrait.url}`,
   announcement: 'Prem Prasad announced CoreAI — Official Launch 2028–30',
 };
 

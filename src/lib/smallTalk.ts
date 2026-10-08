@@ -75,7 +75,7 @@ export function tryLocalReply(raw: string): string | null {
     return "Main bilkul theek hoon aur aapki madad ke liye ready hoon. ✨ Aap sunao?";
   }
   if (WHO_ARE_YOU.some((p) => msg.includes(p))) {
-    return "Main **CoreAI** hoon — Prem Prasad ka banaya hua intelligent AI assistant.";
+    return "Main **CoreAI** hoon — **Prem Prasad, CoreAI founder & CEO**, ka banaya hua AI assistant.";
   }
   if (WEBSITE_LINK.some((p) => msg.includes(p))) {
     return "Yeh website hai: **https://coreaii.vercel.app/**";
