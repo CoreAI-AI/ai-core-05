@@ -12,11 +12,12 @@ import { AnimatePresence } from "framer-motion";
 import { AccessCodeGate } from "@/components/AccessCodeGate";
 import { SplashScreen } from "@/components/SplashScreen";
 import { TestingFeedback } from "@/components/TestingFeedback";
+import { HelmetProvider } from "react-helmet-async";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const isPublicRoute = window.location.pathname.startsWith("/waitlist");
+  const isPublicRoute = window.location.pathname.startsWith("/waitlist") || ["/about", "/official-launch"].includes(window.location.pathname.replace(/\/$/, ""));
   // Launch flow: splash animation -> access code -> testing & feedback -> CoreAI home
   const [stage, setStage] = useState<"splash" | "code" | "testing" | "app">(
     isPublicRoute ? "app" : "splash"
@@ -49,7 +50,7 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
+    <HelmetProvider><QueryClientProvider client={queryClient}>
       <ThemeProvider
         attribute="class"
         defaultTheme="light"
@@ -64,7 +65,7 @@ const App = () => {
           </TTSProvider>
         </TooltipProvider>
       </ThemeProvider>
-    </QueryClientProvider>
+    </QueryClientProvider></HelmetProvider>
   );
 };
 

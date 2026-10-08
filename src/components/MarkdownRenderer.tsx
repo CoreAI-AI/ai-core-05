@@ -13,6 +13,7 @@ export const MarkdownRenderer = ({ content, className = "" }: MarkdownRendererPr
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
+          img: ({ src, alt }) => <img src={src} alt={alt ?? ''} loading="lazy" className="w-48 max-w-full h-auto rounded-xl my-3" />,
           // Enhanced code blocks with copy button
           code: ({ children, className: codeClassName, ...props }) => {
             const match = /language-(\w+)/.exec(codeClassName || '');

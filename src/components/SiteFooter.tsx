@@ -7,6 +7,7 @@ export const SiteFooter = () => {
       <div className="max-w-6xl mx-auto px-6 py-10 grid gap-8 md:grid-cols-4">
         <div>
           <h3 className="font-semibold text-foreground mb-2">CoreAI</h3>
+          <p className="text-xs text-primary mb-3">CoreAI made by Prem Prasad</p>
           <p className="text-sm text-muted-foreground">
             Free AI chatbot & study assistant for chat, homework, writing and code — in English & Hindi.
           </p>
@@ -27,6 +28,7 @@ export const SiteFooter = () => {
           <h4 className="text-sm font-semibold mb-3">Company</h4>
           <ul className="space-y-2 text-sm text-muted-foreground">
             <li><Link to="/about" className="hover:text-foreground">About</Link></li>
+            <li><Link to="/official-launch" className="hover:text-foreground">Official Launch</Link></li>
             <li><Link to="/contact" className="hover:text-foreground">Contact</Link></li>
             <li><Link to="/faq" className="hover:text-foreground">FAQ</Link></li>
           </ul>

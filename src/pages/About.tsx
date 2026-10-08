@@ -1,11 +1,13 @@
 import { PageShell } from "@/components/PageShell";
+import { FounderIdentity } from "@/components/FounderIdentity";
 
 const About = () => (
   <PageShell
     title="About CoreAI"
     description="Learn about CoreAI — a free AI chatbot and study assistant built for students, writers, coders and curious learners in English and Hindi."
   >
-    <article className="prose prose-neutral dark:prose-invert max-w-none">
+    <FounderIdentity />
+    <article className="prose prose-neutral dark:prose-invert max-w-none mt-12">
       <h1>About CoreAI</h1>
       <p>
         CoreAI is a free AI assistant created to make learning, writing and problem-solving easier
@@ -18,12 +20,6 @@ const About = () => (
       <p>
         We believe powerful AI should be accessible to everyone — not locked behind expensive
         subscriptions. CoreAI is free, private and works on any device.
-      </p>
-
-      <h2>Founder</h2>
-      <p>
-        CoreAI was founded by <strong>Prem Prasad</strong>, with a vision to build the most
-        student-friendly AI assistant in India.
       </p>
 
       <h2>What makes CoreAI different</h2>
