@@ -48,9 +48,8 @@ export const UnlockPopup = ({ open, onOpenChange, reason, modeLabel, onUnlock, o
   }, [watching, seconds, onUnlock, onOpenChange]);
 
   const startAd = () => {
-    try {
-      window.open(MONETAG_DIRECT_LINK, '_blank', 'noopener,noreferrer');
-    } catch {}
+    // Ad pages (and their notification prompts) are blocked.
+    void MONETAG_DIRECT_LINK;
     setWatching(true);
   };
 
