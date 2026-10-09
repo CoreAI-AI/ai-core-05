@@ -11,7 +11,6 @@ import { TTSProvider } from "@/hooks/useTTSPlayer";
 import { AnimatePresence } from "framer-motion";
 import { AccessCodeGate } from "@/components/AccessCodeGate";
 import { SplashScreen } from "@/components/SplashScreen";
-import { TestingFeedback } from "@/components/TestingFeedback";
 import { HelmetProvider } from "react-helmet-async";
 
 const queryClient = new QueryClient();
