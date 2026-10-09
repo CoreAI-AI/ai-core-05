@@ -11,7 +11,6 @@ import { TTSProvider } from "@/hooks/useTTSPlayer";
 import { AnimatePresence } from "framer-motion";
 import { AccessCodeGate } from "@/components/AccessCodeGate";
 import { SplashScreen } from "@/components/SplashScreen";
-import { TestingFeedback } from "@/components/TestingFeedback";
 import { HelmetProvider } from "react-helmet-async";
 
 const queryClient = new QueryClient();
@@ -30,10 +29,7 @@ const AppContent = () => {
           <SplashScreen key="splash" onComplete={() => setStage("code")} />
         )}
         {stage === "code" && (
-          <AccessCodeGate key="gate" onUnlock={() => setStage("testing")} />
-        )}
-        {stage === "testing" && (
-          <TestingFeedback key="testing" onContinue={() => setStage("app")} />
+          <AccessCodeGate key="gate" onUnlock={() => setStage("app")} />
         )}
       </AnimatePresence>
 
