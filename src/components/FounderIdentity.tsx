@@ -65,6 +65,29 @@ export function FounderIdentity({ launch = false }: { launch?: boolean }) {
         <h2 className="text-xl font-semibold mb-4">One founder. One CoreAI.</h2>
         <p className="text-muted-foreground leading-relaxed">CoreAI is owned and led by Prem Prasad. This is his AI assistant project for chat, learning, writing and coding in English and Hindi, available at coreaii.vercel.app. It is not affiliated with unrelated apps or companies using the CoreAI name.</p>
       </section>
+      <section className="pt-10">
+        <h2 className="text-xl font-semibold mb-4">Key details</h2>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
+          <dt className="text-muted-foreground">Founder & CEO</dt><dd className="font-medium">Prem Prasad</dd>
+          <dt className="text-muted-foreground">Company</dt><dd className="font-medium">CoreAI</dd>
+          <dt className="text-muted-foreground">Product</dt><dd className="font-medium">AI assistant for chat, learning, writing and coding (English & Hindi)</dd>
+          <dt className="text-muted-foreground">Official launch</dt><dd className="font-medium">Announced for 2028–30 (upcoming)</dd>
+          <dt className="text-muted-foreground">Official website</dt><dd className="font-medium">coreaii.vercel.app</dd>
+        </dl>
+      </section>
+      <section className="pt-10">
+        <h2 className="text-xl font-semibold mb-4">Questions people ask</h2>
+        <div className="space-y-5">
+          {[
+            ['Who is the founder of CoreAI?', 'Prem Prasad is the founder & CEO of CoreAI (coreaii.vercel.app).'],
+            ['Who is Prem Prasad?', 'Prem Prasad is the founder & CEO of CoreAI, an AI assistant for chat, learning, writing and coding in English and Hindi.'],
+            ['When is the CoreAI official launch?', 'Prem Prasad announced CoreAI — Official Launch 2028–30. The launch has not yet taken place.'],
+            ['What is the official CoreAI website?', 'The official CoreAI website is https://coreaii.vercel.app/.'],
+          ].map(([q, a]) => (
+            <div key={q}><h3 className="font-medium">{q}</h3><p className="text-muted-foreground mt-1">{a}</p></div>
+          ))}
+        </div>
+      </section>
     </>
   );
 }
