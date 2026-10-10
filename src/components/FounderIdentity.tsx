@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { brandIdentity as brand } from '@/lib/brandIdentity';
 
 export function FounderIdentity({ launch = false }: { launch?: boolean }) {
-  const canonical = `https://coexterreaiqzzio.lovable.app/${launch ? 'official-launch' : 'about'}`;
+  const canonical = `${brand.website}${launch ? 'official-launch' : 'about'}`;
   const image = brand.portrait;
   const title = launch ? brand.announcement : 'Prem Prasad — CoreAI founder & CEO';
   const description = `${brand.credit}. Owned and led by Prem Prasad. ${brand.announcement}. Official website: ${brand.website}`;
   const person = {
     '@type': 'Person', '@id': `${brand.website}#prem-prasad`, name: brand.founder,
-    jobTitle: 'Founder & CEO', image, url: `${brand.website}about`,
+    jobTitle: 'Founder & CEO', description: `Prem Prasad is the founder & CEO of CoreAI. ${brand.announcement}.`, image: { '@type': 'ImageObject', url: image, contentUrl: image, caption: 'Prem Prasad, CoreAI founder & CEO' }, alternateName: ['CoreAI Founder', 'Prem Prasad CoreAI'], url: `${brand.website}about`,
     worksFor: { '@id': `${brand.website}#organization` },
   };
   return (
@@ -23,7 +23,9 @@ export function FounderIdentity({ launch = false }: { launch?: boolean }) {
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:url" content={canonical} />
-        <meta property="og:type" content="website" />
+        <meta property="og:type" content={launch ? "website" : "profile"} />
+        <meta property="og:image" content={image} />
+        <meta name="twitter:image" content={image} />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
         <script type="application/ld+json">{JSON.stringify({
@@ -42,7 +44,7 @@ export function FounderIdentity({ launch = false }: { launch?: boolean }) {
         <div className="flex items-center justify-between gap-4 text-xs font-mono uppercase text-muted-foreground mb-8">
           <span>CoreAI / The founder</span><span>Independent vision</span>
         </div>
-        <img src={brand.portrait} alt="Prem Prasad, CoreAI founder & CEO" width="768" height="768"
+        <img src={brand.localPortrait} alt="Prem Prasad, CoreAI founder & CEO" width="768" height="768"
           className="w-56 h-56 sm:w-72 sm:h-72 object-contain rounded-full mx-auto ring-1 ring-border shadow-xl" />
         <div className="text-center mt-8">
           <p className="text-primary text-sm font-medium mb-3">{brand.role}</p>
