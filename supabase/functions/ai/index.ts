@@ -130,7 +130,7 @@ serve(async (req) => {
     // Detect if this is an image GENERATION request (multi-language, not analysis)
     const lower = message.toLowerCase();
 
-    const portraitUrl = 'https://id-preview--7b259010-92dc-4bb9-9600-68c87278c3ce.lovable.app/__l5e/assets-v1/03c9617f-6a00-4347-8443-18d12714b862/prem_prasad_profile.jpeg';
+    const portraitUrl = 'https://coreaii.vercel.app/prem-prasad.jpg';
     const isOtherCoreAI = /\b(other|unrelated|another|different|compare|comparison)\b|\.ai\b/.test(lower);
     const isCoreAILaunch = /\bcore\s?ai\b/.test(lower) && /\b(launch|announc\w*)\b/.test(lower) && !isOtherCoreAI;
     if (isCoreAILaunch) {

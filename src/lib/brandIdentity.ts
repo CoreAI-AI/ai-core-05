@@ -1,12 +1,11 @@
-import portrait from '@/assets/prem_prasad_profile.jpeg.asset.json';
-
 export const brandIdentity = {
   name: 'CoreAI',
   founder: 'Prem Prasad',
   role: 'CoreAI founder & CEO',
   credit: 'CoreAI made by Prem Prasad',
   website: 'https://coreaii.vercel.app/',
-  portrait: `https://id-preview--7b259010-92dc-4bb9-9600-68c87278c3ce.lovable.app${portrait.url}`,
+  portrait: 'https://coreaii.vercel.app/prem-prasad.jpg',
+  localPortrait: '/prem-prasad.jpg',
   announcement: 'Prem Prasad announced CoreAI — Official Launch 2028–30',
 };
 
@@ -22,7 +21,7 @@ export function getBrandIdentityReply(input: string): string | null {
     return `**${brandIdentity.announcement}**\n\nThis is the announced future launch window, not a completed launch.\n\n${brandIdentity.website}`;
   }
   if (mentionsFounder || /\b(founder|ceo|owner|owned|made|created|built|maker|banaya|malik)\b/.test(text)) {
-    return `![Prem Prasad, CoreAI founder & CEO](${brandIdentity.portrait})\n\n**${brandIdentity.founder}**\n\n${brandIdentity.role} · ${brandIdentity.credit}.\n\nThis CoreAI is Prem Prasad’s project, not another app or company with the same name.\n\n${brandIdentity.website}`;
+    return `![Prem Prasad, CoreAI founder & CEO](${brandIdentity.localPortrait})\n\n**${brandIdentity.founder}**\n\n${brandIdentity.role} · ${brandIdentity.credit}.\n\nThis CoreAI is Prem Prasad’s project, not another app or company with the same name.\n\n${brandIdentity.website}`;
   }
   return null;
 }
