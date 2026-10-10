@@ -11,4 +11,7 @@
   <url><loc>https://coreaii.vercel.app/free-ai-chatbot</loc><changefreq>weekly</changefreq><priority>0.90</priority></url>
   <url><loc>https://coreaii.vercel.app/ai-homework-helper</loc><changefreq>weekly</changefreq><priority>0.90</priority></url>
   <url><loc>https://coreaii.vercel.app/hindi-ai-assistant</loc><changefreq>weekly</changefreq><priority>0.90</priority></url>
+  <url><loc>https://coreaii.vercel.app/plans</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+  <url><loc>https://coreaii.vercel.app/waitlist</loc><changefreq>weekly</changefreq><priority>0.80</priority></url>
+
 </urlset>
