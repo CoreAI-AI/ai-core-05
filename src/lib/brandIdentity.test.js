@@ -7,7 +7,7 @@ describe('approved CoreAI identity', () => {
       const reply = getBrandIdentityReply(query);
       expect(reply).toContain('Prem Prasad');
       expect(reply).toContain('CoreAI founder & CEO');
-      expect(reply).toContain(brandIdentity.portrait);
+      expect(reply).toContain(brandIdentity.localPortrait);
     }
   });
   test('launch retains exact approved announcement and future status', () => {
