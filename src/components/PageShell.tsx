@@ -29,7 +29,7 @@ export const PageShell = ({ title, description, children, managedHead = false }:
   }, [title, description, managedHead]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="h-screen h-[100dvh] overflow-y-auto overflow-x-hidden flex flex-col bg-background scroll-smooth">
       <header className="border-b border-border sticky top-0 bg-background/80 backdrop-blur z-10">
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="gap-2">
