@@ -4,9 +4,13 @@ export const brandIdentity = {
   role: 'CoreAI founder & CEO',
   credit: 'CoreAI made by Prem Prasad',
   website: 'https://coreaii.vercel.app/',
+  product: 'coreaii.vercel.app',
+  birthDate: '2010-08-04',
+  birthDateLabel: '4 August 2010',
   portrait: 'https://coreaii.vercel.app/prem-prasad.jpg',
   localPortrait: '/prem-prasad.jpg',
   announcement: 'Prem Prasad announced CoreAI — Official Launch 2028–30',
+  publicLaunch: '2028–30 (upcoming, not yet launched)',
 };
 
 /** Resolve this project's identity only; never override queries naming another company. */
@@ -17,8 +21,11 @@ export function getBrandIdentityReply(input: string): string | null {
   const mentionsCore = /\bcore\s?ai\b/.test(text);
   const mentionsFounder = /\bprem\s+prasad\b/.test(text);
   if (!mentionsCore && !mentionsFounder) return null;
+  if (/\b(age|old|born|birth\w*|dob|janam)\b/.test(text) && (mentionsFounder || /\bfounder|ceo\b/.test(text))) {
+    return `![Prem Prasad, CoreAI founder & CEO](${brandIdentity.localPortrait})\n\n**${brandIdentity.founder}** (born August 4, 2010) — ${brandIdentity.role}.\n\n${brandIdentity.website}`;
+  }
   if (mentionsCore && /\b(launch|announc\w*)\b/.test(text)) {
-    return `**${brandIdentity.announcement}**\n\nThis is the announced future launch window, not a completed launch.\n\n${brandIdentity.website}`;
+    return `**${brandIdentity.announcement}**\n\nPublic launch: ${brandIdentity.publicLaunch}. This is the announced future launch window, not a completed launch.\n\n${brandIdentity.website}`;
   }
   if (mentionsFounder || /\b(founder|ceo|owner|owned|made|created|built|maker|banaya|malik)\b/.test(text)) {
     return `![Prem Prasad, CoreAI founder & CEO](${brandIdentity.localPortrait})\n\n**${brandIdentity.founder}**\n\n${brandIdentity.role} · ${brandIdentity.credit}.\n\nThis CoreAI is Prem Prasad’s project, not another app or company with the same name.\n\n${brandIdentity.website}`;

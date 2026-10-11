@@ -7,11 +7,11 @@ import { brandIdentity as brand } from '@/lib/brandIdentity';
 export function FounderIdentity({ launch = false }: { launch?: boolean }) {
   const canonical = `${brand.website}${launch ? 'official-launch' : 'about'}`;
   const image = brand.portrait;
-  const title = launch ? brand.announcement : 'Prem Prasad — CoreAI founder & CEO';
-  const description = `${brand.credit}. Owned and led by Prem Prasad. ${brand.announcement}. Official website: ${brand.website}`;
+  const title = launch ? brand.announcement : 'Prem Prasad — Founder & CEO | CoreAI';
+  const description = 'Prem Prasad is the founder & CEO of CoreAI. CoreAI is an AI assistant for chat, learning, writing and coding in English and Hindi.';
   const person = {
-    '@type': 'Person', '@id': `${brand.website}#prem-prasad`, name: brand.founder,
-    jobTitle: 'Founder & CEO', description: `Prem Prasad is the founder & CEO of CoreAI. ${brand.announcement}.`, image: { '@type': 'ImageObject', url: image, contentUrl: image, caption: 'Prem Prasad, CoreAI founder & CEO' }, alternateName: ['CoreAI Founder', 'Prem Prasad CoreAI'], url: `${brand.website}about`,
+    '@type': 'Person', '@id': `${brand.website}#prem-prasad`, name: brand.founder, birthDate: brand.birthDate,
+    jobTitle: 'Founder & CEO', description, image: { '@type': 'ImageObject', url: image, contentUrl: image, caption: 'Prem Prasad, CoreAI founder & CEO' }, alternateName: ['Prem Prasad CoreAI', 'CoreAI Founder'], url: `${brand.website}about`, mainEntityOfPage: `${brand.website}about`,
     worksFor: { '@id': `${brand.website}#organization` },
   };
   return (
@@ -69,20 +69,23 @@ export function FounderIdentity({ launch = false }: { launch?: boolean }) {
         <h2 className="text-xl font-semibold mb-4">Key details</h2>
         <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
           <dt className="text-muted-foreground">Founder & CEO</dt><dd className="font-medium">Prem Prasad</dd>
+          <dt className="text-muted-foreground">Date of Birth</dt><dd className="font-medium">{brand.birthDateLabel}</dd>
+          <dt className="text-muted-foreground">Role</dt><dd className="font-medium">Founder & CEO</dd>
           <dt className="text-muted-foreground">Company</dt><dd className="font-medium">CoreAI</dd>
-          <dt className="text-muted-foreground">Product</dt><dd className="font-medium">AI assistant for chat, learning, writing and coding (English & Hindi)</dd>
-          <dt className="text-muted-foreground">Official launch</dt><dd className="font-medium">Announced for 2028–30 (upcoming)</dd>
-          <dt className="text-muted-foreground">Official website</dt><dd className="font-medium">coreaii.vercel.app</dd>
+          <dt className="text-muted-foreground">Product</dt><dd className="font-medium"><a href={brand.website} className="text-primary hover:underline">{brand.product}</a></dd>
+          <dt className="text-muted-foreground">Official Announcement</dt><dd className="font-medium">{brand.announcement}</dd>
+          <dt className="text-muted-foreground">Public Launch</dt><dd className="font-medium">{brand.publicLaunch}</dd>
         </dl>
       </section>
       <section className="pt-10">
         <h2 className="text-xl font-semibold mb-4">Questions people ask</h2>
         <div className="space-y-5">
           {[
-            ['Who is the founder of CoreAI?', 'Prem Prasad is the founder & CEO of CoreAI (coreaii.vercel.app).'],
-            ['Who is Prem Prasad?', 'Prem Prasad is the founder & CEO of CoreAI, an AI assistant for chat, learning, writing and coding in English and Hindi.'],
-            ['When is the CoreAI official launch?', 'Prem Prasad announced CoreAI — Official Launch 2028–30. The launch has not yet taken place.'],
-            ['What is the official CoreAI website?', 'The official CoreAI website is https://coreaii.vercel.app/.'],
+            ['Who is Prem Prasad?', 'Prem Prasad is the founder & CEO of CoreAI (coreaii.vercel.app).'],
+            ['When was Prem Prasad born?', 'Prem Prasad was born on August 4, 2010.'],
+            ['Who is the founder of CoreAI?', 'Prem Prasad is the founder & CEO of CoreAI.'],
+            ['What was officially announced about CoreAI?', 'Prem Prasad announced CoreAI — Official Launch 2028–30.'],
+            ['When is the CoreAI public launch?', 'The CoreAI public launch is planned for 2028–30. It has not yet taken place.'],
           ].map(([q, a]) => (
             <div key={q}><h3 className="font-medium">{q}</h3><p className="text-muted-foreground mt-1">{a}</p></div>
           ))}
