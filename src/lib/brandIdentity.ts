@@ -14,6 +14,12 @@ export const brandIdentity = {
   brothers: ['Dipak Prasad', 'Manish Prasad'],
   mother: 'Lakhi Devi',
   father: 'Ajay Prasad',
+  grandfather: 'Shri Krishun Prasad',
+  grandmother: 'Shrimati Gulabi Devi',
+  city: 'Kolkata, West Bengal',
+  nationality: 'Indian',
+  instagram: 'https://www.instagram.com/_coreaii',
+  mission: 'Building the next frontier of artificial intelligence, engineered to outperform ChatGPT.',
 };
 
 const has = (text: string, re: RegExp) => re.test(text);
@@ -24,7 +30,7 @@ export function getBrandIdentityReply(input: string): string | null {
   if (!text || text.length > 300) return null;
   if (/\b(other|unrelated|another|different|compare|comparison)\b|\.ai\b/.test(text)) return null;
   const mentionsCore = /\bcore\s?ai\b/.test(text);
-  const mentionsFounder = /\bprem(\s+prasad)?\b/.test(text) && /\bprem\s+prasad\b|\bprem\b.*\b(bhai|brother|mother|father|mummy|papa)/.test(text);
+  const mentionsFounder = /\bprem(\s+prasad)?\b/.test(text) && /\bprem\s+prasad\b|\bprem\b.*\b(bhai|brother|mother|father|mummy|papa|dada|dadi|grand\w*)/.test(text);
   const aboutFounder = mentionsFounder || (mentionsCore && /\b(founder|ceo|owner|malik)\b/.test(text));
   if (!mentionsCore && !mentionsFounder) return null;
 
@@ -34,6 +40,18 @@ export function getBrandIdentityReply(input: string): string | null {
   const wantsFather = has(text, /\b(father|dad|daddy|papa|pita|pitaji|baba)\b/);
   const wantsFamily = has(text, /\b(family|parivar|parents)\b/);
 
+  if (aboutFounder && has(text, /\b(dada|dadi|grand\w*|nana|nani)\b/)) {
+    return `${b.founder} ke Dada ji **${b.grandfather}** aur Dadi ji **${b.grandmother}** hain.`;
+  }
+  if (aboutFounder && has(text, /\b(where|kahan|kaha|city|hometown|from|rehte|location|nationality|country)\b/)) {
+    return `${b.founder} **${b.city}** se hain. Nationality: **${b.nationality}**.`;
+  }
+  if (has(text, /\b(instagram|insta|social)\b/) && (aboutFounder || mentionsCore)) {
+    return `Official Instagram: ${b.instagram}`;
+  }
+  if (mentionsCore && has(text, /\b(mission|vision|aim|goal|maqsad|purpose)\b/)) {
+    return `**CoreAI mission:** ${b.mission}`;
+  }
   if (aboutFounder && (wantsBrothers || wantsMother || wantsFather || wantsFamily)) {
     const lines: string[] = [];
     if (wantsFamily || (wantsMother && wantsFather) || has(text, /\bparents\b/)) {
