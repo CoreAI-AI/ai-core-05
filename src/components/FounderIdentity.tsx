@@ -11,7 +11,7 @@ export function FounderIdentity({ launch = false }: { launch?: boolean }) {
   const description = 'Prem Prasad is the founder & CEO of CoreAI. CoreAI is an AI assistant for chat, learning, writing and coding in English and Hindi.';
   const person = {
     '@type': 'Person', '@id': `${brand.website}#prem-prasad`, name: brand.founder, birthDate: brand.birthDate,
-    jobTitle: 'Founder & CEO', description, image: { '@type': 'ImageObject', url: image, contentUrl: image, caption: 'Prem Prasad, CoreAI founder & CEO' }, alternateName: ['Prem Prasad CoreAI', 'CoreAI Founder'], url: `${brand.website}about`, mainEntityOfPage: `${brand.website}about`,
+    jobTitle: 'Founder & CEO', description, image: { '@type': 'ImageObject', url: image, contentUrl: image, caption: 'Prem Prasad, CoreAI founder & CEO' }, alternateName: ['Prem Prasad CoreAI', 'CoreAI Founder'], sameAs: [brand.instagram], nationality: { '@type': 'Country', name: 'India' }, homeLocation: { '@type': 'Place', name: brand.city }, url: `${brand.website}about`, mainEntityOfPage: `${brand.website}about`,
     worksFor: { '@id': `${brand.website}#organization` },
   };
   return (
@@ -70,9 +70,13 @@ export function FounderIdentity({ launch = false }: { launch?: boolean }) {
         <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
           <dt className="text-muted-foreground">Founder & CEO</dt><dd className="font-medium">Prem Prasad</dd>
           <dt className="text-muted-foreground">Date of Birth</dt><dd className="font-medium">{brand.birthDateLabel}</dd>
+          <dt className="text-muted-foreground">Hometown</dt><dd className="font-medium">{brand.city}</dd>
+          <dt className="text-muted-foreground">Nationality</dt><dd className="font-medium">{brand.nationality}</dd>
           <dt className="text-muted-foreground">Role</dt><dd className="font-medium">Founder & CEO</dd>
           <dt className="text-muted-foreground">Company</dt><dd className="font-medium">CoreAI</dd>
           <dt className="text-muted-foreground">Product</dt><dd className="font-medium"><a href={brand.website} className="text-primary hover:underline">{brand.product}</a></dd>
+          <dt className="text-muted-foreground">Mission</dt><dd className="font-medium">{brand.mission}</dd>
+          <dt className="text-muted-foreground">Instagram</dt><dd className="font-medium"><a href={brand.instagram} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">@_coreaii</a></dd>
           <dt className="text-muted-foreground">Official Announcement</dt><dd className="font-medium">{brand.announcement}</dd>
           <dt className="text-muted-foreground">Public Launch</dt><dd className="font-medium">{brand.publicLaunch}</dd>
         </dl>

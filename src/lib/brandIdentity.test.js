@@ -19,3 +19,8 @@ describe('approved CoreAI identity', () => {
     expect(getBrandIdentityReply('Compare another CoreAI company founder')).toBeNull();
   });
 });
+describe('extended founder facts', () => {
+  test('grandparents', () => expect(getBrandIdentityReply('Prem Prasad ke dada dadi kaun hai')).toContain('Shri Krishun Prasad'));
+  test('city', () => expect(getBrandIdentityReply('Prem Prasad kahan se hai')).toContain('Kolkata'));
+  test('mission', () => expect(getBrandIdentityReply('CoreAI ka mission kya hai')).toContain('outperform ChatGPT'));
+});
