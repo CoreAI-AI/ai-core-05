@@ -9,7 +9,7 @@ const About = () => (
   >
     <FounderIdentity />
     <article className="prose prose-neutral dark:prose-invert max-w-none mt-12">
-      <h1>About CoreAI</h1>
+      <h2>About CoreAI</h2>
       <p>
         CoreAI is a free AI assistant created to make learning, writing and problem-solving easier
         for everyone. Whether you're a student looking for homework help, a professional drafting
