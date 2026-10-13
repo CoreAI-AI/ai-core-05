@@ -4,7 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, useLocation } from "react-router-dom";
+import { isPublicPath } from "@/lib/publicRoutes";
 import { ThemeProvider } from "next-themes";
 import { AnimatedRoutes } from "./components/AnimatedRoutes";
 import { TTSProvider } from "@/hooks/useTTSPlayer";
@@ -15,35 +16,24 @@ import { HelmetProvider } from "react-helmet-async";
 
 const queryClient = new QueryClient();
 
-const AppContent = () => {
-  // Public info pages (listed in sitemap) must render without the splash/code gate so Google can read them.
-  const PUBLIC_PAGES = ["/about", "/official-launch", "/features", "/faq", "/contact", "/privacy-policy", "/terms", "/free-ai-chatbot", "/ai-homework-helper", "/hindi-ai-assistant", "/plans"];
-  const isPublicRoute = window.location.pathname.startsWith("/waitlist") || PUBLIC_PAGES.includes(window.location.pathname.replace(/\/$/, ""));
-  // Launch flow: splash animation -> access code -> testing & feedback -> CoreAI home
-  const [stage, setStage] = useState<"splash" | "code" | "testing" | "app">(
-    isPublicRoute ? "app" : "splash"
-  );
-
+// Gate is re-checked on every navigation, so moving from a public page to the chat still requires the code.
+const GatedRoutes = () => {
+  const { pathname } = useLocation();
+  const [stage, setStage] = useState<"splash" | "code" | "app">("splash");
+  if (isPublicPath(pathname) || stage === "app") return <AnimatedRoutes />;
   return (
-    <>
-      <AnimatePresence mode="wait">
-        {stage === "splash" && (
-          <SplashScreen key="splash" onComplete={() => setStage("code")} />
-        )}
-        {stage === "code" && (
-          <AccessCodeGate key="gate" onUnlock={() => setStage("app")} />
-        )}
-      </AnimatePresence>
-
-
-      {stage === "app" && (
-        <BrowserRouter>
-          <AnimatedRoutes />
-        </BrowserRouter>
-      )}
-    </>
+    <AnimatePresence mode="wait">
+      {stage === "splash" && <SplashScreen key="splash" onComplete={() => setStage("code")} />}
+      {stage === "code" && <AccessCodeGate key="gate" onUnlock={() => setStage("app")} />}
+    </AnimatePresence>
   );
 };
+
+const AppContent = () => (
+  <BrowserRouter>
+    <GatedRoutes />
+  </BrowserRouter>
+);
 
 
 const App = () => {
