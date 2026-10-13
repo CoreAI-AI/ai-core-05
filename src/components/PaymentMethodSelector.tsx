@@ -7,7 +7,7 @@ import { CheckCircle2, Gift, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { track } from "@/lib/analytics";
 
-const VALID_REDEEM_CODES = ["PREM-FCEO"];
+const VALID_REDEEM_CODES = ["PREM-AUG"];
 
 interface PaymentMethodSelectorProps {
   open: boolean;
