@@ -16,7 +16,9 @@ import { HelmetProvider } from "react-helmet-async";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  const isPublicRoute = window.location.pathname.startsWith("/waitlist") || ["/about", "/official-launch"].includes(window.location.pathname.replace(/\/$/, ""));
+  // Public info pages (listed in sitemap) must render without the splash/code gate so Google can read them.
+  const PUBLIC_PAGES = ["/about", "/official-launch", "/features", "/faq", "/contact", "/privacy-policy", "/terms", "/free-ai-chatbot", "/ai-homework-helper", "/hindi-ai-assistant", "/plans"];
+  const isPublicRoute = window.location.pathname.startsWith("/waitlist") || PUBLIC_PAGES.includes(window.location.pathname.replace(/\/$/, ""));
   // Launch flow: splash animation -> access code -> testing & feedback -> CoreAI home
   const [stage, setStage] = useState<"splash" | "code" | "testing" | "app">(
     isPublicRoute ? "app" : "splash"
