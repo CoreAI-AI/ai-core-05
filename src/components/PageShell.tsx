@@ -25,7 +25,11 @@ export const PageShell = ({ title, description, children, managedHead = false }:
       canonical.rel = "canonical";
       document.head.appendChild(canonical);
     }
-    canonical.href = window.location.href;
+    const url = `https://coreaii.vercel.app${window.location.pathname.replace(/\/$/, "")}`;
+    canonical.href = url;
+    document.querySelector('meta[property="og:url"]')?.setAttribute("content", url);
+    document.querySelector('meta[property="og:title"]')?.setAttribute("content", `${title} | CoreAI`);
+    document.querySelector('meta[property="og:description"]')?.setAttribute("content", description);
   }, [title, description, managedHead]);
 
   return (
