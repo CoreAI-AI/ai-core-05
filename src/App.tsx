@@ -16,15 +16,14 @@ import { HelmetProvider } from "react-helmet-async";
 
 const queryClient = new QueryClient();
 
-// Gate is re-checked on every navigation, so moving from a public page to the chat still requires the code.
+// Public launch: no access code. Public pages skip the splash; the chat shows the splash once, then opens.
 const GatedRoutes = () => {
   const { pathname } = useLocation();
-  const [stage, setStage] = useState<"splash" | "code" | "app">("splash");
+  const [stage, setStage] = useState<"splash" | "app">("splash");
   if (isPublicPath(pathname) || stage === "app") return <AnimatedRoutes />;
   return (
     <AnimatePresence mode="wait">
-      {stage === "splash" && <SplashScreen key="splash" onComplete={() => setStage("code")} />}
-      {stage === "code" && <AccessCodeGate key="gate" onUnlock={() => setStage("app")} />}
+      <SplashScreen key="splash" onComplete={() => setStage("app")} />
     </AnimatePresence>
   );
 };
