@@ -8,7 +8,7 @@ export function FounderIdentity({ launch = false }: { launch?: boolean }) {
   const canonical = `${brand.website}${launch ? 'official-launch' : 'about'}`;
   const image = brand.portrait;
   const title = launch ? brand.announcement : 'Prem Prasad — Founder & CEO | CoreAI';
-  const description = 'Prem Prasad is the founder & CEO of CoreAI. CoreAI is an AI assistant for chat, learning, writing and coding in English and Hindi.';
+  const description = 'Prem Prasad is the founder & CEO of CoreAI (Coreaii), the English and Hindi AI assistant at coreaii.vercel.app for chat, learning, writing and coding.';
   const person = {
     '@type': 'Person', '@id': `${brand.website}#prem-prasad`, name: brand.founder, birthDate: brand.birthDate,
     jobTitle: 'Founder & CEO', description, image: { '@type': 'ImageObject', url: image, contentUrl: image, caption: 'Prem Prasad, CoreAI founder & CEO' }, alternateName: ['Prem Prasad CoreAI', 'CoreAI Founder'], sameAs: [brand.instagram], nationality: { '@type': 'Country', name: 'India' }, homeLocation: { '@type': 'Place', name: brand.city }, url: `${brand.website}about`, mainEntityOfPage: `${brand.website}about`,
@@ -31,7 +31,7 @@ export function FounderIdentity({ launch = false }: { launch?: boolean }) {
         <script type="application/ld+json">{JSON.stringify({
           '@context': 'https://schema.org', '@graph': [person, {
             '@type': 'Organization', '@id': `${brand.website}#organization`,
-            name: brand.name, url: brand.website, founder: { '@id': `${brand.website}#prem-prasad` },
+            name: brand.name, alternateName: 'Coreaii', url: brand.website, founder: { '@id': `${brand.website}#prem-prasad` },
             description: brand.credit,
           }, {
             '@type': launch ? 'WebPage' : 'ProfilePage', '@id': canonical,
@@ -63,7 +63,7 @@ export function FounderIdentity({ launch = false }: { launch?: boolean }) {
       </section>
       <section className="pt-10">
         <h2 className="text-xl font-semibold mb-4">One founder. One CoreAI.</h2>
-        <p className="text-muted-foreground leading-relaxed">CoreAI is owned and led by Prem Prasad. This is his AI assistant project for chat, learning, writing and coding in English and Hindi, available at coreaii.vercel.app. It is not affiliated with unrelated apps or companies using the CoreAI name.</p>
+        <p className="text-muted-foreground leading-relaxed">CoreAI (Coreaii) is owned and led by Prem Prasad. This is his AI assistant project for chat, learning, writing and coding in English and Hindi, available at coreaii.vercel.app. It is not affiliated with unrelated apps or companies using the CoreAI name.</p>
       </section>
       <section className="pt-10">
         <h2 className="text-xl font-semibold mb-4">Key details</h2>
@@ -85,6 +85,7 @@ export function FounderIdentity({ launch = false }: { launch?: boolean }) {
         <h2 className="text-xl font-semibold mb-4">Questions people ask</h2>
         <div className="space-y-5">
           {[
+            ['What is Coreaii?', 'Coreaii refers to CoreAI, the AI assistant created by Prem Prasad. Its official website is https://coreaii.vercel.app/.'],
             ['Who is Prem Prasad?', 'Prem Prasad is the founder & CEO of CoreAI (coreaii.vercel.app).'],
             ['When was Prem Prasad born?', 'Prem Prasad was born on August 4, 2010.'],
             ['Who is the founder of CoreAI?', 'Prem Prasad is the founder & CEO of CoreAI.'],
