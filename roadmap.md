@@ -4,5 +4,5 @@
 - [ ] Verify identity rules and public page display.
 
 # Coreaii branded search
-- [ ] Strengthen Coreaii name signals in metadata and public founder pages.
-- [ ] Verify metadata and confirm public pages do not unlock private chat.
+- [x] Strengthen Coreaii name signals in metadata and public founder pages.
+- [x] Verify metadata and confirm public pages do not unlock private chat.
