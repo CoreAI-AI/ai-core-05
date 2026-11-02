@@ -313,7 +313,6 @@ export const ChatInput = ({
                 <DropdownMenuItem onClick={() => handleModeSelect('photo')} className="cursor-pointer rounded-lg">
                   <ImagePlus className="w-4 h-4 mr-2 text-purple-500" />
                   Image Generator
-                  )}
                 </DropdownMenuItem>
                 
                 <div className="h-px bg-border my-2" />
