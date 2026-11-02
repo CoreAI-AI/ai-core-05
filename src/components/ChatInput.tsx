@@ -285,8 +285,6 @@ export const ChatInput = ({
                 <DropdownMenuItem onClick={() => handleModeSelect('deep-search')} className="cursor-pointer rounded-lg">
                   <Search className="w-4 h-4 mr-2 text-blue-500" />
                   Deep Research
-                  {!isPremium && getRemaining && (
-                    <span className="ml-auto text-[10px] text-muted-foreground">{getRemaining('deep-search')}/10</span>
                   )}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleModeSelect('study')} className="cursor-pointer rounded-lg">
@@ -296,8 +294,6 @@ export const ChatInput = ({
                 <DropdownMenuItem onClick={() => handleModeSelect('code')} className="cursor-pointer rounded-lg">
                   <Code className="w-4 h-4 mr-2 text-orange-500" />
                   Code Assistant
-                  {!isPremium && getRemaining && (
-                    <span className="ml-auto text-[10px] text-muted-foreground">{getRemaining('code')}/10</span>
                   )}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleModeSelect('creative')} className="cursor-pointer rounded-lg">
@@ -319,8 +315,6 @@ export const ChatInput = ({
                 <DropdownMenuItem onClick={() => handleModeSelect('photo')} className="cursor-pointer rounded-lg">
                   <ImagePlus className="w-4 h-4 mr-2 text-purple-500" />
                   Image Generator
-                  {!isPremium && getRemaining && (
-                    <span className="ml-auto text-[10px] text-muted-foreground">{getRemaining('photo')}/10</span>
                   )}
                 </DropdownMenuItem>
                 
