@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { motion } from "framer-motion";
 import { AboutSection } from "@/components/AboutSection";
-import { useUsageLimits, DAILY_CHAT_LIMIT, PER_MODE_LIMIT } from "@/hooks/useUsageLimits";
+import { useUsageLimits, DAILY_CHAT_LIMIT } from "@/hooks/useUsageLimits";
 import { useSubscription } from "@/hooks/useSubscription";
 
 interface SettingsProps {
@@ -220,7 +220,7 @@ export const Settings = ({ user }: SettingsProps) => {
                 ] as const).map(m => (
                   <div key={m.key} className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">{m.label}</span>
-                    <span className="font-medium">{usageState.modeUsage[m.key] || 0} / {PER_MODE_LIMIT}</span>
+                    <span className="font-medium">{usageState.modeUsage[m.key] || 0} used</span>
                   </div>
                 ))}
                 <Separator />
