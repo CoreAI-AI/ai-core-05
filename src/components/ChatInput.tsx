@@ -285,7 +285,6 @@ export const ChatInput = ({
                 <DropdownMenuItem onClick={() => handleModeSelect('deep-search')} className="cursor-pointer rounded-lg">
                   <Search className="w-4 h-4 mr-2 text-blue-500" />
                   Deep Research
-                  )}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleModeSelect('study')} className="cursor-pointer rounded-lg">
                   <GraduationCap className="w-4 h-4 mr-2 text-green-500" />
@@ -294,7 +293,6 @@ export const ChatInput = ({
                 <DropdownMenuItem onClick={() => handleModeSelect('code')} className="cursor-pointer rounded-lg">
                   <Code className="w-4 h-4 mr-2 text-orange-500" />
                   Code Assistant
-                  )}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleModeSelect('creative')} className="cursor-pointer rounded-lg">
                   <Lightbulb className="w-4 h-4 mr-2 text-yellow-500" />
