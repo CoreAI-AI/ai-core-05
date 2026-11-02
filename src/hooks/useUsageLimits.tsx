@@ -84,19 +84,20 @@ export const useUsageLimits = (userId: string | undefined, isPremium: boolean) =
     });
   }, [userId]);
 
-  /** Returns { allowed, reason } — call BEFORE sending. */
+  /** Returns { allowed, reason } — call BEFORE sending. One shared daily pool for all modes. */
   const checkCanSend = useCallback((mode: string): { allowed: boolean; reason?: 'daily' | 'mode'; limitMode?: LimitMode } => {
     if (isPremium) return { allowed: true };
     const lm = mapToLimitMode(mode);
     const cur = load(userId); // fresh
-    if ((cur.modeUsage[lm] || 0) >= PER_MODE_LIMIT) {
-      return { allowed: false, reason: 'mode', limitMode: lm };
-    }
     if (cur.dailyChatsUsed >= DAILY_CHAT_LIMIT && cur.bonusChats <= 0) {
       return { allowed: false, reason: 'daily', limitMode: lm };
     }
     return { allowed: true, limitMode: lm };
   }, [isPremium, userId]);
+
+  const remaining = isPremium
+    ? Infinity
+    : Math.max(0, DAILY_CHAT_LIMIT - state.dailyChatsUsed) + state.bonusChats;
 
   /** Record a successful send — call AFTER allowed send. */
   const recordSend = useCallback((mode: string) => {
@@ -120,6 +121,7 @@ export const useUsageLimits = (userId: string | undefined, isPremium: boolean) =
 
   return {
     state,
+    remaining,
     checkCanSend,
     recordSend,
     addBonusChats,
