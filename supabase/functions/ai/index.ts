@@ -375,15 +375,48 @@ After providing your answer, ALWAYS end with these follow-up options formatted e
       console.log("Added image modalities to request (generation)");
     }
 
-    // Call the Lovable AI Gateway with streaming
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestBody),
-    });
+    // Free text chat → Groq (Llama 3.3 70B) first; falls back to Lovable AI Gateway on any failure.
+    const groqKey = Deno.env.get("GROQ_API_KEY");
+    const useGroq = Boolean(groqKey) && !wantsImageGeneration && !image &&
+      modelToUse === "google/gemini-2.5-flash";
+    let response: Response | null = null;
+    if (useGroq) {
+      try {
+        const textMessages = messagesArray.map((m: any) => ({
+          role: m.role,
+          content: typeof m.content === "string"
+            ? m.content
+            : Array.isArray(m.content)
+              ? m.content.filter((p: any) => p?.type === "text").map((p: any) => p.text).join("\n")
+              : String(m.content ?? ""),
+        }));
+        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${groqKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "llama-3.3-70b-versatile", stream: true, messages: textMessages }),
+        });
+        if (groqRes.ok && groqRes.body) {
+          console.log("Engine: groq llama-3.3-70b-versatile");
+          response = groqRes;
+        } else {
+          console.warn("Groq failed, falling back:", groqRes.status);
+          await groqRes.text().catch(() => {});
+        }
+      } catch (e) {
+        console.warn("Groq error, falling back");
+      }
+    }
+
+    if (!response) {
+      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
