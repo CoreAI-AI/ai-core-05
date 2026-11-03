@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, RotateCcw, Pencil, ThumbsUp, ThumbsDown, MoreHorizontal, Volume2, Flag, Pin, Share2 } from 'lucide-react';
+import { Copy, Check, RotateCcw, Pencil, ThumbsUp, ThumbsDown, MoreHorizontal, Volume2, Flag, Pin, Share2, Image as ImageIcon } from 'lucide-react';
+import { ShareResultCard } from './ShareResultCard';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ interface MessageActionsProps {
   onEdit?: () => void;
   onReadAloud?: () => void;
   className?: string;
+  question?: string;
 }
 
 export const MessageActions = ({ 
@@ -33,9 +35,11 @@ export const MessageActions = ({
   onRegenerate, 
   onEdit,
   onReadAloud,
-  className 
+  className,
+  question 
 }: MessageActionsProps) => {
   const [copied, setCopied] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [feedback, setFeedback] = useState<'good' | 'bad' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -183,6 +187,22 @@ export const MessageActions = ({
           <Copy className="h-3.5 w-3.5" />
         )}
       </Button>
+
+      {!isUser && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShareOpen(true)}
+          className="h-7 px-2 gap-1 text-xs text-primary hover:text-primary active:scale-95 transition-transform"
+          title="Share result card"
+        >
+          <ImageIcon className="h-3.5 w-3.5" />
+          Share Result
+        </Button>
+      )}
+      {!isUser && (
+        <ShareResultCard open={shareOpen} onOpenChange={setShareOpen} answer={message} question={question} />
+      )}
 
       {/* Good/Bad response buttons (AI messages only) */}
       {!isUser && (
