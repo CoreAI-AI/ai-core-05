@@ -919,14 +919,16 @@
 }
 
 /* ===== Diwali image-generation bubble (GPU-only animations) ===== */
-.diwali-stage { background: radial-gradient(circle at 50% 60%, hsl(35 90% 55% / 0.18), hsl(var(--muted) / 0.6) 70%); contain: paint; }
-.diwali-rangoli { position:absolute; inset:-20%; background: repeating-conic-gradient(from 0deg, hsl(330 80% 60% / 0.10) 0 15deg, transparent 15deg 30deg, hsl(45 95% 55% / 0.10) 30deg 45deg, transparent 45deg 60deg); border-radius:50%; animation: diwali-spin 24s linear infinite; will-change: transform; }
+.diwali-stage { background: radial-gradient(circle at 50% 60%, hsl(35 90% 55% / 0.18), hsl(var(--muted) / 0.6) 70%); contain: strict; isolation: isolate; transform: translate3d(0,0,0); backface-visibility: hidden; }
+.diwali-rangoli { position:absolute; inset:-20%; background: repeating-conic-gradient(from 0deg, hsl(330 80% 60% / 0.10) 0 15deg, transparent 15deg 30deg, hsl(45 95% 55% / 0.10) 30deg 45deg, transparent 45deg 60deg); border-radius:50%; animation: diwali-spin 24s linear infinite; will-change: transform; backface-visibility: hidden; }
 .diwali-glow { position:absolute; left:50%; top:55%; width:60%; height:60%; transform:translate(-50%,-50%); border-radius:50%; background: radial-gradient(circle, hsl(40 100% 60% / 0.45), transparent 65%); animation: diwali-pulse 2.4s ease-in-out infinite; will-change: transform, opacity; }
-.diwali-flame { width:14px; height:22px; border-radius:50% 50% 50% 50% / 60% 60% 40% 40%; background: radial-gradient(circle at 50% 70%, hsl(50 100% 85%), hsl(35 100% 55%) 55%, hsl(15 100% 50% / 0) 75%); transform-origin: 50% 100%; animation: diwali-flicker 0.9s ease-in-out infinite alternate; will-change: transform; filter: drop-shadow(0 0 8px hsl(40 100% 60%)); }
-.diwali-spark { position:absolute; bottom:-6px; border-radius:50%; background: hsl(45 100% 65%); box-shadow: 0 0 6px hsl(40 100% 60%); opacity:0; animation-name: diwali-rise; animation-timing-function: ease-out; animation-iteration-count: infinite; will-change: transform, opacity; }
-.diwali-bar { width:100%; transform-origin:left; background: linear-gradient(90deg, hsl(35 100% 55%), hsl(48 100% 60%), hsl(330 80% 60%)); transition: transform 0.6s ease-out; }
+.diwali-flame-halo { position:absolute; width:40px; height:40px; top:-14px; left:50%; margin-left:-20px; border-radius:50%; background: radial-gradient(circle, hsl(40 100% 60% / 0.55), transparent 70%); pointer-events:none; }
+.diwali-flame { width:14px; height:22px; border-radius:50% 50% 50% 50% / 60% 60% 40% 40%; background: radial-gradient(circle at 50% 70%, hsl(50 100% 85%), hsl(35 100% 55%) 55%, hsl(15 100% 50% / 0) 75%); transform-origin: 50% 100%; animation: diwali-flicker 0.9s ease-in-out infinite alternate; will-change: transform; }
+.diwali-spark { position:absolute; bottom:-6px; border-radius:50%; background: radial-gradient(circle, hsl(50 100% 80%), hsl(40 100% 60%) 60%, transparent 70%); opacity:0; animation-name: diwali-rise; animation-timing-function: ease-out; animation-iteration-count: infinite; will-change: transform, opacity; }
+@media (max-width: 640px) { .diwali-spark:nth-child(n+11) { display:none; } }
+.diwali-bar { width:100%; transform-origin:left; background: linear-gradient(90deg, hsl(35 100% 55%), hsl(48 100% 60%), hsl(330 80% 60%)); transition: transform 0.9s linear; will-change: transform; }
 @keyframes diwali-spin { to { transform: rotate(360deg); } }
 @keyframes diwali-pulse { 0%,100% { opacity:.6; transform:translate(-50%,-50%) scale(.92); } 50% { opacity:1; transform:translate(-50%,-50%) scale(1.06); } }
 @keyframes diwali-flicker { 0% { transform: scale(1,1) rotate(-3deg); } 100% { transform: scale(.9,1.12) rotate(3deg); } }
-@keyframes diwali-rise { 0% { transform: translate3d(0,0,0) scale(1); opacity:0; } 15% { opacity:1; } 100% { transform: translate3d(0,-260px,0) scale(.3); opacity:0; } }
+@keyframes diwali-rise { 0% { transform: translate3d(0,0,0) scale(1); opacity:0; } 15% { opacity:1; } 100% { transform: translate3d(0,-240px,0) scale(.3); opacity:0; } }
 @media (prefers-reduced-motion: reduce) { .diwali-rangoli,.diwali-glow,.diwali-flame,.diwali-spark { animation: none; } }

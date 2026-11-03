@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import coreaiLogo from '@/assets/coreai-logo.png';
 
 interface ImageGenerationBubbleProps {
@@ -24,7 +24,7 @@ const SPARKS = Array.from({ length: 14 }, (_, i) => ({
  * Lightweight Diwali-themed "Creating image" bubble.
  * Pure CSS (GPU transforms/opacity) — animation stays inside the bubble.
  */
-export const ImageGenerationBubble = ({ prompt }: ImageGenerationBubbleProps) => {
+export const ImageGenerationBubble = memo(({ prompt }: ImageGenerationBubbleProps) => {
   const [stage, setStage] = useState(0);
   const [progress, setProgress] = useState(4);
 
@@ -35,7 +35,7 @@ export const ImageGenerationBubble = ({ prompt }: ImageGenerationBubbleProps) =>
         setStage(next < 25 ? 0 : next < 55 ? 1 : next < 80 ? 2 : 3);
         return next;
       });
-    }, 600);
+    }, 900);
     return () => window.clearInterval(id);
   }, []);
 
@@ -60,6 +60,7 @@ export const ImageGenerationBubble = ({ prompt }: ImageGenerationBubbleProps) =>
             ))}
             <div className="absolute inset-0 flex items-center justify-center" aria-hidden>
               <div className="relative flex flex-col items-center">
+                <span className="diwali-flame-halo" />
                 <span className="diwali-flame" />
                 <span className="text-5xl leading-none -mt-1 select-none">🪔</span>
               </div>
@@ -83,4 +84,5 @@ export const ImageGenerationBubble = ({ prompt }: ImageGenerationBubbleProps) =>
       </div>
     </div>
   );
-};
+});
+ImageGenerationBubble.displayName = "ImageGenerationBubble";
