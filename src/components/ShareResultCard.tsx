@@ -239,12 +239,13 @@ export const ShareResultCard = ({ open, onOpenChange, answer, question }: Props)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-sm max-h-[95dvh] overflow-y-auto">
         <DialogHeader><DialogTitle>Share result</DialogTitle></DialogHeader>
-        <div className="aspect-[4/5] w-full overflow-hidden rounded-xl bg-muted flex items-center justify-center">
+        <div className="aspect-[9/16] max-h-[65dvh] mx-auto w-auto overflow-hidden rounded-xl bg-muted flex items-center justify-center">
           {url ? <img src={url} alt="CoreAI result card" className="w-full h-full object-contain" />
                : <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
         </div>
+        <Button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`CoreAI ne mera sawaal solve kiya ⚡ Try free: https://${SITE}`)}`, "_blank")} variant="secondary" className="w-full">WhatsApp</Button>
         <div className="grid grid-cols-3 gap-2">
           <Button onClick={handleShare} disabled={!blob} className="gap-1"><Share2 className="h-4 w-4" />Share</Button>
           <Button onClick={handleDownload} disabled={!blob} variant="outline" className="gap-1"><Download className="h-4 w-4" />Save</Button>
