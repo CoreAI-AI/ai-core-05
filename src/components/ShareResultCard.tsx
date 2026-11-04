@@ -45,28 +45,6 @@ const wrap = (ctx: CanvasRenderingContext2D, text: string, maxW: number) => {
   return lines;
 };
 
-/** Pick the largest font size that fits the box; clamp with ellipsis if even the smallest overflows. */
-const fitText = (
-  ctx: CanvasRenderingContext2D, text: string, maxW: number, maxH: number,
-  sizes: number[], weight: number,
-) => {
-  for (const size of sizes) {
-    ctx.font = `${weight} ${size}px ${FONT}`;
-    const lh = Math.round(size * 1.32);
-    const lines = wrap(ctx, text, maxW);
-    if (lines.length * lh <= maxH) return { lines, size, lh };
-  }
-  const size = sizes[sizes.length - 1];
-  ctx.font = `${weight} ${size}px ${FONT}`;
-  const lh = Math.round(size * 1.32);
-  const max = Math.max(1, Math.floor(maxH / lh));
-  const lines = wrap(ctx, text, maxW).slice(0, max);
-  let last = lines[max - 1] || "";
-  while (last && ctx.measureText(last + " …").width > maxW) last = last.slice(0, -1);
-  lines[max - 1] = last.trimEnd() + " …";
-  return { lines, size, lh };
-};
-
 const rr = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
   ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
 };
