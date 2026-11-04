@@ -3,10 +3,10 @@ import { Download, Share2, Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import logoAsset from "@/assets/coreai-logo.jpeg.asset.json";
 
 const SITE = "coreaii.vercel.app";
 const W = 1080;
-const H = 1920;
 const FONT = "Inter, system-ui, sans-serif";
 
 /** Strip markdown into plain readable lines. */
@@ -94,11 +94,35 @@ const emoji = (ctx: CanvasRenderingContext2D, e: string, x: number, y: number, s
   ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(e, x, y); ctx.textAlign = "left";
 };
 
+const loadImg = (src: string) => new Promise<HTMLImageElement | null>((res) => {
+  const i = new Image(); i.crossOrigin = "anonymous";
+  i.onload = () => res(i); i.onerror = () => res(null); i.src = src;
+});
+
+const layout = (ctx: CanvasRenderingContext2D, text: string, maxW: number, size: number, weight: number) => {
+  ctx.font = `${weight} ${size}px ${FONT}`;
+  const lh = Math.round(size * 1.38);
+  return { lines: wrap(ctx, text, maxW), size, lh };
+};
+
 export async function renderCard(answer: string, question?: string): Promise<Blob> {
   const c = document.createElement("canvas");
-  c.width = W; c.height = H;
   const ctx = c.getContext("2d")!;
   try { await document.fonts?.ready; } catch { /* ignore */ }
+  const logo = await loadImg(logoAsset.url);
+
+  // Full text, no cut-off: card grows with the answer.
+  const pad0 = 50, bx0 = pad0 + 30, bw0 = W - (pad0 + 30) * 2;
+  const qText = toPlainText(question?.trim() || "Ask anything on CoreAI");
+  const aText = toPlainText(answer);
+  const qf = layout(ctx, qText, bw0 - 220, qText.length < 120 ? 46 : qText.length < 300 ? 38 : 32, 600);
+  const aSize = aText.length < 350 ? 40 : aText.length < 900 ? 34 : aText.length < 2000 ? 30 : 27;
+  const af = layout(ctx, aText, bw0 - 290, aSize, 500);
+  const qH = Math.max(300, qf.lines.length * qf.lh + 150);
+  const aH = Math.max(560, af.lines.length * af.lh + 160);
+  const qY = 640, aY = qY + qH + 40, rY = aY + aH + 40, sY = rY + 240;
+  const H = Math.min(30000, sY + 420);
+  c.width = W; c.height = H;
 
   // Lavender background
   const bg = ctx.createLinearGradient(0, 0, 0, H);
@@ -123,12 +147,10 @@ export async function renderCard(answer: string, question?: string): Promise<Blo
   const cx = 770, cy = 190;
   ctx.save(); ctx.shadowColor = "rgba(45,212,191,0.6)"; ctx.shadowBlur = 50;
   ctx.fillStyle = "#0f3b3d"; ctx.beginPath(); ctx.arc(cx, cy, 150, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-  const ring = ctx.createLinearGradient(cx - 120, cy, cx + 120, cy);
-  ring.addColorStop(0, "#22d3ee"); ring.addColorStop(1, "#a3e635");
-  ctx.strokeStyle = ring; ctx.lineWidth = 18;
-  for (let i = 0; i < 3; i++) {
-    ctx.save(); ctx.translate(cx, cy); ctx.rotate((i * Math.PI) / 3);
-    ctx.beginPath(); ctx.ellipse(0, 0, 95, 45, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  if (logo) {
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, 150, 0, Math.PI * 2); ctx.clip();
+    const sw = logo.width * 0.72, so = logo.width * 0.14;
+    ctx.drawImage(logo, so, so, sw, sw, cx - 150, cy - 150, 300, 300); ctx.restore();
   }
   ctx.strokeStyle = "rgba(103,232,249,0.8)"; ctx.lineWidth = 6;
   ctx.beginPath(); ctx.ellipse(cx, cy + 20, 230, 60, -0.25, 0, Math.PI * 2); ctx.stroke();
@@ -157,27 +179,22 @@ export async function renderCard(answer: string, question?: string): Promise<Blo
   const bx = pad + 30, bw = W - (pad + 30) * 2;
 
   // QUESTION
-  const qText = toPlainText(question?.trim() || "Ask anything on CoreAI");
-  const qY = 640, qH = 300;
   glassBox(ctx, bx, qY + 35, bw - 140, qH - 35, ["#f5f3ff", "#ede9fe"]);
   pill(ctx, bx + 10, qY, "💬  Your Question", "#7c3aed", "#6d28d9");
   emoji(ctx, "❓", W - pad - 90, qY + 160, 150);
-  const qf = fitText(ctx, qText, bw - 220, qH - 130, [46, 40, 34, 30, 26], 600);
   ctx.fillStyle = "#1e1b4b"; ctx.textBaseline = "top"; ctx.font = `600 ${qf.size}px ${FONT}`;
   const qTop = qY + 115 + Math.max(0, (qH - 130 - qf.lines.length * qf.lh) / 2);
   qf.lines.forEach((l, i) => ctx.fillText(l, bx + 40, qTop + i * qf.lh));
 
   // ANSWER
-  const aY = 980, aH = 560;
   glassBox(ctx, bx, aY + 35, bw, aH - 35, ["#ecfeff", "#ccfbf1"]);
   pill(ctx, bx + 230, aY, "✨  CoreAI Answer", "#0f766e", "#115e59");
   emoji(ctx, "💡", bx + 115, aY + 270, 150);
-  const af = fitText(ctx, toPlainText(answer), bw - 290, aH - 140, [40, 36, 32, 28, 25, 22], 500);
   ctx.fillStyle = "#0f172a"; ctx.textBaseline = "top"; ctx.font = `500 ${af.size}px ${FONT}`;
   af.lines.forEach((l, i) => ctx.fillText(l, bx + 245, aY + 110 + i * af.lh));
 
   // RESULT
-  const rY = 1580, rH = 200;
+  const rH = 200;
   glassBox(ctx, bx, rY, bw, rH, ["#f5f3ff", "#e9e3ff"]);
   emoji(ctx, "🏆", bx + 140, rY + 100, 140);
   pill(ctx, bx + 330, rY + 15, "✔  Result", "#6d28d9", "#7c3aed");
@@ -186,9 +203,32 @@ export async function renderCard(answer: string, question?: string): Promise<Blo
   ctx.font = `500 32px ${FONT}`; ctx.fillStyle = "#374151";
   ctx.fillText("Thanks for using CoreAI 💚", bx + 340, rY + 172);
 
+  // Share Your Result row
+  const sbw = 620, sbx = (W - sbw) / 2;
+  const sg = ctx.createLinearGradient(0, sY, 0, sY + 100);
+  sg.addColorStop(0, "#134e4a"); sg.addColorStop(1, "#0b2f33");
+  ctx.save(); ctx.shadowColor = "rgba(15,60,60,0.35)"; ctx.shadowBlur = 20; ctx.shadowOffsetY = 8;
+  ctx.fillStyle = sg; rr(ctx, sbx, sY, sbw, 100, 50); ctx.fill(); ctx.restore();
+  ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.font = `700 44px ${FONT}`;
+  ctx.fillText("🔗  Share Your Result", W / 2, sY + 52);
+  const icons: [string, string, string, string][] = [
+    ["WhatsApp", "#22c55e", "#15803d", "W"], ["Instagram", "#f97316", "#db2777", "IG"],
+    ["Facebook", "#3b82f6", "#1d4ed8", "f"], ["Copy Image", "#8b5cf6", "#6d28d9", "⧉"],
+  ];
+  icons.forEach(([label, c1, c2, glyph], i) => {
+    const ix = 175 + i * 243, iy = sY + 200;
+    const g = ctx.createLinearGradient(ix - 55, iy - 55, ix + 55, iy + 55);
+    g.addColorStop(0, c1); g.addColorStop(1, c2);
+    ctx.save(); ctx.shadowColor = "rgba(0,0,0,0.2)"; ctx.shadowBlur = 14; ctx.shadowOffsetY = 6;
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(ix, iy, 55, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    ctx.fillStyle = "#fff"; ctx.font = `800 ${glyph.length > 1 ? 40 : 54}px ${FONT}`; ctx.fillText(glyph, ix, iy + 2);
+    ctx.fillStyle = "#1f2937"; ctx.font = `600 30px ${FONT}`; ctx.fillText(label, ix, iy + 90);
+  });
+
   // Footer
-  ctx.textAlign = "center"; ctx.font = `600 34px ${FONT}`; ctx.fillStyle = "#134e4a";
-  ctx.fillText(`💚 Powered by CoreAI • ${SITE}`, W / 2, H - 80);
+  ctx.fillStyle = "rgba(255,255,255,0.85)"; rr(ctx, W / 2 - 280, H - 110, 560, 70, 35); ctx.fill();
+  ctx.font = `600 32px ${FONT}`; ctx.fillStyle = "#134e4a";
+  ctx.fillText(`💚 Powered by CoreAI • ${SITE}`, W / 2, H - 74);
   ctx.textAlign = "left";
 
   return new Promise((res) => c.toBlob((b) => res(b!), "image/png"));
@@ -241,8 +281,8 @@ export const ShareResultCard = ({ open, onOpenChange, answer, question }: Props)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-sm max-h-[95dvh] overflow-y-auto">
         <DialogHeader><DialogTitle>Share result</DialogTitle></DialogHeader>
-        <div className="aspect-[9/16] max-h-[65dvh] mx-auto w-auto overflow-hidden rounded-xl bg-muted flex items-center justify-center">
-          {url ? <img src={url} alt="CoreAI result card" className="w-full h-full object-contain" />
+        <div className="max-h-[62dvh] min-h-[200px] overflow-y-auto rounded-xl bg-muted flex justify-center">
+          {url ? <img src={url} alt="CoreAI result card" className="w-full h-auto" />
                : <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />}
         </div>
         <Button onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`CoreAI ne mera sawaal solve kiya ⚡ Try free: https://${SITE}`)}`, "_blank")} variant="secondary" className="w-full">WhatsApp</Button>
