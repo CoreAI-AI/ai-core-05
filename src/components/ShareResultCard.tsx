@@ -94,7 +94,7 @@ const emoji = (ctx: CanvasRenderingContext2D, e: string, x: number, y: number, s
   ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(e, x, y); ctx.textAlign = "left";
 };
 
-async function renderCard(answer: string, question?: string): Promise<Blob> {
+export async function renderCard(answer: string, question?: string): Promise<Blob> {
   const c = document.createElement("canvas");
   c.width = W; c.height = H;
   const ctx = c.getContext("2d")!;
