@@ -16,6 +16,7 @@ interface ChatMessageProps {
   isGeneratingImage?: boolean;
   onRegenerate?: () => void;
   onEdit?: () => void;
+  question?: string;
 }
 
 export const ChatMessage = ({ 
@@ -26,7 +27,8 @@ export const ChatMessage = ({
   images, 
   isGeneratingImage,
   onRegenerate,
-  onEdit
+  onEdit,
+  question
 }: ChatMessageProps) => {
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
@@ -241,6 +243,7 @@ export const ChatMessage = ({
             messageId={messageId}
             isUser={false} 
             onRegenerate={onRegenerate}
+            question={question}
             className="mt-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
           />
         )}

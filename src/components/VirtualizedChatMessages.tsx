@@ -164,6 +164,11 @@ const VirtualizedChatMessages = memo(({
 
   // If messages are below threshold, render normally without virtualization
   // No internal scroll container - parent handles scrolling
+  const findQuestion = (idx: number) => {
+    for (let i = idx - 1; i >= 0; i--) if (messages[i].is_user) return messages[i].content;
+    return undefined;
+  };
+
   if (messages.length < VIRTUALIZATION_THRESHOLD) {
     return (
       <div className="space-y-1 pb-4">
@@ -178,6 +183,7 @@ const VirtualizedChatMessages = memo(({
                 minute: '2-digit'
               })}
               images={message.images}
+              question={!message.is_user ? findQuestion(index) : undefined}
               onEdit={message.is_user ? () => onEditMessage?.(message.id, message.content, index) : undefined}
               onRegenerate={!message.is_user ? () => onRegenerateResponse?.(message.id, index) : undefined}
             />
@@ -229,6 +235,7 @@ const VirtualizedChatMessages = memo(({
                       minute: '2-digit'
                     })}
                     images={message.images}
+                    question={!message.is_user ? findQuestion(actualIndex) : undefined}
                     onEdit={message.is_user ? () => onEditMessage?.(message.id, message.content, actualIndex) : undefined}
                     onRegenerate={!message.is_user ? () => onRegenerateResponse?.(message.id, actualIndex) : undefined}
                   />
