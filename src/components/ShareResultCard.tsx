@@ -6,12 +6,8 @@ import { Button } from "@/components/ui/button";
 
 const SITE = "coreaii.vercel.app";
 const W = 1080;
-const H = 1350;
-
-const cssColor = (name: string, alpha = 1) => {
-  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return v ? `hsl(${v.replace(/\s+/g, " ")} / ${alpha})` : `rgba(30,144,255,${alpha})`;
-};
+const H = 1920;
+const FONT = "Inter, system-ui, sans-serif";
 
 /** Strip markdown into plain readable lines. */
 export const toPlainText = (md: string) =>
@@ -28,78 +24,172 @@ export const toPlainText = (md: string) =>
 const wrap = (ctx: CanvasRenderingContext2D, text: string, maxW: number) => {
   const lines: string[] = [];
   for (const para of text.split("\n")) {
-    if (!para.trim()) { lines.push(""); continue; }
+    if (!para.trim()) { if (lines.length && lines[lines.length - 1] !== "") lines.push(""); continue; }
     let line = "";
-    for (const word of para.split(" ")) {
+    for (const raw of para.split(" ")) {
+      let word = raw;
+      // break very long words (URLs, code)
+      while (ctx.measureText(word).width > maxW) {
+        let n = word.length;
+        while (n > 1 && ctx.measureText(word.slice(0, n)).width > maxW) n--;
+        if (line) { lines.push(line); line = ""; }
+        lines.push(word.slice(0, n)); word = word.slice(n);
+      }
       const test = line ? `${line} ${word}` : word;
       if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = word; }
       else line = test;
     }
-    lines.push(line);
+    if (line) lines.push(line);
   }
+  while (lines[lines.length - 1] === "") lines.pop();
   return lines;
+};
+
+/** Pick the largest font size that fits the box; clamp with ellipsis if even the smallest overflows. */
+const fitText = (
+  ctx: CanvasRenderingContext2D, text: string, maxW: number, maxH: number,
+  sizes: number[], weight: number,
+) => {
+  for (const size of sizes) {
+    ctx.font = `${weight} ${size}px ${FONT}`;
+    const lh = Math.round(size * 1.32);
+    const lines = wrap(ctx, text, maxW);
+    if (lines.length * lh <= maxH) return { lines, size, lh };
+  }
+  const size = sizes[sizes.length - 1];
+  ctx.font = `${weight} ${size}px ${FONT}`;
+  const lh = Math.round(size * 1.32);
+  const max = Math.max(1, Math.floor(maxH / lh));
+  const lines = wrap(ctx, text, maxW).slice(0, max);
+  let last = lines[max - 1] || "";
+  while (last && ctx.measureText(last + " …").width > maxW) last = last.slice(0, -1);
+  lines[max - 1] = last.trimEnd() + " …";
+  return { lines, size, lh };
+};
+
+const rr = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) => {
+  ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+};
+
+const pill = (ctx: CanvasRenderingContext2D, x: number, y: number, label: string, c1: string, c2: string) => {
+  ctx.font = `700 38px ${FONT}`;
+  const w = ctx.measureText(label).width + 64;
+  const g = ctx.createLinearGradient(x, y, x + w, y);
+  g.addColorStop(0, c1); g.addColorStop(1, c2);
+  ctx.save(); ctx.shadowColor = "rgba(40,20,90,0.3)"; ctx.shadowBlur = 16; ctx.shadowOffsetY = 6;
+  ctx.fillStyle = g; rr(ctx, x, y, w, 70, 35); ctx.fill(); ctx.restore();
+  ctx.fillStyle = "#fff"; ctx.textBaseline = "middle"; ctx.fillText(label, x + 32, y + 37);
+};
+
+const glassBox = (ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, tint: [string, string]) => {
+  ctx.save(); ctx.shadowColor = "rgba(80,60,160,0.22)"; ctx.shadowBlur = 30; ctx.shadowOffsetY = 10;
+  const g = ctx.createLinearGradient(x, y, x + w, y + h);
+  g.addColorStop(0, tint[0]); g.addColorStop(1, tint[1]);
+  ctx.fillStyle = g; rr(ctx, x, y, w, h, 40); ctx.fill(); ctx.restore();
+  ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.lineWidth = 3; rr(ctx, x, y, w, h, 40); ctx.stroke();
+};
+
+const emoji = (ctx: CanvasRenderingContext2D, e: string, x: number, y: number, size: number) => {
+  ctx.font = `${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(e, x, y); ctx.textAlign = "left";
 };
 
 async function renderCard(answer: string, question?: string): Promise<Blob> {
   const c = document.createElement("canvas");
   c.width = W; c.height = H;
   const ctx = c.getContext("2d")!;
-  const primary = cssColor("--primary");
-  const font = "Inter, system-ui, sans-serif";
+  try { await document.fonts?.ready; } catch { /* ignore */ }
 
-  // Background
-  const bg = ctx.createLinearGradient(0, 0, W, H);
-  bg.addColorStop(0, "#0b1220");
-  bg.addColorStop(1, "#111c33");
+  // Lavender background
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, "#d9d2ff"); bg.addColorStop(0.5, "#e4defc"); bg.addColorStop(1, "#cfc6fb");
   ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
-  const glow = ctx.createRadialGradient(W * 0.85, 120, 0, W * 0.85, 120, 600);
-  glow.addColorStop(0, cssColor("--primary", 0.35)); glow.addColorStop(1, "transparent");
-  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
 
-  // Header
-  ctx.fillStyle = primary;
-  ctx.beginPath(); ctx.roundRect(72, 72, 72, 72, 18); ctx.fill();
-  ctx.fillStyle = "#fff"; ctx.font = `800 40px ${font}`; ctx.textBaseline = "middle";
-  ctx.fillText("C", 95, 110);
-  ctx.font = `800 46px ${font}`; ctx.fillText("CoreAI", 168, 100);
-  ctx.font = `500 26px ${font}`; ctx.fillStyle = "rgba(255,255,255,0.6)";
-  ctx.fillText("⚡ Answered by CoreAI", 168, 140);
+  // Floating cubes / sparkles
+  const deco: [number, number, number, string][] = [
+    [80, 130, 50, "#2dd4bf"], [470, 90, 44, "#8b5cf6"], [980, 260, 56, "#7c3aed"], [900, 360, 44, "#14b8a6"], [60, 330, 34, "#a78bfa"],
+  ];
+  deco.forEach(([x, y, s, col]) => {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(0.5); ctx.fillStyle = col; ctx.globalAlpha = 0.85;
+    rr(ctx, -s / 2, -s / 2, s, s, 10); ctx.fill(); ctx.restore();
+  });
+  ctx.fillStyle = "#fff"; ["✦"].forEach(() => {
+    ctx.font = `40px ${FONT}`; ctx.fillText("✦", 520, 220); ctx.fillText("✦", 1010, 170); ctx.fillText("✦", 90, 390);
+  });
 
-  let y = 220;
-  ctx.textBaseline = "top";
-  const pad = 72, maxW = W - pad * 2 - 64;
-
-  // Question box
-  if (question?.trim()) {
-    ctx.font = `700 36px ${font}`;
-    const q = wrap(ctx, `Q: ${toPlainText(question)}`, maxW).slice(0, 3);
-    const qh = q.length * 48 + 56;
-    ctx.fillStyle = cssColor("--primary", 0.18);
-    ctx.beginPath(); ctx.roundRect(pad, y, W - pad * 2, qh, 24); ctx.fill();
-    ctx.fillStyle = "#fff";
-    q.forEach((l, i) => ctx.fillText(l, pad + 32, y + 28 + i * 48));
-    y += qh + 32;
+  // Robot mascot (left) + orbit logo (right)
+  emoji(ctx, "🤖", 280, 230, 250);
+  emoji(ctx, "👍", 440, 300, 110);
+  const cx = 770, cy = 190;
+  ctx.save(); ctx.shadowColor = "rgba(45,212,191,0.6)"; ctx.shadowBlur = 50;
+  ctx.fillStyle = "#0f3b3d"; ctx.beginPath(); ctx.arc(cx, cy, 150, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+  const ring = ctx.createLinearGradient(cx - 120, cy, cx + 120, cy);
+  ring.addColorStop(0, "#22d3ee"); ring.addColorStop(1, "#a3e635");
+  ctx.strokeStyle = ring; ctx.lineWidth = 18;
+  for (let i = 0; i < 3; i++) {
+    ctx.save(); ctx.translate(cx, cy); ctx.rotate((i * Math.PI) / 3);
+    ctx.beginPath(); ctx.ellipse(0, 0, 95, 45, 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
   }
+  ctx.strokeStyle = "rgba(103,232,249,0.8)"; ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.ellipse(cx, cy + 20, 230, 60, -0.25, 0, Math.PI * 2); ctx.stroke();
 
-  // Answer card
-  const cardBottom = H - 200;
-  ctx.fillStyle = "rgba(255,255,255,0.06)";
-  ctx.beginPath(); ctx.roundRect(pad, y, W - pad * 2, cardBottom - y, 28); ctx.fill();
-  ctx.font = `400 32px ${font}`; ctx.fillStyle = "rgba(255,255,255,0.92)";
-  const lh = 46;
-  const maxLines = Math.floor((cardBottom - y - 64) / lh);
-  let lines = wrap(ctx, toPlainText(answer), maxW);
-  if (lines.length > maxLines) { lines = lines.slice(0, maxLines); lines[maxLines - 1] = lines[maxLines - 1].slice(0, 60) + " …"; }
-  lines.forEach((l, i) => ctx.fillText(l, pad + 32, y + 32 + i * lh));
+  // Main frosted card
+  const pad = 50;
+  ctx.save(); ctx.shadowColor = "rgba(60,40,140,0.25)"; ctx.shadowBlur = 40;
+  ctx.fillStyle = "rgba(240,236,255,0.85)"; rr(ctx, pad, 420, W - pad * 2, H - 460, 60); ctx.fill(); ctx.restore();
+
+  // Dark header banner
+  const hb = ctx.createLinearGradient(0, 400, 0, 580);
+  hb.addColorStop(0, "#134e4a"); hb.addColorStop(1, "#0b2f33");
+  ctx.fillStyle = hb; rr(ctx, pad + 20, 400, W - (pad + 20) * 2, 180, 60); ctx.fill();
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = `800 110px ${FONT}`;
+  const coreW = ctx.measureText("Core").width, aiW = ctx.measureText("AI").width;
+  const sx = W / 2 - (coreW + aiW) / 2;
+  ctx.textAlign = "left"; ctx.fillStyle = "#fff"; ctx.fillText("Core", sx, 465);
+  const aiG = ctx.createLinearGradient(sx + coreW, 0, sx + coreW + aiW, 0);
+  aiG.addColorStop(0, "#5eead4"); aiG.addColorStop(1, "#a3e635");
+  ctx.fillStyle = aiG; ctx.fillText("AI", sx + coreW, 465);
+  ctx.textAlign = "center"; ctx.font = `600 40px ${FONT}`; ctx.fillStyle = "#ccfbf1";
+  ctx.fillText("Think • Learn • Grow", W / 2, 545);
+  ctx.textAlign = "left";
+
+  const bx = pad + 30, bw = W - (pad + 30) * 2;
+
+  // QUESTION
+  const qText = toPlainText(question?.trim() || "Ask anything on CoreAI");
+  const qY = 640, qH = 300;
+  glassBox(ctx, bx, qY + 35, bw - 140, qH - 35, ["#f5f3ff", "#ede9fe"]);
+  pill(ctx, bx + 10, qY, "💬  Your Question", "#7c3aed", "#6d28d9");
+  emoji(ctx, "❓", W - pad - 90, qY + 160, 150);
+  const qf = fitText(ctx, qText, bw - 220, qH - 130, [46, 40, 34, 30, 26], 600);
+  ctx.fillStyle = "#1e1b4b"; ctx.textBaseline = "top"; ctx.font = `600 ${qf.size}px ${FONT}`;
+  const qTop = qY + 115 + Math.max(0, (qH - 130 - qf.lines.length * qf.lh) / 2);
+  qf.lines.forEach((l, i) => ctx.fillText(l, bx + 40, qTop + i * qf.lh));
+
+  // ANSWER
+  const aY = 980, aH = 560;
+  glassBox(ctx, bx, aY + 35, bw, aH - 35, ["#ecfeff", "#ccfbf1"]);
+  pill(ctx, bx + 230, aY, "✨  CoreAI Answer", "#0f766e", "#115e59");
+  emoji(ctx, "💡", bx + 115, aY + 270, 150);
+  const af = fitText(ctx, toPlainText(answer), bw - 290, aH - 140, [40, 36, 32, 28, 25, 22], 500);
+  ctx.fillStyle = "#0f172a"; ctx.textBaseline = "top"; ctx.font = `500 ${af.size}px ${FONT}`;
+  af.lines.forEach((l, i) => ctx.fillText(l, bx + 245, aY + 110 + i * af.lh));
+
+  // RESULT
+  const rY = 1580, rH = 200;
+  glassBox(ctx, bx, rY, bw, rH, ["#f5f3ff", "#e9e3ff"]);
+  emoji(ctx, "🏆", bx + 140, rY + 100, 140);
+  pill(ctx, bx + 330, rY + 15, "✔  Result", "#6d28d9", "#7c3aed");
+  ctx.fillStyle = "#111827"; ctx.textBaseline = "middle"; ctx.font = `800 52px ${FONT}`;
+  ctx.fillText("Great Job!", bx + 340, rY + 125);
+  ctx.font = `500 32px ${FONT}`; ctx.fillStyle = "#374151";
+  ctx.fillText("Thanks for using CoreAI 💚", bx + 340, rY + 172);
 
   // Footer
-  ctx.textBaseline = "middle";
-  ctx.font = `600 30px ${font}`; ctx.fillStyle = "rgba(255,255,255,0.7)";
-  ctx.fillText("Try it free 👉", pad, H - 110);
-  ctx.font = `800 38px ${font}`; ctx.fillStyle = primary;
-  ctx.fillText(SITE, pad + ctx.measureText("Try it free 👉 ").width + 10, H - 110);
-  ctx.font = `500 24px ${font}`; ctx.fillStyle = "rgba(255,255,255,0.45)";
-  ctx.textAlign = "right"; ctx.fillText("by Prem Prasad", W - pad, H - 110);
+  ctx.textAlign = "center"; ctx.font = `600 34px ${FONT}`; ctx.fillStyle = "#134e4a";
+  ctx.fillText(`💚 Powered by CoreAI • ${SITE}`, W / 2, H - 80);
+  ctx.textAlign = "left";
 
   return new Promise((res) => c.toBlob((b) => res(b!), "image/png"));
 }
