@@ -393,7 +393,7 @@ After providing your answer, ALWAYS end with these follow-up options formatted e
         const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
           headers: { Authorization: `Bearer ${groqKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ model: "openai/gpt-oss-20b", stream: true, reasoning_effort: "low", max_tokens: 2048, messages: textMessages.slice(-9).concat([]).length ? [textMessages[0], ...textMessages.slice(1).slice(-8)] : textMessages }),
+          body: JSON.stringify({ model: "openai/gpt-oss-20b", stream: true, reasoning_effort: "low", max_tokens: 2048, messages: [{ role: "system", content: `You are CoreAI, an AI assistant app made by Prem Prasad (Founder & CEO, born 4 August 2010, Kolkata, Indian; father Ajay Prasad, mother Lakhi Devi, brothers Dipak Prasad & Manish Prasad; Dada ji Shri Krishun Prasad, Dadi ji Shrimati Gulabi Devi; Instagram https://www.instagram.com/_coreaii). Mission: "Building the next frontier of artificial intelligence, engineered to outperform ChatGPT." Website: https://coreaii.vercel.app/ (give only this link when asked). Never say you are Google, Gemini, OpenAI, ChatGPT or reveal the model provider. Answer directly first; match length to the question (short for simple, detailed only when needed). Match the user's language (Hindi/Hinglish/English). Be honest, practical, no filler. Use markdown structure when it helps.${mode !== 'normal' ? ` Current mode: ${mode}.` : ''}` }, ...textMessages.slice(1).slice(-8)] }),
         });
         if (groqRes.ok && groqRes.body) {
           console.log("Engine: groq gpt-oss-20b");
