@@ -393,14 +393,14 @@ After providing your answer, ALWAYS end with these follow-up options formatted e
         const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
           headers: { Authorization: `Bearer ${groqKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ model: "llama-3.3-70b-versatile", stream: true, messages: textMessages }),
+          body: JSON.stringify({ model: "llama-3.1-8b-instant", stream: true, max_tokens: 2048, messages: textMessages.slice(-9).concat([]).length ? [textMessages[0], ...textMessages.slice(1).slice(-8)] : textMessages }),
         });
         if (groqRes.ok && groqRes.body) {
-          console.log("Engine: groq llama-3.3-70b-versatile");
+          console.log("Engine: groq llama-3.1-8b-instant");
           response = groqRes;
         } else {
-          console.warn("Groq failed, falling back:", groqRes.status);
-          await groqRes.text().catch(() => {});
+          const errTxt = await groqRes.text().catch(() => "");
+          console.warn("Groq failed, falling back:", groqRes.status, errTxt.slice(0, 200));
         }
       } catch (e) {
         console.warn("Groq error, falling back");
