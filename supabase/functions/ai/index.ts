@@ -402,8 +402,8 @@ After providing your answer, ALWAYS end with these follow-up options formatted e
           const errTxt = await groqRes.text().catch(() => "");
           console.warn("Groq failed, falling back:", groqRes.status, errTxt.slice(0, 200));
           if (groqRes.status === 404) {
-            const ml = await fetch("https://api.groq.com/openai/v1/models", { headers: { Authorization: `Bearer ${groqKey}` } }).then(r => r.text()).catch(() => "");
-            console.warn("Groq models:", ml.slice(0, 600));
+            const ml = await fetch("https://api.groq.com/openai/v1/models", { headers: { Authorization: `Bearer ${groqKey}` } }).then(r => r.json()).catch(() => ({}));
+            console.warn("Groq models:", (ml?.data || []).map((m: any) => m.id).join(","));
           }
         }
       } catch (e) {
