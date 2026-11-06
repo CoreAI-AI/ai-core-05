@@ -34,10 +34,6 @@ const sidebarItems = [{
   icon: Sparkles,
   label: "Explore AI",
   action: 'explore'
-}, {
-  icon: Crown,
-  label: "Plans",
-  action: 'plans'
 }];
 
 interface ChatSidebarProps {

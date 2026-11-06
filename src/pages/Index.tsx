@@ -585,10 +585,9 @@ const Index = () => {
       }
       await addMessage(
         chatToUse.id,
-        "Bilkul! 🎉 CoreAI Premium mein aapko unlimited chats, advanced models (Core-AI, Chat-Pro), unlimited image generation, deep research, priority speed aur ad-free experience milta hai.\n\nNeeche **Premium** section khul raha hai — apna plan choose karein:\n\n• ⭐ Monthly — ₹249\n• 🔥 Quarterly — ₹599 (Save 20%)\n• 💎 Yearly — ₹1,999 (Best Value, Save 33%)\n\nRedeem code bhi available hai agar aapke paas ho. 🚀",
+        "CoreAI abhi sabke liye **100% free** hai — koi Premium plan ya subscription nahi hai. 🎉\n\nHar din aapko free chats milti hain, jo roz subah apne aap reset ho jaati hain. Bas chat karte rahiye! 🚀",
         false
       );
-      setTimeout(() => setShowSubscriptionPopup(true), 400);
       return;
     }
 
@@ -930,17 +929,7 @@ const Index = () => {
                       {sidebarCollapsed && <Button variant="ghost" size="sm" onClick={() => setSidebarCollapsed(false)} className="h-8 w-8 p-0 shrink-0">
                         <PanelLeft className="h-4 w-4" />
                       </Button>}
-                      {!isPremium ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 px-3 rounded-full bg-muted/80 text-primary font-semibold text-xs gap-1.5 hover:bg-muted"
-                          onClick={() => setShowSubscriptionPopup(true)}
-                        >
-                          <Sparkles className="h-3.5 w-3.5" />
-                          Get Plus
-                        </Button>
-                      ) : (
+                      {!isPremium ? null : (
                         <button
                           onClick={() => setShowManageSubscription(true)}
                           className="h-8 px-2.5 rounded-full flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 via-yellow-500/15 to-purple-500/15 border border-amber-500/30 hover:from-amber-500/25 hover:to-purple-500/25 transition-all shadow-[0_0_15px_rgba(234,179,8,0.15)]"
