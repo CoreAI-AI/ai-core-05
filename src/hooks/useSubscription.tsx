@@ -6,7 +6,11 @@ const PREMIUM_VERSION = 'v2';
 const STATUS_KEY = 'coreai_premium_status';
 const VERSION_KEY = 'coreai_premium_version';
 
+// CoreAI is 100% free for everyone — no Premium subscription exists.
+const PREMIUM_DISABLED = true;
+
 const readPremium = (): boolean => {
+  if (PREMIUM_DISABLED) return false;
   try {
     const status = localStorage.getItem(STATUS_KEY);
     const version = localStorage.getItem(VERSION_KEY);

@@ -124,7 +124,7 @@ export const AnimatedRoutes = () => {
         <Route path="/terms" element={<PageTransition><Terms /></PageTransition>} />
         <Route path="/terms-and-conditions" element={<PageTransition><TermsAndConditions /></PageTransition>} />
         <Route path="/features" element={<PageTransition><Features /></PageTransition>} />
-        <Route path="/plans" element={<PageTransition><Plans /></PageTransition>} />
+        <Route path="/plans" element={<Navigate to="/" replace />} />
         <Route path="/faq" element={<PageTransition><FAQ /></PageTransition>} />
         <Route path="/free-ai-chatbot" element={<PageTransition><FreeAIChatbot /></PageTransition>} />
         <Route path="/waitlist" element={<PageTransition><Waitlist /></PageTransition>} />
