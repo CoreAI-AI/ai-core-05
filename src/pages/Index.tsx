@@ -42,6 +42,7 @@ import { haptics } from "@/lib/haptics";
 import { ReadAloudHeaderPlayer } from "@/components/ReadAloudHeaderPlayer";
 import { tryLocalReply, detectSubscriptionIntent } from "@/lib/smallTalk";
 import { getCached, setCached, isCacheable } from "@/lib/aiCache";
+import { buildCompanionContext, followUpGreeting } from "@/lib/companionMemory";
 
 
 const Index = () => {
@@ -370,6 +371,7 @@ const Index = () => {
           message: content,
           model: modelToUse,
           mode: chatMode,
+          companion: buildCompanionContext(content),
           conversationHistory: conversationHistory
         })
       });
@@ -463,6 +465,7 @@ const Index = () => {
           message: userMessage.content,
           model: modelToUse,
           mode: chatMode,
+          companion: buildCompanionContext(userMessage.content),
           conversationHistory: conversationHistory
         })
       });
@@ -672,6 +675,7 @@ const Index = () => {
           message: content,
           model: modelToUse,
           mode: chatMode,
+          companion: buildCompanionContext(content),
           image: filePreview,
           fileText: fileTextToSend,
           fileName: fileNameToSend,
