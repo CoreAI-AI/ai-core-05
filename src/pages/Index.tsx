@@ -135,6 +135,15 @@ const Index = () => {
     return scrollHeight - scrollTop - clientHeight < 100;
   }, []);
 
+  // Next-day follow-up: friendly question when the app opens (local only, ₹0)
+  useEffect(() => {
+    const g = followUpGreeting();
+    if (g && !sessionStorage.getItem("coreai_followup_shown")) {
+      sessionStorage.setItem("coreai_followup_shown", "1");
+      setTimeout(() => toast(g, { duration: 9000 }), 1500);
+    }
+  }, []);
+
   // Track new messages when not at bottom
   useEffect(() => {
     if (messages.length > prevMessageCountRef.current && !isNearBottom()) {
