@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach } from "bun:test";
 
-const store: Record<string, string> = {};
-(globalThis as any).localStorage = {
-  getItem: (k: string) => store[k] ?? null,
-  setItem: (k: string, v: string) => { store[k] = v; },
+const store = {};
+globalThis.localStorage = {
+  getItem: (k) => store[k] ?? null,
+  setItem: (k, v) => { store[k] = v; },
 };
 const { learnFromMessage, dueFollowUps, buildCompanionContext } = await import("./companionMemory");
 
