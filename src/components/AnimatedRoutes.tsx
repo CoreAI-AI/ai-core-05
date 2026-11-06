@@ -25,7 +25,7 @@ import HindiAIAssistant from '@/pages/seo/HindiAIAssistant';
 import Waitlist from '@/pages/Waitlist';
 import AdminWaitlist from '@/pages/AdminWaitlist';
 import NotFound from '@/pages/NotFound';
-import Plans from '@/pages/Plans';
+import { Navigate } from 'react-router-dom';
 import OfficialLaunch from '@/pages/OfficialLaunch';
 
 export const AnimatedRoutes = () => {
