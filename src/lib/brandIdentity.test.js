@@ -6,7 +6,8 @@ describe('approved CoreAI identity', () => {
     for (const query of ['Prem Prasad', 'CoreAI founder & CEO', 'CoreAI made by Prem Prasad']) {
       const reply = getBrandIdentityReply(query);
       expect(reply).toContain('Prem Prasad');
-      expect(reply).toContain('CoreAI founder & CEO');
+      expect(reply).toContain('Founder & CEO');
+      expect(reply).toContain('Grandparents: Shri Krishun Prasad (dada)');
       expect(reply).toContain(brandIdentity.localPortrait);
     }
   });

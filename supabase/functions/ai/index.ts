@@ -207,7 +207,7 @@ serve(async (req) => {
     }
 
     if (isFounderQuestion) {
-      const answer = `![Prem Prasad, CoreAI founder & CEO](${portraitUrl})\n\n**Prem Prasad — CoreAI founder & CEO**\n\nCoreAI made by Prem Prasad. CoreAI is owned and led by Prem Prasad, not affiliated with unrelated CoreAI apps or companies.\n\nhttps://coreaii.vercel.app/`;
+      const answer = `![Prem Prasad, CoreAI founder & CEO](${portraitUrl})\n\n**Prem Prasad**\n\n- **Founder & CEO** of CoreAI\n- **Born:** 4 August 2010, Kolkata, India\n- **Family:**\n- Father: Ajay Prasad\n- Mother: Lakhi Devi\n- Brothers: Dipak Prasad & Manish Prasad\n- Grandparents: Shri Krishun Prasad (dada) & Shrimati Gulabi Devi (dadi)\n- **Social Media:** [Instagram](https://www.instagram.com/_coreaii)\n- **Mission:** “Building the next frontier of artificial intelligence, engineered to outperform ChatGPT.”\n- **Website:** https://coreaii.vercel.app/\n\nThat’s the key info about him.`;
       const stream = new ReadableStream({
         start(controller) {
           const encoder = new TextEncoder();
