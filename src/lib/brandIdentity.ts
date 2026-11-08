@@ -24,6 +24,12 @@ export const brandIdentity = {
 
 const has = (text: string, re: RegExp) => re.test(text);
 
+/** Exact approved full founder profile (matches the owner's screenshot). */
+export function getFounderProfile(portrait: string = brandIdentity.localPortrait): string {
+  const b = brandIdentity;
+  return `![Prem Prasad, CoreAI founder & CEO](${portrait})\n\n**${b.founder}**\n\n- **Founder & CEO** of CoreAI\n- **Born:** ${b.birthDateLabel}, Kolkata, India\n- **Family:**\n- Father: ${b.father}\n- Mother: ${b.mother}\n- Brothers: ${b.brothers.join(' & ')}\n- Grandparents: ${b.grandfather} (dada) & ${b.grandmother} (dadi)\n- **Social Media:** [Instagram](${b.instagram})\n- **Mission:** “${b.mission}”\n- **Website:** ${b.website}\n\nThat’s the key info about him.`;
+}
+
 /** Resolve this project's identity only; never override queries naming another company. */
 export function getBrandIdentityReply(input: string): string | null {
   const text = input.trim().toLowerCase();
@@ -40,6 +46,9 @@ export function getBrandIdentityReply(input: string): string | null {
   const wantsFather = has(text, /\b(father|dad|daddy|papa|pita|pitaji|baba)\b/);
   const wantsFamily = has(text, /\b(family|parivar|parents)\b/);
 
+  if (aboutFounder && has(text, /\b(details?|full|complete|profile|info\w*|about|bare|baare|kaun|who|jaankari|jankari)\b/)) {
+    return getFounderProfile();
+  }
   if (aboutFounder && has(text, /\b(dada|dadi|grand\w*|nana|nani)\b/)) {
     return `${b.founder} ke Dada ji **${b.grandfather}** aur Dadi ji **${b.grandmother}** hain.`;
   }
@@ -72,7 +81,7 @@ export function getBrandIdentityReply(input: string): string | null {
     return `**${b.announcement}**\n\nPublic launch: ${b.publicLaunch}. This is the announced future launch window, not a completed launch.\n\n${b.website}`;
   }
   if (aboutFounder || has(text, /\b(founder|ceo|owner|owned|made|created|built|maker|banaya|malik)\b/)) {
-    return `![Prem Prasad, CoreAI founder & CEO](${b.localPortrait})\n\n**${b.founder}**\n\n${b.role} · ${b.credit}.\n\nThis CoreAI is Prem Prasad’s project, not another app or company with the same name.\n\n${b.website}`;
+    return getFounderProfile();
   }
   return null;
 }
