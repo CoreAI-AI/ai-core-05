@@ -841,7 +841,7 @@ const Index = () => {
       toast.error("Failed to export chat");
     }
   };
-  return <div className={`flex h-screen bg-background overflow-hidden ${isPremium ? "premium-mode" : ""}`}>
+return <div className={`coreai-redesign-shell flex h-screen bg-background overflow-hidden ${isPremium ? "premium-mode" : ""}`}>
       {/* Sidebar */}
       <AnimatePresence mode="wait">
         {!sidebarCollapsed && <>
@@ -922,7 +922,7 @@ const Index = () => {
                 </div>
                 
                 {/* Header - Mobile: Logo + Name + Install | Desktop: Full controls */}
-                <div className="glass-navbar px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2 z-20">
+               <div className="coreai-topbar glass-navbar px-3 py-2 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2 z-20">
                   {/* Mobile Header: Logo + Name centered + Install */}
                   <div className="flex sm:hidden items-center justify-between w-full">
                     <div className="flex items-center gap-1">
