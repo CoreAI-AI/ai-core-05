@@ -183,9 +183,8 @@ export const ChatSidebar = ({
     </div>
   );
 
-  return (
-  <div className="coreai-sidebar w-full h-full bg-sidebar border-r border-sidebar-border flex flex-col">
-
+ return (
+  <div className="w-full h-full bg-sidebar border-r border-sidebar-border flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-between mb-4">
