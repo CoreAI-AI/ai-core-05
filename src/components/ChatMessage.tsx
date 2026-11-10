@@ -4,9 +4,8 @@ import { MessageActions } from './MessageActions';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import coreaiLogo from '@/assets/coreai-logo.png';
-import { useState } from 'react';
 import { FullScreenImageViewer } from './FullScreenImageViewer';
-import { File as FileIcon, X } from 'lucide-react';
+import { File as FileIcon } from 'lucide-react';
 
 interface ChatMessageProps {
   message: string;
@@ -20,7 +19,7 @@ interface ChatMessageProps {
   question?: string;
 }
 
-export const ChatMessage = ({ 
+export const ChatMessage = memo(({ 
   message, 
   messageId,
   isUser, 
@@ -33,7 +32,6 @@ export const ChatMessage = ({
 }: ChatMessageProps) => {
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
 
-  // Helper to render images/files at top of message (ChatGPT style)
   const renderAttachments = () => {
     if (!images || images.length === 0) return null;
     
@@ -65,7 +63,6 @@ export const ChatMessage = ({
                     e.currentTarget.style.display = 'none';
                   }}
                 />
-                {/* Hover overlay */}
                 <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-colors duration-200 flex items-center justify-center">
                   <span className="text-white text-xs font-medium opacity-0 group-hover/image:opacity-100 transition-opacity duration-200 bg-black/50 px-2 py-1 rounded-full">
                     View
@@ -74,7 +71,6 @@ export const ChatMessage = ({
               </motion.div>
             );
           } else {
-            // File attachment
             return (
               <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
                 <FileIcon className="w-4 h-4 text-muted-foreground" />
@@ -97,9 +93,7 @@ export const ChatMessage = ({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
       >
-        {/* Mobile: 88%, Tablet: 80%, Desktop: 70% - prevents paragraph walls */}
         <div className="flex items-end gap-2 max-w-[88%] sm:max-w-[80%] lg:max-w-[70%]">
-          {/* Actions on hover */}
           <MessageActions 
             message={message} 
             messageId={messageId}
@@ -110,15 +104,13 @@ export const ChatMessage = ({
           
           <div className="relative min-w-0 flex-1">
             <motion.div 
-  className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-3 py-2 shadow-sm"
+              className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-3 py-2 shadow-sm"
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.15, delay: 0.05 }}
             >
-              {/* ChatGPT-style: Images/files first, then text */}
               {renderAttachments()}
               
-              {/* Text message - Normal whitespace with proper line-height */}
               {message && (
                 <p className="text-sm leading-relaxed break-words whitespace-normal [overflow-wrap:anywhere]">{message}</p>
               )}
@@ -129,7 +121,6 @@ export const ChatMessage = ({
             </motion.div>
           </div>
           
-          {/* User avatar with logo */}
           <motion.div 
             className="flex items-end shrink-0"
             initial={{ scale: 0, rotate: -30 }}
@@ -142,7 +133,6 @@ export const ChatMessage = ({
           </motion.div>
         </div>
         
-        {/* Full screen image viewer */}
         <FullScreenImageViewer
           isOpen={!!fullScreenImage}
           imageUrl={fullScreenImage || ''}
@@ -160,7 +150,6 @@ export const ChatMessage = ({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
     >
-      {/* AI avatar with CoreAI logo */}
       <motion.div 
         className="mr-2 flex items-start shrink-0"
         initial={{ scale: 0, rotate: 30 }}
@@ -174,15 +163,13 @@ export const ChatMessage = ({
         />
       </motion.div>
       
-      {/* Mobile: 88%, Tablet: 80%, Desktop: 75% - readable line-by-line */}
       <div className="flex-1 min-w-0 max-w-[88%] sm:max-w-[80%] lg:max-w-[75%]">
         <motion.div 
-  className="bg-card text-card-foreground rounded-2xl rounded-tl-md px-3 py-2 shadow-sm border border-border/50"
+          className="bg-card text-card-foreground rounded-2xl rounded-tl-md px-3 py-2 shadow-sm border border-border/50"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.15, delay: 0.1 }}
         >
-          {/* Display images if present - ChatGPT style at top */}
           {images && images.length > 0 && (
             <div className="mb-3 space-y-2">
               {images.map((image: any, index: number) => {
@@ -208,7 +195,6 @@ export const ChatMessage = ({
                         e.currentTarget.style.display = 'none';
                       }}
                     />
-                    {/* Hover overlay */}
                     <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-colors duration-200 flex items-center justify-center">
                       <span className="text-white text-sm font-medium opacity-0 group-hover/image:opacity-100 transition-opacity duration-200 bg-black/50 px-3 py-1 rounded-full">
                         View Full Screen
@@ -220,7 +206,6 @@ export const ChatMessage = ({
             </div>
           )}
           
-          {/* Display text content */}
           {message && (
             <motion.div 
               className="text-sm leading-snug"
@@ -237,7 +222,6 @@ export const ChatMessage = ({
           )}
         </motion.div>
         
-        {/* Actions below message for AI */}
         {message && (
           <MessageActions 
             message={message} 
@@ -250,7 +234,6 @@ export const ChatMessage = ({
         )}
       </div>
       
-      {/* Full screen image viewer */}
       <FullScreenImageViewer
         isOpen={!!fullScreenImage}
         imageUrl={fullScreenImage || ''}
@@ -259,25 +242,7 @@ export const ChatMessage = ({
       />
     </motion.div>
   );
-};
-// Pehle:
-// export const ChatMessage = ({ ... }) => { ... };
-
-// Aise change karein:
-export const ChatMessage = memo(({ 
-  message, 
-  messageId,
-  isUser, 
-  timestamp, 
-  images, 
-  isGeneratingImage,
-  onRegenerate,
-  onEdit,
-  question
-}: ChatMessageProps) => {
-  // ... (andar ka pura code wahi rahega) ...
 }, (prevProps, nextProps) => {
-  // Purane messages ko re-render hone se rokein
   return (
     prevProps.message === nextProps.message &&
     prevProps.isGeneratingImage === nextProps.isGeneratingImage &&
@@ -285,3 +250,5 @@ export const ChatMessage = memo(({
     prevProps.question === nextProps.question
   );
 });
+
+ChatMessage.displayName = 'ChatMessage';
