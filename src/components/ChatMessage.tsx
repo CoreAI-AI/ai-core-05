@@ -1,3 +1,4 @@
+import { useState, memo } from 'react';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { MessageActions } from './MessageActions';
 import { cn } from '@/lib/utils';
@@ -259,3 +260,28 @@ export const ChatMessage = ({
     </motion.div>
   );
 };
+// Pehle:
+// export const ChatMessage = ({ ... }) => { ... };
+
+// Aise change karein:
+export const ChatMessage = memo(({ 
+  message, 
+  messageId,
+  isUser, 
+  timestamp, 
+  images, 
+  isGeneratingImage,
+  onRegenerate,
+  onEdit,
+  question
+}: ChatMessageProps) => {
+  // ... (andar ka pura code wahi rahega) ...
+}, (prevProps, nextProps) => {
+  // Purane messages ko re-render hone se rokein
+  return (
+    prevProps.message === nextProps.message &&
+    prevProps.isGeneratingImage === nextProps.isGeneratingImage &&
+    prevProps.images?.length === nextProps.images?.length &&
+    prevProps.question === nextProps.question
+  );
+});
