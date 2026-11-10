@@ -953,3 +953,37 @@
     animation: none !important;
   }
 }
+/* ===== Streaming Cursor & Skeleton Shimmer ===== */
+@keyframes coreai-cursor-pulse {
+  0%, 100% { opacity: 1; transform: scaleY(1); }
+  50% { opacity: 0.2; transform: scaleY(0.85); }
+}
+
+.coreai-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 15px;
+  background-color: hsl(var(--primary));
+  border-radius: 2px;
+  margin-left: 3px;
+  vertical-align: -2px;
+  animation: coreai-cursor-pulse 0.8s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+/* Image Shimmer skeleton placeholder */
+.image-skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--muted)) 0%,
+    hsl(var(--muted) / 0.5) 50%,
+    hsl(var(--muted)) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-slide 1.5s infinite;
+}
+
+@keyframes shimmer-slide {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
