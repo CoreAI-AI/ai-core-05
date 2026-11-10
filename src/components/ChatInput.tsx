@@ -225,7 +225,7 @@ export const ChatInput = ({
         return <Plus className="h-5 w-5 text-foreground" strokeWidth={2.25} />;
     }
   };
-return <div className="coreai-composer border-t border-border bg-background/80 backdrop-blur-xl p-2 sm:p-4">
+return <div className="border-t border-border bg-background/80 backdrop-blur-xl p-2 sm:p-4">
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
       <input ref={anyFileInputRef} type="file" onChange={handleFileChange} className="hidden" />
       
