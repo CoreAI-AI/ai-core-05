@@ -71,7 +71,16 @@ export const ChatInput = memo(({
     reset
   } = useVoiceRecorder();
 
+  const triggerHaptic = () => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate(10);
+      } catch (_) {}
+    }
+  };
+
   const handleQuickMode = (prompt: string, modeName: string) => {
+    triggerHaptic();
     onSendMessage(prompt);
     toast.success(`${modeName} activated!`);
   };
@@ -91,6 +100,7 @@ export const ChatInput = memo(({
   };
 
   const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework') => {
+    triggerHaptic();
     setCurrentMode(mode);
     if (onModeChange) {
       onModeChange(mode);
@@ -108,6 +118,8 @@ export const ChatInput = memo(({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || disabled) return;
+
+    triggerHaptic();
 
     try {
       const sanitized = sanitizeInput(message);
@@ -176,6 +188,7 @@ export const ChatInput = memo(({
   };
 
   const handleVoiceRecording = async () => {
+    triggerHaptic();
     if (isRecording) {
       stopRecording();
       const text = await transcribe();
@@ -225,7 +238,10 @@ export const ChatInput = memo(({
               <button
                 key={i}
                 type="button"
-                onClick={() => setMessage(s)}
+                onClick={() => {
+                  triggerHaptic();
+                  setMessage(s);
+                }}
                 className="shrink-0 text-xs sm:text-sm px-3 py-1.5 rounded-full bg-accent/60 hover:bg-accent text-foreground border border-border/60 hover:border-primary/40 transition-colors btn-press"
               >
                 {s}
