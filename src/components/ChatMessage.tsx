@@ -176,7 +176,7 @@ export const ChatMessage = ({
       {/* Mobile: 88%, Tablet: 80%, Desktop: 75% - readable line-by-line */}
       <div className="flex-1 min-w-0 max-w-[88%] sm:max-w-[80%] lg:max-w-[75%]">
         <motion.div 
-className="coreai-ai-bubble bg-card text-card-foreground rounded-2xl rounded-tl-md px-3 py-2 shadow-sm border border-border/50"
+  className="bg-card text-card-foreground rounded-2xl rounded-tl-md px-3 py-2 shadow-sm border border-border/50"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.15, delay: 0.1 }}
