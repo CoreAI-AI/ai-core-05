@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Paperclip, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins, Bot, Brain, Zap, ChefHat, BookOpen, Plus, Loader2 } from "lucide-react";
+import { Send, Image, File, Camera, Search, GraduationCap, ImagePlus, Code, Lightbulb, BarChart3, Mic, Square, X, ShoppingCart, TrendingUp, Sparkles, Newspaper, Crown, Coins, Bot, Brain, Zap, ChefHat, BookOpen, Plus, Loader2 } from "lucide-react";
 import coreaiLogo from "@/assets/coreai-logo.png";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { chatMessageSchema, validateFile, sanitizeInput } from "@/lib/validation";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { useIsMobile } from "@/hooks/use-mobile";
+
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
@@ -24,9 +25,9 @@ interface ChatInputProps {
   isPremium?: boolean;
   onModelChange?: (model: string) => void;
   getRemaining?: (mode: string) => number;
-  
 }
-export const ChatInput = ({
+
+export const ChatInput = memo(({
   onSendMessage,
   disabled,
   onFileSelect,
@@ -36,19 +37,16 @@ export const ChatInput = ({
   onTypingChange,
   isPremium,
   onModelChange,
-  getRemaining
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const isMobile = useIsMobile();
 
-  // Populate message when editing
   useEffect(() => {
     if (editingMessage) {
       setMessage(editingMessage.content);
     }
   }, [editingMessage]);
 
-  // Check for pre-filled prompt from Explore page
   useEffect(() => {
     const prefill = sessionStorage.getItem('explore_prompt');
     if (prefill) {
@@ -57,10 +55,10 @@ export const ChatInput = ({
     }
   }, []);
 
-  // Notify parent when typing state changes
   useEffect(() => {
     onTypingChange?.(message.trim().length > 0);
   }, [message, onTypingChange]);
+
   const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework'>('normal');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
@@ -73,11 +71,11 @@ export const ChatInput = ({
     reset
   } = useVoiceRecorder();
 
-  // Special quick mode actions for mobile (sends prompt directly)
   const handleQuickMode = (prompt: string, modeName: string) => {
     onSendMessage(prompt);
     toast.success(`${modeName} activated!`);
   };
+
   const MODE_META: Record<string, { name: string; intro: string; suggestions: string[] }> = {
     'normal': { name: 'Normal Chat', intro: 'Friendly all-purpose CoreAI chat. Kuch bhi poochho!', suggestions: ['Mujhe ek joke sunao', 'Aaj ka motivational quote', 'Explain quantum computing simply', 'Plan my day in 5 steps'] },
     'deep-search': { name: 'Deep Research', intro: 'In-depth research mode — sources, comparisons, deep analysis.', suggestions: ['Research latest AI trends 2026', 'Compare iPhone 17 vs Samsung S26', 'Detailed report on Indian startups', 'History of cryptocurrency'] },
@@ -106,16 +104,14 @@ export const ChatInput = ({
       toast.success(`${meta.name} activated!`);
     }
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || disabled) return;
 
-    // Validate and sanitize message
     try {
       const sanitized = sanitizeInput(message);
-      chatMessageSchema.parse({
-        content: sanitized
-      });
+      chatMessageSchema.parse({ content: sanitized });
       onSendMessage(sanitized);
       setMessage("");
     } catch (error) {
@@ -126,12 +122,14 @@ export const ChatInput = ({
       }
     }
   };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
   };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && onFileSelect) {
@@ -147,9 +145,10 @@ export const ChatInput = ({
       }
     }
   };
-  const openGallery = () => {
-    fileInputRef.current?.click();
-  };
+
+  const openGallery = () => fileInputRef.current?.click();
+  const openFileExplorer = () => anyFileInputRef.current?.click();
+
   const openCamera = async () => {
     try {
       const image = await CapCamera.getPhoto({
@@ -175,9 +174,7 @@ export const ChatInput = ({
       toast.error('Camera access denied. Please allow camera permissions.');
     }
   };
-  const openFileExplorer = () => {
-    anyFileInputRef.current?.click();
-  };
+
   const handleVoiceRecording = async () => {
     if (isRecording) {
       stopRecording();
@@ -199,45 +196,37 @@ export const ChatInput = ({
       await startRecording();
     }
   };
+
   const getModeIcon = () => {
     switch (currentMode) {
-      case 'deep-search':
-        return <Search className="h-5 w-5 text-blue-500" />;
-      case 'study':
-        return <GraduationCap className="h-5 w-5 text-green-500" />;
-      case 'photo':
-        return <ImagePlus className="h-5 w-5 text-purple-500" />;
-      case 'code':
-        return <Code className="h-5 w-5 text-orange-500" />;
-      case 'creative':
-        return <Lightbulb className="h-5 w-5 text-yellow-500" />;
-      case 'analyze':
-        return <BarChart3 className="h-5 w-5 text-cyan-500" />;
-      case 'rich':
-        return <Crown className="h-5 w-5 text-amber-500" />;
-      case 'poor':
-        return <Coins className="h-5 w-5 text-gray-500" />;
-      case 'recipe':
-        return <ChefHat className="h-5 w-5 text-red-500" />;
-      case 'homework':
-        return <BookOpen className="h-5 w-5 text-emerald-500" />;
-      default:
-        return <Plus className="h-5 w-5 text-foreground" strokeWidth={2.25} />;
+      case 'deep-search': return <Search className="h-5 w-5 text-blue-500" />;
+      case 'study': return <GraduationCap className="h-5 w-5 text-green-500" />;
+      case 'photo': return <ImagePlus className="h-5 w-5 text-purple-500" />;
+      case 'code': return <Code className="h-5 w-5 text-orange-500" />;
+      case 'creative': return <Lightbulb className="h-5 w-5 text-yellow-500" />;
+      case 'analyze': return <BarChart3 className="h-5 w-5 text-cyan-500" />;
+      case 'rich': return <Crown className="h-5 w-5 text-amber-500" />;
+      case 'poor': return <Coins className="h-5 w-5 text-gray-500" />;
+      case 'recipe': return <ChefHat className="h-5 w-5 text-red-500" />;
+      case 'homework': return <BookOpen className="h-5 w-5 text-emerald-500" />;
+      default: return <Plus className="h-5 w-5 text-foreground" strokeWidth={2.25} />;
     }
   };
-return <div className="border-t border-border bg-background/80 backdrop-blur-xl p-2 sm:p-4">
+
+  return (
+    <div className="border-t border-border bg-background/80 backdrop-blur-xl p-2 sm:p-4 will-change-[transform,opacity]">
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
       <input ref={anyFileInputRef} type="file" onChange={handleFileChange} className="hidden" />
       
       <div className="max-w-4xl mx-auto">
         {!message.trim() && !editingMessage && MODE_META[currentMode]?.suggestions && (
-          <div className="flex gap-2 overflow-x-auto pb-2 mb-1 scrollbar-none -mx-1 px-1 animate-fade-in">
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-1 scrollbar-none -mx-1 px-1">
             {MODE_META[currentMode].suggestions.map((s, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => setMessage(s)}
-                className="shrink-0 text-xs sm:text-sm px-3 py-1.5 rounded-full bg-accent/60 hover:bg-accent text-foreground border border-border/60 hover:border-primary/40 transition-all btn-press"
+                className="shrink-0 text-xs sm:text-sm px-3 py-1.5 rounded-full bg-accent/60 hover:bg-accent text-foreground border border-border/60 hover:border-primary/40 transition-colors btn-press"
               >
                 {s}
               </button>
@@ -245,9 +234,7 @@ return <div className="border-t border-border bg-background/80 backdrop-blur-xl 
           </div>
         )}
         <form onSubmit={handleSubmit} className="relative">
-          {/* Main input container */}
-          <div className="flex items-end gap-1.5 sm:gap-2 bg-card border border-border rounded-2xl p-1.5 sm:p-2 shadow-sm focus-within:border-primary/50 focus-within:shadow-md transition-all duration-200">
-            {/* Mode selector */}
+          <div className="flex items-end gap-1.5 sm:gap-2 bg-card border border-border rounded-2xl p-1.5 sm:p-2 shadow-sm focus-within:border-primary/50 focus-within:shadow-md transition-all duration-150">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button type="button" size="icon" variant="ghost" className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent shrink-0 btn-press">
@@ -255,8 +242,8 @@ return <div className="border-t border-border bg-background/80 backdrop-blur-xl 
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-56 p-2 max-h-[70vh] overflow-y-auto">
-                {/* Mobile-only Quick Modes */}
-                {isMobile && <>
+                {isMobile && (
+                  <>
                     <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Quick Modes</p>
                     <DropdownMenuItem onClick={() => handleQuickMode("Help me with shopping research. I want to find the best products and deals for my needs.", "Shopping Mode")} className="cursor-pointer rounded-lg">
                       <ShoppingCart className="w-4 h-4 mr-2 text-orange-500" />
@@ -275,7 +262,8 @@ return <div className="border-t border-border bg-background/80 backdrop-blur-xl 
                       Today News
                     </DropdownMenuItem>
                     <div className="h-px bg-border my-2" />
-                  </>}
+                  </>
+                )}
                 
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">AI Modes</p>
                 <DropdownMenuItem onClick={() => handleModeSelect('normal')} className="cursor-pointer rounded-lg">
@@ -327,27 +315,29 @@ return <div className="border-t border-border bg-background/80 backdrop-blur-xl 
                   Poor Mode
                 </DropdownMenuItem>
 
-                {isPremium && (<>
-                  <div className="h-px bg-border my-2" />
-                  <p className="text-xs font-semibold text-primary uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
-                    <Sparkles className="w-3 h-3" /> Premium Models
-                  </p>
-                  <DropdownMenuItem onClick={() => { onModelChange?.('google/gemini-2.5-flash'); toast.success('Chat-Bot model activated!'); }} className="cursor-pointer rounded-lg">
-                    <Bot className="w-4 h-4 mr-2 text-blue-400" />
-                    Chat-Bot
-                    <span className="ml-auto text-[10px] text-muted-foreground">Fast & Smart</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { onModelChange?.('google/gemini-2.5-pro'); toast.success('Core-AI model activated!'); }} className="cursor-pointer rounded-lg">
-                    <Brain className="w-4 h-4 mr-2 text-purple-400" />
-                    Core-AI
-                    <span className="ml-auto text-[10px] text-muted-foreground">Advanced</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => { onModelChange?.('openai/gpt-5'); toast.success('Chat-Pro model activated!'); }} className="cursor-pointer rounded-lg">
-                    <Zap className="w-4 h-4 mr-2 text-amber-400" />
-                    Chat-Pro
-                    <span className="ml-auto text-[10px] text-muted-foreground">Ultra Power</span>
-                  </DropdownMenuItem>
-                </>)}
+                {isPremium && (
+                  <>
+                    <div className="h-px bg-border my-2" />
+                    <p className="text-xs font-semibold text-primary uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" /> Premium Models
+                    </p>
+                    <DropdownMenuItem onClick={() => { onModelChange?.('google/gemini-2.5-flash'); toast.success('Chat-Bot model activated!'); }} className="cursor-pointer rounded-lg">
+                      <Bot className="w-4 h-4 mr-2 text-blue-400" />
+                      Chat-Bot
+                      <span className="ml-auto text-[10px] text-muted-foreground">Fast & Smart</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { onModelChange?.('google/gemini-2.5-pro'); toast.success('Core-AI model activated!'); }} className="cursor-pointer rounded-lg">
+                      <Brain className="w-4 h-4 mr-2 text-purple-400" />
+                      Core-AI
+                      <span className="ml-auto text-[10px] text-muted-foreground">Advanced</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => { onModelChange?.('openai/gpt-5'); toast.success('Chat-Pro model activated!'); }} className="cursor-pointer rounded-lg">
+                      <Zap className="w-4 h-4 mr-2 text-amber-400" />
+                      Chat-Pro
+                      <span className="ml-auto text-[10px] text-muted-foreground">Ultra Power</span>
+                    </DropdownMenuItem>
+                  </>
+                )}
                 
                 <div className="h-px bg-border my-2" />
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Attach</p>
@@ -367,48 +357,72 @@ return <div className="border-t border-border bg-background/80 backdrop-blur-xl 
               </DropdownMenuContent>
             </DropdownMenu>
             
-            {/* Text input area */}
             <div className="flex-1 min-w-0 relative">
-              {editingMessage && <div className="flex items-center gap-2 text-xs text-primary mb-2 font-medium bg-primary/10 px-3 py-1.5 rounded-lg">
+              {editingMessage && (
+                <div className="flex items-center gap-2 text-xs text-primary mb-2 font-medium bg-primary/10 px-3 py-1.5 rounded-lg">
                   <span>Editing message</span>
                   <Button type="button" variant="ghost" size="sm" onClick={() => {
-                onCancelEdit?.();
-                setMessage("");
-              }} className="h-5 w-5 p-0 text-primary hover:text-primary/80">
+                    onCancelEdit?.();
+                    setMessage("");
+                  }} className="h-5 w-5 p-0 text-primary hover:text-primary/80">
                     <X className="w-3 h-3" />
                   </Button>
-                </div>}
-              <Textarea value={message} onChange={e => setMessage(e.target.value)} onKeyDown={handleKeyDown} placeholder={editingMessage ? "Edit your message..." : currentMode === 'photo' ? "Describe the image you want to generate..." : currentMode === 'study' ? "Ask me to explain any topic..." : currentMode === 'deep-search' ? "Ask for in-depth research..." : currentMode === 'code' ? "Ask for coding help..." : currentMode === 'creative' ? "Let's create something amazing..." : currentMode === 'analyze' ? "Share data or info to analyze..." : currentMode === 'rich' ? "Ask about wealth, investments, luxury..." : currentMode === 'poor' ? "Ask about saving, budgeting, survival tips..." : disabled ? "AI is thinking..." : "Message CoreAI..."} disabled={disabled} className="min-h-[40px] sm:min-h-[44px] max-h-32 resize-none bg-transparent border-0 shadow-none text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 py-2 sm:py-2.5 px-0" rows={1} />
+                </div>
+              )}
+              <Textarea 
+                value={message} 
+                onChange={e => setMessage(e.target.value)} 
+                onKeyDown={handleKeyDown} 
+                placeholder={
+                  editingMessage ? "Edit your message..." : 
+                  currentMode === 'photo' ? "Describe the image you want to generate..." : 
+                  currentMode === 'study' ? "Ask me to explain any topic..." : 
+                  currentMode === 'deep-search' ? "Ask for in-depth research..." : 
+                  currentMode === 'code' ? "Ask for coding help..." : 
+                  currentMode === 'creative' ? "Let's create something amazing..." : 
+                  currentMode === 'analyze' ? "Share data or info to analyze..." : 
+                  currentMode === 'rich' ? "Ask about wealth, investments, luxury..." : 
+                  currentMode === 'poor' ? "Ask about saving, budgeting, survival tips..." : 
+                  disabled ? "AI is thinking..." : "Message CoreAI..."
+                } 
+                disabled={disabled} 
+                className="min-h-[40px] sm:min-h-[44px] max-h-32 resize-none bg-transparent border-0 shadow-none text-sm sm:text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 py-2 sm:py-2.5 px-0" 
+                rows={1} 
+              />
             </div>
             
-            {/* Action buttons - always visible */}
             <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-              {/* Voice button - tap to record, tap again to auto-send */}
               <Button 
                 type="button" 
                 size="icon" 
-                variant="ghost"
-                onClick={handleVoiceRecording}
-                disabled={disabled || transcribing}
-                data-voice-input
-                title={isRecording ? "Stop and send" : transcribing ? "Transcribing..." : "Tap to speak"}
+                variant="ghost" 
+                onClick={handleVoiceRecording} 
+                disabled={disabled || transcribing} 
+                data-voice-input 
+                title={isRecording ? "Stop and send" : transcribing ? "Transcribing..." : "Tap to speak"} 
                 className={`h-9 w-9 sm:h-10 sm:w-10 rounded-xl btn-press ${isRecording ? 'bg-red-500/20 text-red-500 hover:bg-red-500/30 animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-accent'}`}
               >
                 {transcribing ? <Loader2 className="w-4 h-4 animate-spin" /> : isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               </Button>
 
-              {/* Send button */}
-              <Button type="submit" size="icon" disabled={disabled || !message.trim()} className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl gradient-bg text-white hover:opacity-90 btn-press shadow-md disabled:opacity-50 disabled:shadow-none">
+              <Button 
+                type="submit" 
+                size="icon" 
+                disabled={disabled || !message.trim()} 
+                className="h-9 w-9 sm:h-10 sm:w-10 rounded-xl gradient-bg text-white hover:opacity-90 btn-press shadow-md disabled:opacity-50 disabled:shadow-none"
+              >
                 <Send className="w-4 h-4" />
               </Button>
             </div>
           </div>
         </form>
         
-        {/* Powered by text */}
         <p className="text-center text-xs text-muted-foreground mt-3">
           Powered by <span className="font-medium gradient-text">CoreAI</span> • Fast, intelligent, reliable
         </p>
       </div>
-    </div>;
-};
+    </div>
+  );
+});
+
+ChatInput.displayName = 'ChatInput';
