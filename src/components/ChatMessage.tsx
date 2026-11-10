@@ -109,7 +109,7 @@ export const ChatMessage = ({
           
           <div className="relative min-w-0 flex-1">
             <motion.div 
-              className="coreai-user-bubble bg-primary text-primary-foreground rounded-2xl rounded-br-md px-3 py-2 shadow-sm"
+  className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-3 py-2 shadow-sm"
               initial={{ scale: 0.95 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.15, delay: 0.05 }}
