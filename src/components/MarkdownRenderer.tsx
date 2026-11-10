@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CodeBlock } from './CodeBlock';
@@ -7,14 +8,20 @@ interface MarkdownRendererProps {
   className?: string;
 }
 
-export const MarkdownRenderer = ({ content, className = "" }: MarkdownRendererProps) => {
+export const MarkdownRenderer = memo(({ content, className = "" }: MarkdownRendererProps) => {
   return (
     <div className={className}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          img: ({ src, alt }) => <img src={src} alt={alt ?? ''} loading="lazy" className="w-48 max-w-full h-auto rounded-xl my-3" />,
-          // Enhanced code blocks with copy button
+          img: ({ src, alt }) => (
+            <img 
+              src={src} 
+              alt={alt ?? ''} 
+              loading="lazy" 
+              className="w-48 max-w-full h-auto rounded-xl my-3 transition-opacity duration-300" 
+            />
+          ),
           code: ({ children, className: codeClassName, ...props }) => {
             const match = /language-(\w+)/.exec(codeClassName || '');
             const isInline = !match && !codeClassName;
@@ -38,9 +45,7 @@ export const MarkdownRenderer = ({ content, className = "" }: MarkdownRendererPr
               />
             );
           },
-          // Pre tag - let CodeBlock handle the wrapper
           pre: ({ children }) => <>{children}</>,
-          // Customize links
           a: ({ children, href, ...props }) => (
             <a 
               href={href} 
@@ -52,7 +57,6 @@ export const MarkdownRenderer = ({ content, className = "" }: MarkdownRendererPr
               {children}
             </a>
           ),
-          // Customize lists
           ul: ({ children, ...props }) => (
             <ul className="list-disc list-inside space-y-1 my-2" {...props}>
               {children}
@@ -68,7 +72,6 @@ export const MarkdownRenderer = ({ content, className = "" }: MarkdownRendererPr
               {children}
             </li>
           ),
-          // Customize headings
           h1: ({ children, ...props }) => (
             <h1 className="text-xl font-semibold mt-6 mb-3 first:mt-0" {...props}>
               {children}
@@ -84,13 +87,11 @@ export const MarkdownRenderer = ({ content, className = "" }: MarkdownRendererPr
               {children}
             </h3>
           ),
-          // Customize paragraphs
           p: ({ children, ...props }) => (
             <p className="leading-relaxed mb-3 last:mb-0" {...props}>
               {children}
             </p>
           ),
-          // Customize blockquotes
           blockquote: ({ children, ...props }) => (
             <blockquote 
               className="border-l-3 border-primary/30 pl-4 my-3 italic text-muted-foreground" 
@@ -99,9 +100,7 @@ export const MarkdownRenderer = ({ content, className = "" }: MarkdownRendererPr
               {children}
             </blockquote>
           ),
-          // Customize horizontal rules
           hr: () => <hr className="my-6 border-border" />,
-          // Customize tables
           table: ({ children, ...props }) => (
             <div className="overflow-x-auto my-4">
               <table className="w-full border-collapse text-sm" {...props}>
@@ -119,7 +118,6 @@ export const MarkdownRenderer = ({ content, className = "" }: MarkdownRendererPr
               {children}
             </td>
           ),
-          // Strong and emphasis
           strong: ({ children, ...props }) => (
             <strong className="font-semibold" {...props}>{children}</strong>
           ),
@@ -132,4 +130,6 @@ export const MarkdownRenderer = ({ content, className = "" }: MarkdownRendererPr
       </ReactMarkdown>
     </div>
   );
-};
+}, (prev, next) => prev.content === next.content && prev.className === next.className);
+
+MarkdownRenderer.displayName = 'MarkdownRenderer';
