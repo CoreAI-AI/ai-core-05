@@ -31,6 +31,11 @@ export const ChatMessage = memo(({
   question
 }: ChatMessageProps) => {
   const [fullScreenImage, setFullScreenImage] = useState<string | null>(null);
+  const [loadedImages, setLoadedImages] = useState<Record<number, boolean>>({});
+
+  const handleImageLoaded = (index: number) => {
+    setLoadedImages(prev => ({ ...prev, [index]: true }));
+  };
 
   const renderAttachments = () => {
     if (!images || images.length === 0) return null;
@@ -42,22 +47,30 @@ export const ChatMessage = memo(({
           const isImage = image.type?.startsWith('image/') || imageUrl?.startsWith('data:image') || imageUrl?.includes('image');
           
           if (isImage && imageUrl) {
+            const isLoaded = loadedImages[index];
             return (
               <motion.div 
                 key={index} 
-                className="rounded-lg overflow-hidden shadow-sm cursor-pointer group/image relative"
-                initial={{ opacity: 0, scale: 0.95 }}
+                className="rounded-lg overflow-hidden shadow-sm cursor-pointer group/image relative min-h-[140px] bg-muted/40"
+                initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
+                transition={{ duration: 0.25 }}
                 onClick={() => setFullScreenImage(imageUrl)}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
               >
+                {!isLoaded && (
+                  <div className="absolute inset-0 image-skeleton-shimmer rounded-lg" />
+                )}
                 <img
                   src={imageUrl}
                   alt={`Attachment ${index + 1}`}
-                  className="w-full h-auto max-w-xs rounded-lg transition-all duration-300"
+                  className={cn(
+                    "w-full h-auto max-w-xs rounded-lg transition-opacity duration-300",
+                    isLoaded ? "opacity-100" : "opacity-0"
+                  )}
                   loading="lazy"
+                  onLoad={() => handleImageLoaded(index)}
                   onError={(e) => {
                     console.error('Error loading image:', e);
                     e.currentTarget.style.display = 'none';
@@ -88,8 +101,8 @@ export const ChatMessage = memo(({
   if (isUser) {
     return (
       <motion.div 
-        className="flex justify-end mb-3 group"
-        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+        className="flex justify-end mb-3 group will-change-transform"
+        initial={{ opacity: 0, y: 8, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
       >
@@ -105,9 +118,9 @@ export const ChatMessage = memo(({
           <div className="relative min-w-0 flex-1">
             <motion.div 
               className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-3 py-2 shadow-sm"
-              initial={{ scale: 0.95 }}
+              initial={{ scale: 0.96 }}
               animate={{ scale: 1 }}
-              transition={{ duration: 0.15, delay: 0.05 }}
+              transition={{ duration: 0.15 }}
             >
               {renderAttachments()}
               
@@ -123,9 +136,9 @@ export const ChatMessage = memo(({
           
           <motion.div 
             className="flex items-end shrink-0"
-            initial={{ scale: 0, rotate: -30 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ duration: 0.2, delay: 0.1 }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.2 }}
           >
             <div className="w-7 h-7 gradient-bg rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ring-1 ring-background">
               U
@@ -145,16 +158,16 @@ export const ChatMessage = memo(({
 
   return (
     <motion.div 
-      className="flex mb-3 group"
-      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      className="flex mb-3 group will-change-transform"
+      initial={{ opacity: 0, y: 8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
     >
       <motion.div 
         className="mr-2 flex items-start shrink-0"
-        initial={{ scale: 0, rotate: 30 }}
-        animate={{ scale: 1, rotate: 0 }}
-        transition={{ duration: 0.2, delay: 0.05 }}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.2 }}
       >
         <img 
           src={coreaiLogo} 
@@ -166,30 +179,38 @@ export const ChatMessage = memo(({
       <div className="flex-1 min-w-0 max-w-[88%] sm:max-w-[80%] lg:max-w-[75%]">
         <motion.div 
           className="bg-card text-card-foreground rounded-2xl rounded-tl-md px-3 py-2 shadow-sm border border-border/50"
-          initial={{ scale: 0.95, opacity: 0 }}
+          initial={{ scale: 0.96, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.15, delay: 0.1 }}
+          transition={{ duration: 0.15 }}
         >
           {images && images.length > 0 && (
             <div className="mb-3 space-y-2">
               {images.map((image: any, index: number) => {
                 const imageUrl = image.image_url?.url || image.url;
+                const isLoaded = loadedImages[index];
                 return (
                   <motion.div 
                     key={index} 
-                    className="rounded-lg overflow-hidden shadow-sm cursor-pointer group/image relative"
-                    initial={{ opacity: 0, scale: 0.95 }}
+                    className="rounded-lg overflow-hidden shadow-sm cursor-pointer group/image relative min-h-[160px] bg-muted/40"
+                    initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3, delay: 0.15 + index * 0.05 }}
+                    transition={{ duration: 0.25, delay: index * 0.05 }}
                     onClick={() => setFullScreenImage(imageUrl)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                   >
+                    {!isLoaded && (
+                      <div className="absolute inset-0 image-skeleton-shimmer rounded-lg" />
+                    )}
                     <img
                       src={imageUrl}
                       alt={`Generated image ${index + 1}`}
-                      className="w-full h-auto max-w-sm rounded-lg transition-all duration-300"
+                      className={cn(
+                        "w-full h-auto max-w-sm rounded-lg transition-opacity duration-300",
+                        isLoaded ? "opacity-100" : "opacity-0"
+                      )}
                       loading="lazy"
+                      onLoad={() => handleImageLoaded(index)}
                       onError={(e) => {
                         console.error('Error loading image:', e);
                         e.currentTarget.style.display = 'none';
@@ -211,7 +232,7 @@ export const ChatMessage = memo(({
               className="text-sm leading-snug"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.2, delay: 0.15 }}
+              transition={{ duration: 0.15 }}
             >
               <MarkdownRenderer content={message} className="break-words [overflow-wrap:anywhere]" />
             </motion.div>
