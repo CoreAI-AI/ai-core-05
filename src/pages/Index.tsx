@@ -841,7 +841,7 @@ const Index = () => {
       toast.error("Failed to export chat");
     }
   };
-return <div className={`flex h-screen bg-background overflow-hidden ${isPremium ? "premium-mode" : ""}`}>
+return <div className={`flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none ${isPremium ? "premium-mode" : ""}`}>
       <AnimatePresence mode="wait">
         {!sidebarCollapsed && <>
             {/* Mobile Overlay - only on mobile */}
