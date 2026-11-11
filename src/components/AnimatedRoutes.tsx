@@ -11,7 +11,6 @@ import Privacy from '@/pages/Privacy';
 import Admin from '@/pages/Admin';
 import Tools from '@/pages/Tools';
 import Explore from '@/pages/Explore';
-import GroupChats from '@/pages/GroupChats';
 import About from '@/pages/About';
 import Contact from '@/pages/Contact';
 import PrivacyPolicy from '@/pages/PrivacyPolicy';
@@ -109,14 +108,7 @@ export const AnimatedRoutes = () => {
             </PageTransition>
           }
         />
-        <Route
-          path="/group-chats"
-          element={
-            <PageTransition>
-              <GroupChats />
-            </PageTransition>
-          }
-        />
+        <Route path="/group-chats" element={<Navigate to="/" replace />} />
         <Route path="/about" element={<PageTransition><About /></PageTransition>} />
         <Route path="/official-launch" element={<PageTransition><OfficialLaunch /></PageTransition>} />
         <Route path="/contact" element={<PageTransition><Contact /></PageTransition>} />
