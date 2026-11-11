@@ -43,7 +43,6 @@ export const MessageActions = ({
   const [feedback, setFeedback] = useState<'good' | 'bad' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Load existing feedback on mount
   useEffect(() => {
     const loadFeedback = async () => {
       if (!messageId || isUser) return;
@@ -88,7 +87,6 @@ export const MessageActions = ({
         return;
       }
 
-      // If clicking the same feedback, remove it
       if (feedback === type) {
         await supabase
           .from('message_feedback')
@@ -98,7 +96,6 @@ export const MessageActions = ({
         setFeedback(null);
         toast.success('Feedback removed');
       } else {
-        // Upsert feedback
         await supabase
           .from('message_feedback')
           .upsert({
@@ -164,21 +161,21 @@ export const MessageActions = ({
         toast.success('Message copied to clipboard');
       }
     } catch (err) {
-      // User cancelled or error
+      // User cancelled
     }
   };
 
   return (
     <div className={cn(
-      "flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+      "flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pt-1 text-muted-foreground",
       className
     )}>
-      {/* Copy button */}
+      {/* Minimalist Ghost Copy Button */}
       <Button
         variant="ghost"
         size="sm"
         onClick={handleCopy}
-        className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
+        className="h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all"
         title="Copy message"
       >
         {copied ? (
@@ -188,23 +185,24 @@ export const MessageActions = ({
         )}
       </Button>
 
+      {/* Share Result Pill Badge */}
       {!isUser && (
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setShareOpen(true)}
-          className="h-7 px-2 gap-1 text-xs text-primary hover:text-primary active:scale-95 transition-transform"
+          className="h-7 px-2.5 gap-1.5 text-xs rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/40 active:scale-95 transition-all"
           title="Share result card"
         >
           <ImageIcon className="h-3.5 w-3.5" />
-          Share Result
+          <span>Card</span>
         </Button>
       )}
       {!isUser && (
         <ShareResultCard open={shareOpen} onOpenChange={setShareOpen} answer={message} question={question} />
       )}
 
-      {/* Good/Bad response buttons (AI messages only) */}
+      {/* Good/Bad Feedback Buttons */}
       {!isUser && (
         <>
           <Button
@@ -213,7 +211,7 @@ export const MessageActions = ({
             onClick={() => handleFeedback('good')}
             disabled={isSubmitting}
             className={cn(
-              "h-7 w-7 p-0 text-muted-foreground hover:text-foreground active:scale-95 transition-transform",
+              "h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all",
               feedback === 'good' && "text-green-500 hover:text-green-500"
             )}
             title="Good response"
@@ -226,7 +224,7 @@ export const MessageActions = ({
             onClick={() => handleFeedback('bad')}
             disabled={isSubmitting}
             className={cn(
-              "h-7 w-7 p-0 text-muted-foreground hover:text-foreground active:scale-95 transition-transform",
+              "h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all",
               feedback === 'bad' && "text-red-500 hover:text-red-500"
             )}
             title="Bad response"
@@ -236,49 +234,49 @@ export const MessageActions = ({
         </>
       )}
 
-      {/* Regenerate button (AI messages only) */}
+      {/* Regenerate Button */}
       {!isUser && onRegenerate && (
         <Button
           variant="ghost"
           size="sm"
           onClick={onRegenerate}
-          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
+          className="h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all"
           title="Regenerate response"
         >
           <RotateCcw className="h-3.5 w-3.5" />
         </Button>
       )}
 
-      {/* More options menu (AI messages only) */}
+      {/* More Options Menu */}
       {!isUser && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
+              className="h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all"
               title="More options"
             >
               <MoreHorizontal className="h-3.5 w-3.5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem onClick={handleReadAloud} className="gap-2 cursor-pointer">
+          <DropdownMenuContent align="end" className="w-44 rounded-2xl border border-border shadow-xl p-1.5">
+            <DropdownMenuItem onClick={handleReadAloud} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm">
               <Volume2 className="h-4 w-4" />
               Read aloud
             </DropdownMenuItem>
             {chatId && messageId && (
-              <DropdownMenuItem onClick={handlePin} className="gap-2 cursor-pointer">
+              <DropdownMenuItem onClick={handlePin} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm">
                 <Pin className="h-4 w-4" />
                 Pin message
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={handleShare} className="gap-2 cursor-pointer">
+            <DropdownMenuItem onClick={handleShare} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm">
               <Share2 className="h-4 w-4" />
-              Share
+              Share text
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleReport} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
+            <DropdownMenuSeparator className="my-1" />
+            <DropdownMenuItem onClick={handleReport} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm text-destructive focus:text-destructive">
               <Flag className="h-4 w-4" />
               Report message
             </DropdownMenuItem>
@@ -286,13 +284,13 @@ export const MessageActions = ({
         </DropdownMenu>
       )}
 
-      {/* Edit button (User messages only) */}
+      {/* Edit Button (User Message Only) */}
       {isUser && onEdit && (
         <Button
           variant="ghost"
           size="sm"
           onClick={onEdit}
-          className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground active:scale-95 transition-transform"
+          className="h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all"
           title="Edit message"
         >
           <Pencil className="h-3.5 w-3.5" />
