@@ -81,9 +81,9 @@ const ImagesSection = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="h-[100dvh] overflow-y-auto bg-background text-foreground flex flex-col">
       {/* Sleek Minimalist Sticky Header */}
-      <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-xl border-b border-border/40">
+      <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-xl border-b border-border/40 shrink-0">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button
@@ -132,8 +132,8 @@ const ImagesSection = () => {
         </div>
       </header>
 
-      {/* Main Content with Native Smooth Scrolling */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-8 pb-20">
+      {/* Main Content with Full Smooth Scroll */}
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-8 pb-24">
         
         {/* Subtle Festival Banner if active */}
         {activeFestival && selectedCategory === "All" && !searchQuery && (
