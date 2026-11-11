@@ -22,28 +22,24 @@ const actions = [{
   title: "Shopping",
   description: "Best deals & products",
   prompt: "Help me with shopping research. I want to find the best products and deals for my needs.",
-  gradient: "from-orange-500 to-pink-500"
 }, {
   id: "deep-search",
   icon: Search,
   title: "Deep Search",
   description: "In-depth research",
   prompt: "Perform a deep search and provide comprehensive information on a topic I'm interested in.",
-  gradient: "from-blue-500 to-cyan-500"
 }, {
   id: "financial",
   icon: TrendingUp,
   title: "Financial",
   description: "Market insights",
   prompt: "Help me with financial research. Provide market analysis and investment insights.",
-  gradient: "from-green-500 to-emerald-500"
 }, {
   id: "news",
   icon: Newspaper,
   title: "Today News",
   description: "Latest updates",
   prompt: "Give me today's top news and important updates from around the world.",
-  gradient: "from-purple-500 to-violet-500"
 }];
 
 // Main quick actions
@@ -164,7 +160,6 @@ const moreActions = [
 
 export const QuickActionCards = ({
   onAction,
-  onSkip
 }: QuickActionCardsProps) => {
   const [selectedAction, setSelectedAction] = useState<{
     title: string;
@@ -192,45 +187,45 @@ export const QuickActionCards = ({
     }
   };
 
- return (
-  <div className="w-full max-w-md mx-auto px-2">
-      {/* Welcome Header - Centered like ChatGPT */}
+  return (
+    <div className="w-full max-w-xl mx-auto px-3">
+      {/* Welcome Header - Minimalist & Centered */}
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center mb-6"
+        className="text-center mb-6 sm:mb-8"
       >
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-foreground">
-  How can I help you?
-</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-foreground">
+          What can I help with?
+        </h1>
       </motion.div>
 
       {/* Options Modal */}
       <AnimatePresence>
         {selectedAction && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="mb-4 p-4 bg-card border border-border rounded-xl"
+            exit={{ opacity: 0, scale: 0.96 }}
+            className="mb-4 p-4 bg-card border border-border/80 rounded-2xl shadow-lg"
           >
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium text-foreground">{selectedAction.title}</h3>
+              <h3 className="font-medium text-foreground text-sm">{selectedAction.title}</h3>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6"
+                className="h-6 w-6 rounded-full hover:bg-muted"
                 onClick={() => setSelectedAction(null)}
               >
                 <X className="h-4 w-4" />
               </Button>
             </div>
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-1.5">
               {selectedAction.options.map((option, idx) => (
                 <Button
                   key={idx}
                   variant="outline"
-                  className="justify-start text-left h-auto py-2 px-3 text-sm"
+                  className="justify-start text-left h-auto py-2 px-3 text-xs sm:text-sm rounded-xl border-border/60 hover:bg-muted/70"
                   onClick={() => handleOptionClick(option)}
                 >
                   {option}
@@ -239,8 +234,8 @@ export const QuickActionCards = ({
             </div>
             
             {/* Custom Input */}
-            <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-xs text-muted-foreground mb-2">Or type your own:</p>
+            <div className="mt-3 pt-3 border-t border-border/60">
+              <p className="text-[11px] text-muted-foreground mb-1.5">Or type your own:</p>
               <div className="flex gap-2">
                 <div className="relative flex-1">
                   <AnimatePresence mode="wait">
@@ -250,7 +245,7 @@ export const QuickActionCards = ({
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       transition={{ duration: 0.2 }}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm pointer-events-none"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs sm:text-sm pointer-events-none"
                       style={{ display: customInput ? 'none' : 'block' }}
                     >
                       {selectedAction.placeholder || "Type your request..."}
@@ -260,12 +255,12 @@ export const QuickActionCards = ({
                     value={customInput}
                     onChange={(e) => setCustomInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleCustomSubmit()}
-                    className="flex-1 h-9 text-sm w-full"
+                    className="flex-1 h-9 text-xs sm:text-sm w-full rounded-xl"
                   />
                 </div>
                 <Button
                   size="icon"
-                  className="h-9 w-9 shrink-0"
+                  className="h-9 w-9 rounded-xl shrink-0 bg-foreground text-background hover:opacity-90"
                   onClick={handleCustomSubmit}
                   disabled={!customInput.trim()}
                 >
@@ -277,93 +272,78 @@ export const QuickActionCards = ({
         )}
       </AnimatePresence>
 
-      {/* Quick Action Buttons */}
+      {/* Quick Action Pill Buttons */}
       {!selectedAction && (
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="space-y-3 mb-4"
+          className="flex flex-wrap gap-2 justify-center mb-6"
         >
-          {/* First Row: Create image, Get advice */}
-          <div className="flex gap-2 justify-center">
-            {mainActions.slice(0, 2).map((action) => (
-              <Button
-                key={action.id}
-                variant="outline"
-                className="flex items-center gap-2 px-4 py-2 rounded-full"
-                onClick={() => handleActionClick(action)}
-              >
-                <action.icon className="h-4 w-4" />
-                <span className="text-sm">{action.title}</span>
-              </Button>
-            ))}
-          </div>
-
-          {/* Second Row: Summarize text, More */}
-          <div className="flex gap-2 justify-center">
+          {mainActions.map((action) => (
             <Button
+              key={action.id}
               variant="outline"
-              className="flex items-center gap-2 px-4 py-2 rounded-full"
-              onClick={() => handleActionClick(mainActions[2])}
+              className="flex items-center gap-2 px-4 py-2 rounded-full border-border/60 bg-card/60 hover:bg-muted/80 text-foreground text-xs sm:text-sm font-medium transition-all shadow-2xs hover:border-foreground/20 active:scale-[0.98]"
+              onClick={() => handleActionClick(action)}
             >
-              <FileText className="h-4 w-4" />
-              <span className="text-sm">Summarize text</span>
+              <action.icon className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>{action.title}</span>
             </Button>
+          ))}
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full"
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 px-3.5 py-2 rounded-full border-border/60 bg-card/60 hover:bg-muted/80 text-foreground text-xs sm:text-sm font-medium transition-all shadow-2xs hover:border-foreground/20 active:scale-[0.98]"
+              >
+                <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                <span>More</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="center" className="w-52 p-1.5 bg-popover border border-border/80 rounded-2xl shadow-xl z-50">
+              {moreActions.map((action) => (
+                <DropdownMenuItem
+                  key={action.id}
+                  className="flex items-center gap-2.5 px-3 py-2 cursor-pointer rounded-xl text-xs sm:text-sm"
+                  onClick={() => handleActionClick(action)}
                 >
-                  <MoreHorizontal className="h-4 w-4" />
-                  <span className="text-sm">More</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-48 bg-popover border border-border z-50">
-                {moreActions.map((action) => (
-                  <DropdownMenuItem
-                    key={action.id}
-                    className="flex items-center gap-2 cursor-pointer"
-                    onClick={() => handleActionClick(action)}
-                  >
-                    <action.icon className="h-4 w-4" />
-                    <span>{action.title}</span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                  <action.icon className="h-4 w-4 text-muted-foreground" />
+                  <span>{action.title}</span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </motion.div>
       )}
 
-      {/* Action Cards Grid - Desktop Only */}
+      {/* Action Cards Grid - Desktop Minimalist */}
       <div className="hidden sm:grid grid-cols-2 gap-2">
         {actions.map((action, index) => (
           <motion.div
             key={action.id}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
               delay: 0.1 + index * 0.03,
-              duration: 0.25,
+              duration: 0.2,
               ease: "easeOut"
             }}
           >
             <Card
-              className="relative overflow-hidden p-2 bg-card hover:bg-accent/50 border border-border hover:border-primary/30 transition-all duration-200 group cursor-pointer active:scale-[0.98]"
+              className="p-2.5 bg-card/50 hover:bg-muted/60 border border-border/50 hover:border-foreground/20 rounded-2xl transition-all duration-150 group cursor-pointer active:scale-[0.99] shadow-2xs"
               onClick={() => onAction(action.prompt)}
             >
-              <div className="flex items-center gap-2">
-                <div className={`w-7 h-7 rounded-md bg-gradient-to-br ${action.gradient} flex items-center justify-center shrink-0`}>
-                  <action.icon className="w-3.5 h-3.5 text-white" />
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-xl bg-muted/80 flex items-center justify-center shrink-0 border border-border/40">
+                  <action.icon className="w-3.5 h-3.5 text-foreground/80" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-foreground text-xs group-hover:text-primary transition-colors truncate">
+                  <h3 className="font-medium text-foreground text-xs truncate">
                     {action.title}
                   </h3>
-                  <p className="text-[10px] text-muted-foreground truncate">
+                  <p className="text-[11px] text-muted-foreground truncate">
                     {action.description}
                   </p>
                 </div>
