@@ -1,8 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Search, Sparkles, Wand2 } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { useNavigate } from "react-router-dom";
 import StyleCard from "@/components/StyleCard";
 import ImageUploadModal from "@/components/ImageUploadModal";
@@ -83,8 +82,8 @@ const ImagesSection = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Sleek Minimalist Header */}
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/40">
+      {/* Sleek Minimalist Sticky Header */}
+      <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-xl border-b border-border/40">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button
@@ -95,14 +94,9 @@ const ImagesSection = () => {
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <div>
-              <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground flex items-center gap-2">
-                Image Styles
-                <span className="text-[10px] font-normal uppercase tracking-wider text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full border border-border/50">
-                  AI Canvas
-                </span>
-              </h1>
-            </div>
+            <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground">
+              Image Styles
+            </h1>
           </div>
 
           {/* Quick Search Input */}
@@ -138,78 +132,76 @@ const ImagesSection = () => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <ScrollArea className="flex-1">
-        <main className="max-w-5xl mx-auto px-4 py-6 space-y-8">
-          
-          {/* Subtle Festival Banner if active */}
-          {activeFestival && selectedCategory === "All" && !searchQuery && (
-            <div 
-              onClick={() => handleOpenStyle({
-                name: activeFestival.styleName,
-                image: "https://images.unsplash.com/photo-1604948501466-4e9c339b9c24?w=400&h=400&fit=crop",
-                prompt: `Celebrate ${activeFestival.name} in majestic visual style`
-              })}
-              className="relative rounded-2xl overflow-hidden border border-border/40 bg-card/40 p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:border-foreground/20 transition-all duration-200 group"
-            >
-              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-                <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl overflow-hidden shrink-0 border border-border/50">
-                  <img
-                    src="https://images.unsplash.com/photo-1604948501466-4e9c339b9c24?w=400&h=400&fit=crop"
-                    alt={activeFestival.name}
-                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                      {activeFestival.tag}
-                    </span>
-                  </div>
-                  <h3 className="text-sm sm:text-base font-semibold text-foreground truncate mt-1">
-                    {activeFestival.styleName}
-                  </h3>
-                  <p className="text-xs text-muted-foreground truncate">
-                    Special festive look for your portraits
-                  </p>
-                </div>
+      {/* Main Content with Native Smooth Scrolling */}
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-8 pb-20">
+        
+        {/* Subtle Festival Banner if active */}
+        {activeFestival && selectedCategory === "All" && !searchQuery && (
+          <div 
+            onClick={() => handleOpenStyle({
+              name: activeFestival.styleName,
+              image: "https://images.unsplash.com/photo-1604948501466-4e9c339b9c24?w=400&h=400&fit=crop",
+              prompt: `Celebrate ${activeFestival.name} in majestic visual style`
+            })}
+            className="relative rounded-2xl overflow-hidden border border-border/40 bg-card/40 p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:border-foreground/20 transition-all duration-200 group"
+          >
+            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+              <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl overflow-hidden shrink-0 border border-border/50">
+                <img
+                  src="https://images.unsplash.com/photo-1604948501466-4e9c339b9c24?w=400&h=400&fit=crop"
+                  alt={activeFestival.name}
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
               </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    {activeFestival.tag}
+                  </span>
+                </div>
+                <h3 className="text-sm sm:text-base font-semibold text-foreground truncate mt-1">
+                  {activeFestival.styleName}
+                </h3>
+                <p className="text-xs text-muted-foreground truncate">
+                  Special festive look for your portraits
+                </p>
+              </div>
+            </div>
 
-              <Button size="sm" variant="outline" className="rounded-full text-xs shrink-0 border-border/60 hover:bg-muted">
-                Apply
-              </Button>
+            <Button size="sm" variant="outline" className="rounded-full text-xs shrink-0 border-border/60 hover:bg-muted">
+              Apply
+            </Button>
+          </div>
+        )}
+
+        {/* Grid of Styles */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+              {selectedCategory} ({filteredStyles.length})
+            </p>
+          </div>
+
+          {filteredStyles.length === 0 ? (
+            <div className="py-16 text-center text-muted-foreground text-sm">
+              No styles found matching "{searchQuery}"
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+              {filteredStyles.map((style) => (
+                <StyleCard
+                  key={style.name}
+                  name={style.name}
+                  imageUrl={style.image}
+                  prompt={style.prompt}
+                  tag={style.category}
+                  onClick={() => handleOpenStyle(style)}
+                />
+              ))}
             </div>
           )}
-
-          {/* Grid of Styles */}
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {selectedCategory} ({filteredStyles.length})
-              </p>
-            </div>
-
-            {filteredStyles.length === 0 ? (
-              <div className="py-16 text-center text-muted-foreground text-sm">
-                No styles found matching "{searchQuery}"
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-                {filteredStyles.map((style) => (
-                  <StyleCard
-                    key={style.name}
-                    name={style.name}
-                    imageUrl={style.image}
-                    prompt={style.prompt}
-                    tag={style.category}
-                    onClick={() => handleOpenStyle(style)}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
-        </main>
-      </ScrollArea>
+        </section>
+      </main>
 
       {/* Style Application Modal */}
       <ImageUploadModal
