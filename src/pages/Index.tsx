@@ -29,8 +29,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft, ImageIcon, Search, Star, Download, Palette, Clock, Sparkles, UserPlus } from "lucide-react";
-import { GroupChatSheet } from "@/components/GroupChatSheet";
+import { X, PanelLeft, ImageIcon, Search, Star, Download, Palette, Clock, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
@@ -75,8 +74,6 @@ const Index = () => {
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
   const [showManageSubscription, setShowManageSubscription] = useState(false);
-  
-  const [showGroupChatSheet, setShowGroupChatSheet] = useState(false);
   const { isPremium, activatePremium } = useSubscription();
   const { canUse, recordUsage, getRemaining, isLimitedMode, DAILY_LIMIT } = useDailyLimit(user?.id, isPremium);
   const usageLimits = useUsageLimits(user?.id, isPremium);
@@ -941,10 +938,7 @@ return <div className={`flex h-[100dvh] w-full bg-background overflow-hidden ove
                     </div>
                     <div className="flex items-center gap-2" />
 
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => setShowGroupChatSheet(true)} className="h-8 w-8 p-0 text-muted-foreground" title="Group Chat">
-                        <UserPlus className="h-4 w-4" />
-                      </Button>
+                                    <div className="flex items-center gap-1">
                       <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-8 w-8 p-0 text-muted-foreground" title="Image Styles">
                         <Palette className="h-4 w-4" />
                       </Button>
@@ -993,10 +987,6 @@ return <div className={`flex h-[100dvh] w-full bg-background overflow-hidden ove
                     </div>
                     <Button variant="ghost" size="sm" onClick={() => setShowSearch(true)} className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground" title="Search (Ctrl+F)" disabled={messages.length === 0}>
                       <Search className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setShowGroupChatSheet(true)} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Group Chat">
-                      <UserPlus className="h-4 w-4" />
-                      <span className="ml-2">Group</span>
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => navigate('/images')} className="h-9 sm:w-auto px-3 text-muted-foreground hover:text-foreground" title="Image Styles">
                       <Palette className="h-4 w-4" />
@@ -1186,11 +1176,6 @@ return <div className={`flex h-[100dvh] w-full bg-background overflow-hidden ove
         open={showManageSubscription}
         onOpenChange={setShowManageSubscription}
         onUpgradeClick={() => setShowSubscriptionPopup(true)}
-      />
-      <GroupChatSheet
-        open={showGroupChatSheet}
-        onOpenChange={setShowGroupChatSheet}
-        userEmail={user?.email}
       />
       <UnlockPopup
         open={unlockPopup.open}
