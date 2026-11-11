@@ -51,7 +51,7 @@ export const ChatMessage = memo(({
             return (
               <motion.div 
                 key={index} 
-                className="rounded-lg overflow-hidden shadow-sm cursor-pointer group/image relative min-h-[140px] bg-muted/40"
+                className="rounded-2xl overflow-hidden shadow-sm cursor-pointer group/image relative min-h-[140px] bg-muted/40 border border-border/40"
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.25 }}
@@ -60,13 +60,13 @@ export const ChatMessage = memo(({
                 whileTap={{ scale: 0.99 }}
               >
                 {!isLoaded && (
-                  <div className="absolute inset-0 image-skeleton-shimmer rounded-lg" />
+                  <div className="absolute inset-0 image-skeleton-shimmer rounded-2xl" />
                 )}
                 <img
                   src={imageUrl}
                   alt={`Attachment ${index + 1}`}
                   className={cn(
-                    "w-full h-auto max-w-xs rounded-lg transition-opacity duration-300",
+                    "w-full h-auto max-w-xs rounded-2xl transition-opacity duration-300",
                     isLoaded ? "opacity-100" : "opacity-0"
                   )}
                   loading="lazy"
@@ -77,7 +77,7 @@ export const ChatMessage = memo(({
                   }}
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-colors duration-200 flex items-center justify-center">
-                  <span className="text-white text-xs font-medium opacity-0 group-hover/image:opacity-100 transition-opacity duration-200 bg-black/50 px-2 py-1 rounded-full">
+                  <span className="text-white text-xs font-medium opacity-0 group-hover/image:opacity-100 transition-opacity duration-200 bg-black/60 px-3 py-1 rounded-full backdrop-blur-md">
                     View
                   </span>
                 </div>
@@ -85,7 +85,7 @@ export const ChatMessage = memo(({
             );
           } else {
             return (
-              <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+              <div key={index} className="flex items-center gap-2 p-2.5 bg-muted/60 rounded-xl border border-border/40">
                 <FileIcon className="w-4 h-4 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground truncate">
                   {image.name || 'Attached file'}
@@ -101,23 +101,23 @@ export const ChatMessage = memo(({
   if (isUser) {
     return (
       <motion.div 
-        className="flex justify-end mb-3 group will-change-transform"
+        className="flex justify-end mb-4 sm:mb-5 group will-change-transform"
         initial={{ opacity: 0, y: 8, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
       >
-        <div className="flex items-end gap-2 max-w-[88%] sm:max-w-[80%] lg:max-w-[70%]">
+        <div className="flex items-end gap-1.5 max-w-[88%] sm:max-w-[80%] lg:max-w-[70%]">
           <MessageActions 
             message={message} 
             messageId={messageId}
             isUser={true} 
             onEdit={onEdit}
-            className="mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className="mb-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
           />
           
           <div className="relative min-w-0 flex-1">
             <motion.div 
-              className="bg-primary text-primary-foreground rounded-2xl rounded-br-md px-3 py-2 shadow-sm"
+              className="bg-muted/80 hover:bg-muted text-foreground rounded-2xl sm:rounded-3xl px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs border border-border/50 transition-colors"
               initial={{ scale: 0.96 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.15 }}
@@ -125,25 +125,14 @@ export const ChatMessage = memo(({
               {renderAttachments()}
               
               {message && (
-                <p className="text-sm leading-relaxed break-words whitespace-normal [overflow-wrap:anywhere]">{message}</p>
+                <p className="text-sm sm:text-base leading-relaxed break-words whitespace-normal [overflow-wrap:anywhere]">{message}</p>
               )}
               
               {timestamp && (
-                <p className="text-[10px] opacity-70 mt-1">{timestamp}</p>
+                <p className="text-[10px] text-muted-foreground mt-1 text-right">{timestamp}</p>
               )}
             </motion.div>
           </div>
-          
-          <motion.div 
-            className="flex items-end shrink-0"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="w-7 h-7 gradient-bg rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm ring-1 ring-background">
-              U
-            </div>
-          </motion.div>
         </div>
         
         <FullScreenImageViewer
@@ -158,13 +147,13 @@ export const ChatMessage = memo(({
 
   return (
     <motion.div 
-      className="flex mb-3 group will-change-transform"
+      className="flex mb-5 sm:mb-6 group will-change-transform"
       initial={{ opacity: 0, y: 8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
     >
       <motion.div 
-        className="mr-2 flex items-start shrink-0"
+        className="mr-2.5 sm:mr-3.5 flex items-start shrink-0 pt-0.5"
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
         transition={{ duration: 0.2 }}
@@ -172,14 +161,14 @@ export const ChatMessage = memo(({
         <img 
           src={coreaiLogo} 
           alt="CoreAI" 
-          className="w-7 h-7 rounded-full shadow-sm ring-1 ring-background" 
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-2xs ring-1 ring-border/50" 
         />
       </motion.div>
       
-      <div className="flex-1 min-w-0 max-w-[88%] sm:max-w-[80%] lg:max-w-[75%]">
+      <div className="flex-1 min-w-0 max-w-[92%] sm:max-w-[88%] lg:max-w-[82%]">
         <motion.div 
-          className="bg-card text-card-foreground rounded-2xl rounded-tl-md px-3 py-2 shadow-sm border border-border/50"
-          initial={{ scale: 0.96, opacity: 0 }}
+          className="text-foreground pt-0.5"
+          initial={{ scale: 0.98, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.15 }}
         >
@@ -191,7 +180,7 @@ export const ChatMessage = memo(({
                 return (
                   <motion.div 
                     key={index} 
-                    className="rounded-lg overflow-hidden shadow-sm cursor-pointer group/image relative min-h-[160px] bg-muted/40"
+                    className="rounded-2xl overflow-hidden shadow-sm cursor-pointer group/image relative min-h-[160px] bg-muted/40 border border-border/40"
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.25, delay: index * 0.05 }}
@@ -200,13 +189,13 @@ export const ChatMessage = memo(({
                     whileTap={{ scale: 0.99 }}
                   >
                     {!isLoaded && (
-                      <div className="absolute inset-0 image-skeleton-shimmer rounded-lg" />
+                      <div className="absolute inset-0 image-skeleton-shimmer rounded-2xl" />
                     )}
                     <img
                       src={imageUrl}
                       alt={`Generated image ${index + 1}`}
                       className={cn(
-                        "w-full h-auto max-w-sm rounded-lg transition-opacity duration-300",
+                        "w-full h-auto max-w-sm rounded-2xl transition-opacity duration-300",
                         isLoaded ? "opacity-100" : "opacity-0"
                       )}
                       loading="lazy"
@@ -217,7 +206,7 @@ export const ChatMessage = memo(({
                       }}
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-colors duration-200 flex items-center justify-center">
-                      <span className="text-white text-sm font-medium opacity-0 group-hover/image:opacity-100 transition-opacity duration-200 bg-black/50 px-3 py-1 rounded-full">
+                      <span className="text-white text-xs font-medium opacity-0 group-hover/image:opacity-100 transition-opacity duration-200 bg-black/60 px-3 py-1 rounded-full backdrop-blur-md">
                         View Full Screen
                       </span>
                     </div>
@@ -229,7 +218,7 @@ export const ChatMessage = memo(({
           
           {message && (
             <motion.div 
-              className="text-sm leading-snug"
+              className="text-sm sm:text-base leading-relaxed font-normal"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.15 }}
@@ -250,7 +239,7 @@ export const ChatMessage = memo(({
             isUser={false} 
             onRegenerate={onRegenerate}
             question={question}
-            className="mt-1 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
           />
         )}
       </div>
