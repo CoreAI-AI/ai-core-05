@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import coreaiLogo from '@/assets/coreai-logo.png';
 
 interface SplashScreenProps {
@@ -7,8 +7,10 @@ interface SplashScreenProps {
 }
 
 export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
+  const shouldReduceMotion = useReducedMotion();
+
   useEffect(() => {
-    // Exactly 3 seconds baad CoreAI chat open karne ki guarantee
+    // Exactly 3000ms duration
     const timer = setTimeout(() => {
       onComplete?.();
     }, 3000);
@@ -17,56 +19,81 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background overflow-hidden select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#0B0F17] overflow-hidden select-none pointer-events-none"
       initial={{ opacity: 1 }}
       animate={{ opacity: 0 }}
-      transition={{ duration: 0.45, delay: 2.55, ease: [0.22, 1, 0.36, 1] }}
+      transition={{
+        duration: shouldReduceMotion ? 0.2 : 0.6,
+        delay: shouldReduceMotion ? 0.8 : 2.4,
+        ease: [0.22, 1, 0.36, 1],
+      }}
     >
-      {/* Subtle ChatGPT-style Center Radial Glow */}
+      {/* 0.0–0.5s: Subtle Dark-Teal Ambient Center Glow */}
       <motion.div
-        className="absolute w-72 h-72 sm:w-96 sm:h-96 rounded-full pointer-events-none"
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ 
-          opacity: [0, 0.4, 0.25], 
-          scale: [0.8, 1.1, 1] 
-        }}
-        transition={{ duration: 2.4, ease: "easeInOut" }}
+        className="absolute w-72 h-72 sm:w-96 sm:h-96 rounded-full pointer-events-none blur-3xl will-change-transform"
         style={{
-          background: 'radial-gradient(circle, hsl(var(--primary) / 0.15) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(20, 184, 166, 0.18) 0%, rgba(13, 148, 136, 0.08) 45%, transparent 70%)',
+        }}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={
+          shouldReduceMotion
+            ? { opacity: 0.25, scale: 1 }
+            : {
+                opacity: [0, 0.45, 0.35, 0.4, 0.2],
+                scale: [0.85, 1, 1.03, 1, 0.95],
+              }
+        }
+        transition={{
+          duration: 2.4,
+          times: [0, 0.21, 0.62, 0.8, 1],
+          ease: 'easeInOut',
         }}
       />
 
-      {/* Center Logo with Breathing Micro-interaction */}
+      {/* Centered Logo Container */}
       <div className="relative z-10 flex items-center justify-center">
-        {/* Soft Breathing Halo Aura */}
+        {/* Soft Ambient Halo around Logo */}
         <motion.div
-          className="absolute inset-0 rounded-full blur-xl bg-primary/20"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{
-            scale: [0.9, 1.2, 1],
-            opacity: [0.2, 0.45, 0.25],
-          }}
+          className="absolute inset-0 rounded-3xl blur-xl pointer-events-none"
+          style={{ background: 'rgba(20, 184, 166, 0.22)' }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={
+            shouldReduceMotion
+              ? { opacity: 0.2, scale: 1 }
+              : {
+                  opacity: [0, 0, 0.35, 0.4, 0.25],
+                  scale: [0.85, 0.85, 1, 1.04, 1],
+                }
+          }
           transition={{
-            duration: 2.2,
-            repeat: Infinity,
-            ease: "easeInOut",
+            duration: 2.4,
+            times: [0, 0.21, 0.62, 0.8, 1],
+            ease: 'easeInOut',
           }}
         />
 
-        {/* Iconic CoreAI Logo */}
+        {/* 0.5–1.5s Reveal & 1.5–2.4s Settle: Original CoreAI Logo */}
         <motion.img
           src={coreaiLogo}
           alt="CoreAI"
-          className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl shadow-xl will-change-transform object-contain"
-          initial={{ scale: 0.75, opacity: 0 }}
-          animate={{
-            scale: [0.75, 1.02, 1, 1.03, 1],
-            opacity: [0, 1, 1, 1, 1],
-          }}
+          className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-2xl sm:rounded-3xl shadow-2xl object-contain will-change-transform"
+          initial={
+            shouldReduceMotion
+              ? { opacity: 1, scale: 1 }
+              : { opacity: 0, scale: 0.85 }
+          }
+          animate={
+            shouldReduceMotion
+              ? { opacity: 1, scale: 1 }
+              : {
+                  opacity: [0, 0, 1, 1, 1],
+                  scale: [0.85, 0.85, 1.0, 1.02, 1.0],
+                }
+          }
           transition={{
-            duration: 2.5,
-            times: [0, 0.25, 0.5, 0.8, 1],
-            ease: [0.22, 1, 0.36, 1],
+            duration: 2.4,
+            times: [0, 0.21, 0.62, 0.8, 1],
+            ease: [0.16, 1, 0.3, 1],
           }}
         />
       </div>
