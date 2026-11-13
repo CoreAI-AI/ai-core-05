@@ -839,6 +839,381 @@ const Index = () => {
     }
   };
 return <div className={`flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none ${isPremium ? "premium-mode" : ""}`}>
+    return (
+    <div className={`flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none ${isPremium ? "premium-mode" : ""}`}>
+      <AnimatePresence mode="wait">
+        {!sidebarCollapsed && (
+          <>
+            {/* Mobile & Tablet Overlay */}
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="fixed inset-0 bg-black/50 z-40 md:hidden" 
+              onClick={() => setSidebarCollapsed(true)} 
+            />
+            {/* Sidebar Container */}
+            <motion.div 
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }} 
+              className="fixed md:static h-full w-[280px] z-50 md:z-auto shrink-0 bg-sidebar border-r border-sidebar-border/30"
+            >
+              <ChatSidebar 
+                chats={chats} 
+                currentChat={currentChat} 
+                onSelectChat={chat => {
+                  selectChat(chat);
+                  if (typeof window !== 'undefined' && window.innerWidth < 1024) setSidebarCollapsed(true);
+                }} 
+                onNewChat={() => {
+                  startNewChat();
+                  if (typeof window !== 'undefined' && window.innerWidth < 1024) setSidebarCollapsed(true);
+                }} 
+                onSignOut={signOut} 
+                onOpenSettings={() => {
+                  setShowSettings(true);
+                  if (typeof window !== 'undefined' && window.innerWidth < 1024) setSidebarCollapsed(true);
+                }} 
+                onDeleteChat={deleteChat} 
+                onExportChat={handleExportChat} 
+                user={user} 
+                onCollapse={() => setSidebarCollapsed(true)} 
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+      
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0 chat-layout-mobile">
+        <div className="flex flex-col h-full relative">
+          {showSettings ? (
+            // Settings Panel
+            <div className="flex flex-col h-full">
+              <div className="flex items-center justify-between p-4 border-b border-border/30">
+                <h2 className="text-lg font-semibold">Settings</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowSettings(false)} className="h-8 w-8 p-0 rounded-full">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <ScrollArea className="flex-1 p-4 sm:p-6">
+                <div className="max-w-3xl mx-auto">
+                  <Settings user={user} />
+                </div>
+              </ScrollArea>
+            </div>
+          ) : (
+            // Main Chat Interface
+            <>
+              {/* Smart Chat Tabs - Desktop Only */}
+              <div className="hidden md:block">
+                <SmartChatTabs
+                  openChats={openTabs}
+                  activeChat={currentChat}
+                  onSelectTab={selectChat}
+                  onCloseTab={handleCloseTab}
+                  onNewTab={startNewChat}
+                />
+              </div>
+              
+              {/* Unified Ultra-Minimalist Responsive Header */}
+              <div className="glass-navbar px-3 py-2 sm:px-4 sm:py-2.5 flex justify-between items-center shrink-0 gap-2 z-20 border-b border-border/30">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {sidebarCollapsed && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => setSidebarCollapsed(false)} 
+                      className="h-8 w-8 p-0 shrink-0 rounded-full hover:bg-muted/80 text-foreground"
+                      title="Open sidebar"
+                    >
+                      <PanelLeft className="h-4 w-4" />
+                    </Button>
+                  )}
+                  
+                  <h1 className="text-sm sm:text-base font-medium text-foreground truncate">
+                    {currentChat ? currentChat.title : "CoreAI"}
+                  </h1>
+                  
+                  {currentChat && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 shrink-0 rounded-full"
+                      onClick={() => toggleFavorite(currentChat.id)}
+                    >
+                      <Star className={`h-3.5 w-3.5 ${favoriteChats.has(currentChat.id) ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground'}`} />
+                    </Button>
+                  )}
+
+                  {isPremium && (
+                    <button
+                      onClick={() => setShowManageSubscription(true)}
+                      className="h-7 px-2.5 rounded-full flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 via-yellow-500/15 to-purple-500/15 border border-amber-500/30 hover:from-amber-500/25 transition-all"
+                      title="CoreAI Premium"
+                    >
+                      <img src={premiumLogo} alt="Premium" width={16} height={16} className="w-4 h-4" />
+                      <span className="text-[10px] font-bold bg-gradient-to-r from-amber-400 to-purple-500 bg-clip-text text-transparent">PREMIUM</span>
+                    </button>
+                  )}
+                </div>
+                
+                {/* Header Right Actions */}
+                <div className="flex items-center gap-1 shrink-0">
+                  <div className="hidden sm:block">
+                    <MemoryControl chatId={currentChat?.id} />
+                  </div>
+                  <div className="hidden sm:block">
+                    <ResponseLengthControl value={responseLength} onChange={setResponseLength} />
+                  </div>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowSearch(true)} 
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground rounded-full" 
+                    title="Search messages" 
+                    disabled={messages.length === 0}
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => navigate('/images')} 
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground rounded-full" 
+                    title="Image Styles"
+                  >
+                    <Palette className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground rounded-full"
+                    title="Temporary Chat"
+                    onClick={() => {
+                      startNewChat();
+                      setChatMode('normal');
+                      toast.info("Temporary chat started — won't be saved to history");
+                    }}
+                  >
+                    <Clock className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Global Read-Aloud Player */}
+              <ReadAloudHeaderPlayer />
+              
+              {/* Pinned Messages */}
+              <PinnedMessages 
+                chatId={currentChat?.id}
+                onUnpin={() => {}}
+                onScrollTo={scrollToMessage}
+              />
+              
+              {/* Chat Search */}
+              <ChatSearch
+                messages={messages}
+                onScrollToMessage={scrollToMessage}
+                isOpen={showSearch}
+                onClose={() => setShowSearch(false)}
+              />
+              
+              {/* Messages Canvas - Desktop, Tablet & Mobile Centered */}
+              <div className="chat-messages-container" ref={(el) => {
+                (scrollAreaRef as any).current = el;
+                (pullRef as any).current = el;
+              }}>
+                <PullToRefreshIndicator pullProgress={pullProgress} refreshing={refreshing} pulling={pulling} />
+                
+                {messages.length > 0 && (
+                  <ScrollToBottom scrollAreaRef={scrollAreaRef} hasNewMessage={hasNewMessage} onScrollToBottom={() => setHasNewMessage(false)} />
+                )}
+                
+                <div className="p-2 sm:p-4 md:p-6 pb-4 min-h-full flex flex-col">
+                  <div className="max-w-3xl mx-auto w-full flex-1 flex flex-col">
+                    {messages.length === 0 ? (
+                      <div className="flex-1 flex flex-col items-center justify-center py-8 sm:py-12">
+                        <AnimatePresence mode="wait">
+                          {showQuickActions ? (
+                            <motion.div 
+                              key="cards" 
+                              className="w-full max-w-xl px-2" 
+                              initial={{ opacity: 0, y: 20 }} 
+                              animate={{ opacity: 1, y: 0 }} 
+                              exit={{ opacity: 0, scale: 0.95 }} 
+                              transition={{ duration: 0.3, ease: "easeOut" }}
+                            >
+                              <QuickActionCards onAction={handleSendMessage} onSkip={() => setShowQuickActions(false)} />
+                            </motion.div>
+                          ) : (
+                            <motion.div 
+                              key="show-btn" 
+                              initial={{ opacity: 0, scale: 0.9 }} 
+                              animate={{ opacity: 1, scale: 1 }} 
+                              exit={{ opacity: 0, scale: 0.9 }} 
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Button variant="outline" size="default" onClick={() => setShowQuickActions(true)} className="text-sm font-medium rounded-full">
+                                Show quick actions
+                              </Button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ) : (
+                      <VirtualizedChatMessages 
+                        messages={messages}
+                        chatId={currentChat?.id}
+                        isAITyping={isAITyping}
+                        isGeneratingImage={isGeneratingImage}
+                        imagePrompt={imageGenerationPrompt}
+                        onEditMessage={handleEditMessage}
+                        onRegenerateResponse={handleRegenerateResponse}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+          
+          {/* Input Bar - Floating Transparent Container */}
+          {!showSettings && (
+            <div className="chat-input-fixed bg-transparent border-t-0">
+              {messages.length > 0 && (
+                <div className="hidden md:flex justify-center py-1">
+                  <QuickActionButtons
+                    onRewrite={() => handleQuickAction('rewrite')}
+                    onSummarize={() => handleQuickAction('summarize')}
+                    onTranslate={() => handleQuickAction('translate')}
+                    onImprove={() => handleQuickAction('improve')}
+                    onRegenerate={() => handleQuickAction('regenerate')}
+                    disabled={isLoading}
+                    hasMessage={messages.some(m => !m.is_user)}
+                  />
+                </div>
+              )}
+              
+              {/* File Preview */}
+              {selectedFile && (
+                <div className="p-3">
+                  <div className="max-w-3xl mx-auto">
+                    <div className="flex items-center gap-3 p-2.5 bg-muted/80 backdrop-blur-md rounded-2xl border border-border/30">
+                      {filePreview && <img src={filePreview} alt="Preview" className="w-12 h-12 object-cover rounded-xl" />}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{selectedFile.name}</p>
+                        <p className="text-xs text-muted-foreground">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => {
+                        setSelectedFile(null);
+                        setFilePreview(null);
+                      }} className="rounded-full h-7 w-7 p-0">
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="px-2 py-1.5 sm:px-4 sm:py-2">
+                <div className="max-w-3xl mx-auto w-full">
+                  {!isPremium && (
+                    <p className="text-center text-[11px] text-muted-foreground pb-1" aria-live="polite">
+                      ⚡ {usageLimits.remaining}/{usageLimits.DAILY_CHAT_LIMIT} free chats left today
+                    </p>
+                  )}
+                  <ChatInput 
+                    onSendMessage={handleSendMessage} 
+                    disabled={isLoading} 
+                    onFileSelect={handleFileSelect} 
+                    onModeChange={setChatMode} 
+                    editingMessage={editingMessage} 
+                    onCancelEdit={() => setEditingMessage(null)} 
+                    onTypingChange={setIsUserTyping} 
+                    isPremium={isPremium} 
+                    onModelChange={setSelectedModel} 
+                    getRemaining={getRemaining} 
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Floating Action Button - Mobile Only */}
+      <FloatingActionButton
+        onNewChat={startNewChat}
+        onVoiceInput={() => {
+          const micButton = document.querySelector('[data-voice-input]') as HTMLButtonElement;
+          if (micButton) micButton.click();
+          else toast.info("Tap the microphone in the input bar");
+        }}
+        onCameraUpload={() => {
+          const cameraButton = document.querySelector('[data-camera-upload]') as HTMLButtonElement;
+          if (cameraButton) cameraButton.click();
+          else toast.info("Camera upload coming soon");
+        }}
+        onImageUpload={() => {
+          const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+          if (fileInput) fileInput.click();
+        }}
+        isTyping={isUserTyping}
+        isLoading={isLoading || isAITyping}
+      />
+      
+      {/* Offline indicator */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-72 z-50"
+          >
+            <div className="bg-destructive/90 backdrop-blur-sm text-destructive-foreground px-4 py-3 rounded-2xl shadow-lg">
+              <p className="text-sm font-medium">You're offline</p>
+              <p className="text-xs opacity-80">Messages will be sent when you're back online</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <SubscriptionPopup
+        open={showSubscriptionPopup}
+        onOpenChange={setShowSubscriptionPopup}
+        onUpgrade={() => {
+          activatePremium();
+          setShowSubscriptionPopup(false);
+          toast.success("Premium activated! 🎉");
+        }}
+      />
+      <ManageSubscriptionDialog
+        open={showManageSubscription}
+        onOpenChange={setShowManageSubscription}
+        onUpgradeClick={() => setShowSubscriptionPopup(true)}
+      />
+      <UnlockPopup
+        open={unlockPopup.open}
+        onOpenChange={(o) => setUnlockPopup(s => ({ ...s, open: o }))}
+        reason={unlockPopup.reason}
+        modeLabel={unlockPopup.modeLabel}
+        onUnlock={() => usageLimits.addBonusChats()}
+        onUpgrade={() => {
+          setUnlockPopup(s => ({ ...s, open: false }));
+          setShowSubscriptionPopup(true);
+        }}
+      />
+    </div>
+  );
+};
+
+export default Index;
+
       <AnimatePresence mode="wait">
         {!sidebarCollapsed && <>
             {/* Mobile Overlay - only on mobile */}
