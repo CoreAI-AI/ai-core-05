@@ -73,7 +73,6 @@ const Index = () => {
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework'>('normal');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 768);
-  const [showQuickActions, setShowQuickActions] = useState(true);
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
@@ -933,37 +932,9 @@ const Index = () => {
                   <div className="max-w-3xl mx-auto w-full flex-1 flex flex-col">
                     {messages.length === 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-center py-6 sm:py-10">
-                        <AnimatePresence mode="wait">
-                          {showQuickActions ? (
-                            <motion.div 
-                              key="cards" 
-                              className="w-full max-w-xl px-2" 
-                              initial={{ opacity: 0, y: 16 }} 
-                              animate={{ opacity: 1, y: 0 }} 
-                              exit={{ opacity: 0, scale: 0.96 }} 
-                              transition={{ duration: 0.25, ease: "easeOut" }}
-                            >
-                              <QuickActionCards onAction={handleSendMessage} onSkip={() => setShowQuickActions(false)} />
-                            </motion.div>
-                          ) : (
-                                                        <motion.div 
-                              key="show-btn" 
-                              initial={{ opacity: 0, scale: 0.9 }} 
-                              animate={{ opacity: 1, scale: 1 }} 
-                              exit={{ opacity: 0, scale: 0.9 }} 
-                              transition={{ duration: 0.2 }}
-                            >
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => setShowQuickActions(true)} 
-                                className="text-xs font-medium rounded-full border-border/40 hover:bg-muted/50"
-                              >
-                                Show quick actions
-                              </Button>
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
+                        <div className="w-full max-w-2xl">
+                          <QuickActionCards onAction={handleSendMessage} />
+                        </div>
                       </div>
                     ) : (
                       <VirtualizedChatMessages 
