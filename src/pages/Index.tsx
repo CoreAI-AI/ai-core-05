@@ -14,6 +14,7 @@ import { SubscriptionPopup } from "@/components/SubscriptionPopup";
 import { ManageSubscriptionDialog } from "@/components/ManageSubscriptionDialog";
 import { useSubscription } from "@/hooks/useSubscription";
 import premiumLogo from "@/assets/coreai-premium-logo.png";
+import coreaiLogo from "@/assets/coreai-logo.png";
 import { useDailyLimit } from "@/hooks/useDailyLimit";
 import { useUsageLimits } from "@/hooks/useUsageLimits";
 import { UnlockPopup } from "@/components/UnlockPopup";
@@ -713,7 +714,81 @@ const Index = () => {
   };
 
   return (
-    <div className={`flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none ${isPremium ? "premium-mode" : ""}`}>
+    <div className={`coreai-reference-shell flex h-[100dvh] w-full overflow-hidden overscroll-none ${isPremium ? "premium-mode" : ""}`}>
+      <style>{`
+        .coreai-reference-shell {
+          --background: 222 58% 5%;
+          --foreground: 210 40% 96%;
+          --card: 218 48% 11%;
+          --popover: 218 48% 11%;
+          --primary: 184 100% 48%;
+          --primary-foreground: 222 58% 5%;
+          --muted: 218 38% 15%;
+          --muted-foreground: 215 20% 70%;
+          --border: 210 45% 24%;
+          background: #020916;
+          color: #f4f8ff;
+          isolation: isolate;
+        }
+        .coreai-reference-shell .chat-layout-mobile {
+          background:
+            radial-gradient(ellipse at 52% -8%, rgba(0, 184, 255, .18), transparent 35%),
+            radial-gradient(ellipse at 92% 0%, rgba(0, 229, 190, .13), transparent 26%),
+            linear-gradient(135deg, #06152b 0%, #020916 52%, #03101d 100%);
+        }
+        .coreai-reference-shell .glass-navbar {
+          background: linear-gradient(105deg, rgba(24,43,67,.88), rgba(8,35,68,.78) 48%, rgba(0,111,116,.34)) !important;
+          border-color: rgba(93, 190, 226, .16) !important;
+          box-shadow: 0 10px 40px rgba(0,0,0,.14);
+          backdrop-filter: blur(22px);
+        }
+        .coreai-reference-shell .chat-messages-container {
+          background: transparent !important;
+          scrollbar-color: rgba(39, 192, 222, .35) transparent;
+        }
+        .coreai-reference-shell .chat-input-fixed {
+          background: linear-gradient(180deg, rgba(2,9,22,0), rgba(2,9,22,.96) 20%) !important;
+          border-color: transparent !important;
+          box-shadow: none !important;
+        }
+        .coreai-reference-shell .chat-input-fixed > div:last-child {
+          background: rgba(21, 42, 70, .78);
+          border: 1px solid rgba(28, 139, 222, .48);
+          border-radius: 26px;
+          box-shadow: 0 16px 55px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.07);
+          backdrop-filter: blur(24px);
+          margin: 0 auto;
+          max-width:  min(92%, 1280px);
+        }
+        .coreai-reference-shell .chat-input-fixed > div:last-child > div {
+          max-width: none !important;
+        }
+        .coreai-reference-shell .chat-input-fixed input,
+        .coreai-reference-shell .chat-input-fixed textarea {
+          color: #f7fbff !important;
+        }
+        .coreai-reference-shell .chat-input-fixed input::placeholder,
+        .coreai-reference-shell .chat-input-fixed textarea::placeholder {
+          color: #b5c5dc !important;
+        }
+        .coreai-reference-shell .chat-messages-container > div > div {
+          max-width: min(96%, 1280px) !important;
+        }
+        .coreai-reference-shell [data-sidebar],
+        .coreai-reference-shell aside {
+          background: linear-gradient(180deg, #061225, #07172b 70%, #061326) !important;
+          border-color: rgba(55, 177, 206, .15) !important;
+        }
+        .coreai-reference-shell button {
+          transition: border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+        }
+        @media (max-width: 767px) {
+          .coreai-reference-shell .chat-input-fixed > div:last-child {
+            max-width: calc(100% - 16px);
+            border-radius: 20px;
+          }
+        }
+      `}</style>
       {/* Sidebar Drawer */}
       <AnimatePresence mode="wait">
         {!sidebarCollapsed && (
@@ -730,7 +805,7 @@ const Index = () => {
               animate={{ x: 0 }}
               exit={{ x: -280 }}
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} 
-              className="fixed md:static h-full w-[280px] z-50 md:z-auto shrink-0 bg-sidebar border-r border-sidebar-border/40 shadow-xl md:shadow-none"
+              className="coreai-reference-sidebar fixed md:static h-full w-[280px] md:w-[336px] z-50 md:z-auto shrink-0 bg-[#061225] border-r border-cyan-300/10 shadow-xl md:shadow-none"
             >
               <ChatSidebar 
                 chats={chats} 
@@ -808,7 +883,11 @@ const Index = () => {
                     </motion.button>
                   )}
                   
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="relative h-8 w-8 sm:h-9 sm:w-9 shrink-0 rounded-xl border border-blue-400/25 bg-gradient-to-br from-blue-500/15 via-sky-400/10 to-cyan-400/15 p-1.5 shadow-[0_0_20px_rgba(59,130,246,0.16)]">
+                      <img src={coreaiLogo} alt="CoreAI" className="h-full w-full object-contain" />
+                      <span className="pointer-events-none absolute -inset-1 -z-10 rounded-xl bg-blue-500/15 blur-md" />
+                    </div>
                     <h1 className="text-sm sm:text-base font-bold text-foreground truncate tracking-tight">
                       {currentChat ? currentChat.title : "CoreAI"}
                     </h1>
@@ -923,10 +1002,10 @@ const Index = () => {
                 )}
                 
                 <div className="p-2 sm:p-4 md:p-6 pb-6 min-h-full flex flex-col">
-                  <div className="max-w-3xl mx-auto w-full flex-1 flex flex-col">
+                  <div className="max-w-6xl mx-auto w-full flex-1 flex flex-col">
                     {messages.length === 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-center py-6 sm:py-10">
-                        <div className="w-full max-w-2xl">
+                        <div className="w-full max-w-6xl">
                           <QuickActionCards onAction={handleSendMessage} />
                         </div>
                       </div>
@@ -987,7 +1066,7 @@ const Index = () => {
               )}
               
               <div className="px-2 py-3 sm:p-4">
-                <div className="max-w-3xl mx-auto w-full">
+                <div className="max-w-6xl mx-auto w-full">
                   {!isPremium && (
                     <p className="text-center text-xs text-muted-foreground pb-1" aria-live="polite">
                       ⚡ {usageLimits.remaining}/{usageLimits.DAILY_CHAT_LIMIT} free chats left today
