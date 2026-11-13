@@ -946,4 +946,151 @@ const Index = () => {
                               <QuickActionCards onAction={handleSendMessage} onSkip={() => setShowQuickActions(false)} />
                             </motion.div>
                           ) : (
-                            <motion.div
+                                                        <motion.div 
+                              key="show-btn" 
+                              initial={{ opacity: 0, scale: 0.9 }} 
+                              animate={{ opacity: 1, scale: 1 }} 
+                              exit={{ opacity: 0, scale: 0.9 }} 
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setShowQuickActions(true)} 
+                                className="text-xs font-medium rounded-full border-border/40 hover:bg-muted/50"
+                              >
+                                Show quick actions
+                              </Button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ) : (
+                      <VirtualizedChatMessages 
+                        messages={messages}
+                        chatId={currentChat?.id}
+                        isAITyping={isAITyping}
+                        isGeneratingImage={isGeneratingImage}
+                        imagePrompt={imageGenerationPrompt}
+                        onEditMessage={handleEditMessage}
+                        onRegenerateResponse={handleRegenerateResponse}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Input - Always fixed at bottom with sticky positioning */}
+          {!showSettings && (
+            <div className="chat-input-fixed glass-navbar border-t-0 glow-border">
+              {/* Quick Action Buttons - Desktop only */}
+              {messages.length > 0 && (
+                <div className="hidden md:flex justify-center py-2">
+                  <QuickActionButtons
+                    onRewrite={() => handleQuickAction('rewrite')}
+                    onSummarize={() => handleQuickAction('summarize')}
+                    onTranslate={() => handleQuickAction('translate')}
+                    onImprove={() => handleQuickAction('improve')}
+                    onRegenerate={() => handleQuickAction('regenerate')}
+                    disabled={isLoading}
+                    hasMessage={messages.some(m => !m.is_user)}
+                  />
+                </div>
+              )}
+              
+              {/* File Preview */}
+              {selectedFile && (
+                <div className="p-4">
+                  <div className="max-w-3xl mx-auto">
+                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                      {filePreview && <img src={filePreview} alt="Preview" className="w-16 h-16 object-cover rounded" />}
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{selectedFile.name}</p>
+                        <p className="text-xs text-muted-foreground">{(selectedFile.size / 1024).toFixed(2)} KB</p>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => {
+                        setSelectedFile(null);
+                        setFilePreview(null);
+                      }}>
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="px-2 py-3 sm:p-4">
+                <div className="max-w-3xl mx-auto w-full">
+                  {!isPremium && (
+                    <p className="text-center text-xs text-muted-foreground pb-1" aria-live="polite">
+                      ⚡ {usageLimits.remaining}/{usageLimits.DAILY_CHAT_LIMIT} free chats left today
+                    </p>
+                  )}
+                  <ChatInput 
+                    onSendMessage={handleSendMessage} 
+                    disabled={isLoading} 
+                    onFileSelect={handleFileSelect} 
+                    onModeChange={setChatMode} 
+                    editingMessage={editingMessage} 
+                    onCancelEdit={() => setEditingMessage(null)} 
+                    onTypingChange={setIsUserTyping} 
+                    isPremium={isPremium} 
+                    onModelChange={setSelectedModel} 
+                    getRemaining={getRemaining} 
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Offline indicator */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-72 z-50"
+          >
+            <div className="bg-destructive/90 backdrop-blur-sm text-destructive-foreground px-4 py-3 rounded-lg shadow-lg">
+              <p className="text-sm font-medium">You're offline</p>
+              <p className="text-xs opacity-80">Messages will be sent when you're back online</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <SubscriptionPopup
+        open={showSubscriptionPopup}
+        onOpenChange={setShowSubscriptionPopup}
+        onUpgrade={() => {
+          activatePremium();
+          setShowSubscriptionPopup(false);
+          toast.success("Premium activated! 🎉");
+        }}
+      />
+      <ManageSubscriptionDialog
+        open={showManageSubscription}
+        onOpenChange={setShowManageSubscription}
+        onUpgradeClick={() => setShowSubscriptionPopup(true)}
+      />
+      <UnlockPopup
+        open={unlockPopup.open}
+        onOpenChange={(o) => setUnlockPopup(s => ({ ...s, open: o }))}
+        reason={unlockPopup.reason}
+        modeLabel={unlockPopup.modeLabel}
+        onUnlock={() => usageLimits.addBonusChats()}
+        onUpgrade={() => {
+          setUnlockPopup(s => ({ ...s, open: false }));
+          setShowSubscriptionPopup(true);
+        }}
+      />
+    </div>
+  );
+};
+
+export default Index;
