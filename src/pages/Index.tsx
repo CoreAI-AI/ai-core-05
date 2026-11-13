@@ -812,12 +812,6 @@ const Index = () => {
                     <h1 className="text-sm sm:text-base font-bold text-foreground truncate tracking-tight">
                       {currentChat ? currentChat.title : "CoreAI"}
                     </h1>
-                    {!currentChat && (
-                      <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                        AI Ready
-                      </span>
-                    )}
                   </div>
 
                   {currentChat && (
