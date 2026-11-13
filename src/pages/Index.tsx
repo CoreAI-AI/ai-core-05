@@ -629,9 +629,9 @@ const Index = () => {
                   accumulatedContent += parsed.content;
                   updateMessageLocal(aiMessage.id, accumulatedContent);
                 }
-                if (parsed.images?.length > 0) {
+                              if (parsed.images?.length > 0) {
                   receivedImages = parsed.images;
-                  updateMessageLocal(aiMessage.id, accumulatedContent, images);
+                  updateMessageLocal(aiMessage.id, accumulatedContent, parsed.images);
                 }
               } catch {}
             }
@@ -1028,7 +1028,7 @@ const Index = () => {
                       ⚡ {usageLimits.remaining}/{usageLimits.DAILY_CHAT_LIMIT} free chats left today
                     </p>
                   )}
-                  <ChatInput 
+                                    <ChatInput 
                     onSendMessage={handleSendMessage} 
                     disabled={isLoading} 
                     onFileSelect={handleFileSelect} 
@@ -1038,7 +1038,6 @@ const Index = () => {
                     onTypingChange={setIsUserTyping} 
                     isPremium={isPremium} 
                     onModelChange={setSelectedModel} 
-                    getRemaining={getRemaining} 
                   />
                 </div>
               </div>
