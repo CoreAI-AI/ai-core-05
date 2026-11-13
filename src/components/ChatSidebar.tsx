@@ -17,24 +17,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const sidebarItems = [{
-  icon: MessageSquare,
-  label: "New Chat",
-  active: true,
-  action: 'newChat'
-}, {
-  icon: Image,
-  label: "Image Studio",
-  action: 'photos'
-}, {
-  icon: Sparkles,
-  label: "Explore AI",
-  action: 'explore'
-}, {
-  icon: Settings,
-  label: "Settings",
-  action: 'settings'
-}];
+const sidebarItems = [
+  { icon: MessageSquare, label: "New Chat", action: 'newChat' },
+  { icon: Image, label: "Image Studio", action: 'photos' },
+  { icon: Sparkles, label: "Explore AI", action: 'explore' },
+  { icon: Settings, label: "Settings", action: 'settings' },
+];
 
 interface ChatSidebarProps {
   chats: Chat[];
@@ -71,6 +59,9 @@ export const ChatSidebar = ({
   const handleAction = (action: string) => {
     if (action === 'newChat') {
       onNewChat();
+      if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
+        onCollapse();
+      }
     } else if (action === 'settings') {
       onOpenSettings();
     } else if (action === 'photos') {
@@ -79,6 +70,14 @@ export const ChatSidebar = ({
       navigate('/explore');
     } else if (action === 'plans') {
       navigate('/plans');
+    }
+  };
+
+  const handleSelectWithAutoClose = (chat: Chat) => {
+    onSelectChat(chat);
+    // Tablet & Mobile: Auto-collapse drawer for maximum chat canvas
+    if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
+      onCollapse();
     }
   };
 
@@ -111,23 +110,23 @@ export const ChatSidebar = ({
     <div 
       key={chat.id} 
       className={cn(
-        "flex items-center group rounded-xl transition-all duration-150 px-1",
+        "flex items-center group rounded-2xl transition-all duration-150 px-1 py-0.5",
         currentChat?.id === chat.id 
           ? "bg-muted font-medium" 
-          : "hover:bg-muted/60"
+          : "hover:bg-muted/50"
       )}
     >
       <Button
         variant="ghost"
         className={cn(
-          "flex-1 justify-start text-xs sm:text-sm truncate h-9 px-2 hover:bg-transparent shadow-none",
+          "flex-1 justify-start text-xs sm:text-sm truncate h-10 px-2.5 hover:bg-transparent shadow-none",
           currentChat?.id === chat.id 
             ? "text-foreground font-medium" 
             : "text-muted-foreground hover:text-foreground"
         )}
-        onClick={() => onSelectChat(chat)}
+        onClick={() => handleSelectWithAutoClose(chat)}
       >
-        {isPinned && <Pin className="w-3 h-3 mr-2 text-foreground shrink-0" />}
+        {isPinned && <Pin className="w-3.5 h-3.5 mr-2 text-foreground shrink-0" />}
         <span className="truncate">{chat.title}</span>
       </Button>
       <div className="opacity-0 group-hover:opacity-100 flex items-center pr-1 transition-opacity">
@@ -136,13 +135,13 @@ export const ChatSidebar = ({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground rounded-full"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground rounded-full"
               onClick={(e) => e.stopPropagation()}
             >
               <MoreVertical className="w-3.5 h-3.5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 rounded-2xl border border-border shadow-xl p-1.5">
+          <DropdownMenuContent align="end" className="w-48 rounded-2xl border border-border/60 shadow-xl p-1.5 backdrop-blur-xl">
             <DropdownMenuItem onClick={(e) => togglePin(chat.id, e)} className="cursor-pointer rounded-xl text-xs sm:text-sm">
               {isPinned ? (
                 <>
@@ -183,13 +182,13 @@ export const ChatSidebar = ({
   );
 
   return (
-    <div className="w-full h-full bg-sidebar border-r border-sidebar-border flex flex-col">
+    <div className="w-full h-full bg-sidebar border-r border-sidebar-border/40 flex flex-col select-none">
       {/* Header */}
-      <div className="p-3.5 border-b border-sidebar-border">
+      <div className="p-3.5 border-b border-sidebar-border/30">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <img src={coreaiLogo} alt="CoreAI" className="w-7 h-7 rounded-full ring-1 ring-border/50" />
-            <span className="font-semibold text-base text-sidebar-foreground">CoreAI</span>
+            <img src={coreaiLogo} alt="CoreAI" className="w-7 h-7 rounded-full ring-1 ring-border/40" />
+            <span className="font-semibold text-base text-sidebar-foreground tracking-tight">CoreAI</span>
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
@@ -198,7 +197,7 @@ export const ChatSidebar = ({
                 variant="ghost"
                 size="sm"
                 onClick={onCollapse}
-                className="h-7 w-7 p-0 rounded-full text-sidebar-foreground hover:bg-sidebar-accent btn-press"
+                className="h-8 w-8 p-0 rounded-full text-sidebar-foreground hover:bg-sidebar-accent btn-press"
               >
                 <PanelLeftClose className="h-4 w-4" />
               </Button>
@@ -213,31 +212,31 @@ export const ChatSidebar = ({
             placeholder="Search chats..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8.5 h-8.5 bg-muted/40 hover:bg-muted/60 border border-border/50 text-xs sm:text-sm text-sidebar-foreground placeholder:text-muted-foreground rounded-full focus-visible:ring-1 focus-visible:ring-foreground/20" 
+            className="pl-8.5 h-9 bg-muted/40 hover:bg-muted/60 border border-border/40 text-xs sm:text-sm text-sidebar-foreground placeholder:text-muted-foreground rounded-full focus-visible:ring-1 focus-visible:ring-foreground/20" 
           />
         </div>
       </div>
 
-      {/* ChatGPT-style High-Contrast New Chat Button */}
-      <div className="p-3 border-b border-sidebar-border">
+      {/* ChatGPT-style High-Contrast New Chat Pill Button */}
+      <div className="p-3 border-b border-sidebar-border/30">
         <Button
           onClick={() => handleAction('newChat')}
-          className="w-full h-10 bg-foreground text-background font-medium hover:opacity-90 btn-press rounded-full shadow-2xs transition-all"
+          className="w-full h-10.5 bg-foreground text-background font-medium hover:opacity-90 btn-press rounded-full shadow-2xs transition-all text-xs sm:text-sm"
         >
           <Plus className="w-4 h-4 mr-2" />
           New Chat
         </Button>
       </div>
 
-      {/* Navigation */}
-      <div className="p-2 border-b border-sidebar-border">
+      {/* Quick Navigation */}
+      <div className="p-2 border-b border-sidebar-border/30">
         <nav className="space-y-0.5">
           {sidebarItems.slice(1).map((item) => (
             <Button
               key={item.label}
               variant="ghost"
               size="sm"
-              className="w-full justify-start h-9 text-xs sm:text-sm text-sidebar-foreground hover:bg-muted/70 btn-press rounded-xl"
+              className="w-full justify-start h-9.5 text-xs sm:text-sm text-sidebar-foreground hover:bg-muted/60 btn-press rounded-2xl"
               onClick={() => handleAction(item.action)}
             >
               <item.icon className="w-4 h-4 mr-2.5 text-muted-foreground" />
@@ -264,7 +263,7 @@ export const ChatSidebar = ({
             </div>
           )}
           
-          {/* Recent Chats */}
+          {/* Recent History */}
           <div>
             <h3 className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 px-2">
               {pinnedList.length > 0 ? 'Recent' : 'History'}
@@ -272,7 +271,7 @@ export const ChatSidebar = ({
             <div className="space-y-0.5">
               {regularList.length === 0 ? (
                 <div className="text-xs text-muted-foreground text-center py-8">
-                  <MessageSquare className="w-6 h-6 mx-auto mb-2 opacity-30" />
+                  <MessageSquare className="w-6 h-6 mx-auto mb-2 opacity-25" />
                   {searchQuery ? 'No matching chats' : 'No chats yet'}
                 </div>
               ) : (
@@ -285,12 +284,12 @@ export const ChatSidebar = ({
         </div>
       </div>
 
-      {/* User Section & Sign Out */}
-      <div className="p-3 border-t border-sidebar-border space-y-2">
+      {/* User Section & Logout */}
+      <div className="p-3 border-t border-sidebar-border/30 space-y-2">
         {user && (
           <button
             onClick={onOpenSettings}
-            className="w-full px-3 py-2 rounded-xl bg-muted/40 text-left hover:bg-muted/70 transition-colors cursor-pointer border border-border/40"
+            className="w-full px-3 py-2 rounded-2xl bg-muted/40 text-left hover:bg-muted/70 transition-colors cursor-pointer border border-border/30"
           >
             <p className="text-[10px] text-muted-foreground">Signed in as</p>
             <p className="text-xs font-medium text-sidebar-foreground truncate">
