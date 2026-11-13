@@ -62,80 +62,60 @@ export const ChatInput = memo(({
   const [currentMode, setCurrentMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework'>('normal');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
-  const {
-    isRecording,
-    transcribing,
-    startRecording,
-    stopRecording,
-    transcribe,
-    reset
-  } = useVoiceRecorder();
+
+  const MODE_META: Record<string, { label: string; icon: any; color: string; desc: string; suggestions?: string[] }> = {
+    'normal': { label: 'Normal Chat', icon: Bot, color: 'text-primary', desc: 'Fast, intelligent conversational AI' },
+    'deep-search': { label: 'Deep Research', icon: Search, color: 'text-blue-500', desc: 'Thorough research with verified sources', suggestions: ['Compare top EV cars in 2025', 'History of quantum computing', 'Latest space missions summary'] },
+    'study': { label: 'Study Tutor', icon: GraduationCap, color: 'text-green-500', desc: 'Step-by-step explanations & quiz mode', suggestions: ['Explain photosynthesis simply', 'Solve quadratic equations step by step', 'Newton\'s laws of motion with examples'] },
+    'code': { label: 'Code Assistant', icon: Code, color: 'text-orange-500', desc: 'Clean code, debugging & architecture', suggestions: ['Write a React debounce hook', 'Explain async/await in Python', 'REST vs GraphQL comparison'] },
+    'creative': { label: 'Creative Writer', icon: Lightbulb, color: 'text-yellow-500', desc: 'Stories, poetry, scripts & brainstorming', suggestions: ['Write a sci-fi short story opening', 'Poem about monsoon in Mumbai', 'Catchy tagline for an AI app'] },
+    'analyze': { label: 'Data Analyst', icon: BarChart3, color: 'text-cyan-500', desc: 'Data breakdown, trends & insights', suggestions: ['How to calculate customer churn rate', 'Explain p-value in simple terms', 'Pros & cons of A/B testing'] },
+    'recipe': { label: 'Food Recipe', icon: ChefHat, color: 'text-red-500', desc: 'Quick recipes with ingredients you have', suggestions: ['15-minute healthy dinner', 'Authentic Butter Chicken recipe', 'Eggless chocolate mug cake'] },
+    'homework': { label: 'Homework Helper', icon: BookOpen, color: 'text-emerald-500', desc: 'Clear conceptual answers for school & college', suggestions: ['Summarize French Revolution causes', 'Explain Ohm\'s law with formula', 'What is GDP and how is it measured?'] },
+    'rich': { label: 'Rich Mode', icon: Crown, color: 'text-amber-500', desc: 'High-status, luxury & wealth-building perspective', suggestions: ['How billionaires allocate their wealth', 'Top luxury investment assets in 2025', 'Psychology of the ultra-wealthy'] },
+    'poor': { label: 'Poor Mode', icon: Coins, color: 'text-gray-500', desc: 'Budget survival, extreme saving & street-smart tips', suggestions: ['How to eat healthy on ₹100/day', 'Extreme frugal living tips that actually work', 'Side hustles with zero initial investment'] },
+    'photo': { label: 'Image Generator', icon: ImagePlus, color: 'text-purple-500', desc: 'Create AI images in any style', suggestions: ['Cyberpunk street in rain, 4k', 'Peaceful Himalayan temple at sunrise', 'Cute baby panda sipping tea, 3D render'] },
+  };
+
+  const handleVoiceSuccess = (transcript: string) => {
+    setMessage(prev => prev ? `${prev} ${transcript}` : transcript);
+  };
+
+  const { isRecording, transcribing, startRecording, stopRecording } = useVoiceRecorder({
+    onSuccess: handleVoiceSuccess,
+  });
 
   const triggerHaptic = () => {
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      try {
-        navigator.vibrate(10);
-      } catch (_) {}
+    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+      navigator.vibrate(8);
     }
   };
 
-  const handleQuickMode = (prompt: string, modeName: string) => {
+  const handleVoiceRecording = () => {
     triggerHaptic();
-    onSendMessage(prompt);
-    toast.success(`${modeName} activated!`);
-  };
-
-  const MODE_META: Record<string, { name: string; intro: string; suggestions: string[] }> = {
-    'normal': { name: 'Normal Chat', intro: 'Friendly all-purpose CoreAI chat. Kuch bhi poochho!', suggestions: ['Mujhe ek joke sunao', 'Aaj ka motivational quote', 'Explain quantum computing simply', 'Plan my day in 5 steps'] },
-    'deep-search': { name: 'Deep Research', intro: 'In-depth research mode — sources, comparisons, deep analysis.', suggestions: ['Research latest AI trends 2026', 'Compare iPhone 17 vs Samsung S26', 'Detailed report on Indian startups', 'History of cryptocurrency'] },
-    'study': { name: 'Study Tutor', intro: 'Aapka personal tutor — concepts simple bhasha mein.', suggestions: ['Explain photosynthesis', 'Solve: integral of x^2', 'Newton ke 3 laws batao', 'Help me revise for exam'] },
-    'photo': { name: 'Image Generator', intro: 'Text se image banao — sirf describe karo!', suggestions: ['A cyberpunk city at night, neon lights', 'Cute cat astronaut in space', 'Indian wedding mandap, cinematic', 'Logo for AI startup, minimal'] },
-    'code': { name: 'Code Assistant', intro: 'Coding partner — debug, build, explain.', suggestions: ['Write a React todo app', 'Explain async/await in JS', 'Fix this Python error', 'Build a REST API in Node'] },
-    'creative': { name: 'Creative Writer', intro: 'Stories, poems, scripts — creativity unleashed.', suggestions: ['Write a short story about time travel', 'Hindi shayari on love', 'Instagram caption ideas', 'Script for 1-min reel'] },
-    'analyze': { name: 'Data Analyst', intro: 'Data dijiye, insights milenge.', suggestions: ['Analyze monthly sales trends', 'Summarize this CSV', 'Find patterns in user data', 'Suggest KPIs for SaaS'] },
-    'rich': { name: 'Rich Mode', intro: 'Wealth, luxury aur investment mindset.', suggestions: ['Best stocks to invest in 2026', 'How to build passive income', 'Luxury car comparison', 'Mindset of billionaires'] },
-    'poor': { name: 'Poor Mode', intro: 'Saving, budgeting aur smart survival tips.', suggestions: ['Save ₹10,000 in a month', 'Cheap healthy meal ideas', 'Free tools for students', 'Side hustle without investment'] },
-    'recipe': { name: 'Food Recipe', intro: 'Chef CoreAI — recipes step by step.', suggestions: ['Paneer butter masala recipe', '5-min breakfast ideas', 'Healthy weight-loss meals', 'Authentic biryani recipe'] },
-    'homework': { name: 'Homework Helper', intro: 'Homework done right — step-by-step solutions.', suggestions: ['Solve my math homework', 'Essay on global warming', 'Science project ideas class 10', 'Hindi grammar help'] },
-  };
-
-  const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework') => {
-    triggerHaptic();
-    setCurrentMode(mode);
-    if (onModeChange) {
-      onModeChange(mode);
-    }
-    const meta = MODE_META[mode];
-    const seenKey = `coreai_mode_intro_${mode}`;
-    if (!localStorage.getItem(seenKey)) {
-      toast.success(`${meta.name} activated!`, { description: meta.intro, duration: 4500 });
-      localStorage.setItem(seenKey, '1');
+    if (isRecording) {
+      stopRecording();
     } else {
-      toast.success(`${meta.name} activated!`);
+      startRecording();
     }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim() || disabled) return;
-
-    triggerHaptic();
-
-    try {
-      const sanitized = sanitizeInput(message);
-      chatMessageSchema.parse({ content: sanitized });
+    if (message.trim() && !disabled) {
+      triggerHaptic();
+      const sanitized = sanitizeInput(message.trim());
+      const validation = chatMessageSchema.safeParse({ content: sanitized });
+      if (!validation.success) {
+        toast.error("Message is too long or contains invalid characters");
+        return;
+      }
       onSendMessage(sanitized);
       setMessage("");
-    } catch (error) {
-      if (error instanceof Error) {
-        toast.error(error.message);
-      } else {
-        toast.error("Invalid message");
-      }
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
@@ -145,69 +125,62 @@ export const ChatInput = memo(({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && onFileSelect) {
-      try {
-        validateFile(file);
-        onFileSelect(file);
-      } catch (error) {
-        if (error instanceof Error) {
-          toast.error(error.message);
-        } else {
-          toast.error("Invalid file");
-        }
+      const validation = validateFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error);
+        return;
       }
+      onFileSelect(file);
+      toast.success(`Selected file: ${file.name}`);
     }
   };
 
-  const openGallery = () => fileInputRef.current?.click();
-  const openFileExplorer = () => anyFileInputRef.current?.click();
+  const openGallery = () => {
+    triggerHaptic();
+    fileInputRef.current?.click();
+  };
+
+  const openFileExplorer = () => {
+    triggerHaptic();
+    anyFileInputRef.current?.click();
+  };
 
   const openCamera = async () => {
+    triggerHaptic();
     try {
       const image = await CapCamera.getPhoto({
-        quality: 80,
+        quality: 85,
         allowEditing: false,
-        resultType: CameraResultType.DataUrl,
-        source: CameraSource.Camera,
-        saveToGallery: false,
-        correctOrientation: true
+        resultType: CameraResultType.Uri,
+        source: CameraSource.Camera
       });
-      if (image.dataUrl && onFileSelect) {
-        const response = await fetch(image.dataUrl);
+      
+      if (image.webPath && onFileSelect) {
+        const response = await fetch(image.webPath);
         const blob = await response.blob();
-        const timestamp = Date.now();
-        const fileObj = Object.assign(blob, {
-          name: `camera-${timestamp}.jpg`,
-          lastModified: timestamp
-        }) as File;
-        onFileSelect(fileObj);
+        const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        
+        const validation = validateFile(file);
+        if (!validation.valid) {
+          toast.error(validation.error);
+          return;
+        }
+        
+        onFileSelect(file);
+        toast.success("Photo captured!");
       }
     } catch (error: any) {
-      console.error('Camera error:', error);
-      toast.error('Camera access denied. Please allow camera permissions.');
+      if (!error.message?.includes('User cancelled')) {
+        fileInputRef.current?.click();
+      }
     }
   };
 
-  const handleVoiceRecording = async () => {
+  const handleModeSelect = (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework') => {
     triggerHaptic();
-    if (isRecording) {
-      stopRecording();
-      const text = await transcribe();
-      if (text && text.trim()) {
-        try {
-          const sanitized = sanitizeInput(text.trim());
-          chatMessageSchema.parse({ content: sanitized });
-          onSendMessage(sanitized);
-          setMessage("");
-          toast.success("Voice sent!");
-        } catch (err) {
-          setMessage(text);
-          toast.error(err instanceof Error ? err.message : "Invalid message");
-        }
-      }
-      reset();
-    } else {
-      await startRecording();
-    }
+    setCurrentMode(mode);
+    onModeChange?.(mode);
+    toast.success(`${MODE_META[mode].label} mode activated`);
   };
 
   const getModeIcon = () => {
@@ -227,7 +200,7 @@ export const ChatInput = memo(({
   };
 
   return (
-    <div className="bg-transparent px-3 pb-3 sm:pb-4 pt-1 will-change-[transform,opacity]">
+    <div className="bg-transparent px-2 sm:px-4 pb-2 sm:pb-3 pt-1 will-change-[transform,opacity]">
       <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
       <input ref={anyFileInputRef} type="file" onChange={handleFileChange} className="hidden" />
       
@@ -242,7 +215,7 @@ export const ChatInput = memo(({
                   triggerHaptic();
                   setMessage(s);
                 }}
-                className="shrink-0 text-xs sm:text-sm px-3.5 py-1.5 rounded-full bg-muted/60 hover:bg-muted text-foreground border border-border/40 hover:border-foreground/20 transition-all btn-press shadow-2xs"
+                className="shrink-0 text-xs sm:text-sm px-3.5 py-1.5 rounded-full bg-muted/50 hover:bg-muted text-foreground border border-border/40 hover:border-foreground/20 transition-all btn-press shadow-2xs"
               >
                 {s}
               </button>
@@ -251,34 +224,21 @@ export const ChatInput = memo(({
         )}
         <form onSubmit={handleSubmit} className="relative">
           {/* ChatGPT-style floating capsule pill container */}
-          <div className="flex items-end gap-1.5 sm:gap-2 bg-card/95 backdrop-blur-2xl border border-border/60 hover:border-border rounded-[28px] sm:rounded-[32px] p-1.5 sm:p-2 shadow-lg shadow-black/5 dark:shadow-black/20 focus-within:border-foreground/25 focus-within:shadow-xl transition-all duration-200">
+          <div className="flex items-end gap-1.5 sm:gap-2 bg-card/95 backdrop-blur-2xl border border-border/50 hover:border-border/80 focus-within:border-foreground/30 rounded-[28px] sm:rounded-[32px] p-1.5 sm:p-2 shadow-lg shadow-black/5 dark:shadow-black/20 transition-all duration-200">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button type="button" size="icon" variant="ghost" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 shrink-0 btn-press transition-colors">
                   {getModeIcon()}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 p-2 max-h-[70vh] overflow-y-auto rounded-2xl border border-border shadow-xl">
-                {isMobile && (
+              <DropdownMenuContent align="start" className="w-56 max-h-80 overflow-y-auto rounded-2xl border border-border/50 shadow-xl p-1.5 backdrop-blur-xl">
+                {currentMode !== 'normal' && (
                   <>
-                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Quick Modes</p>
-                    <DropdownMenuItem onClick={() => handleQuickMode("Help me with shopping research. I want to find the best products and deals for my needs.", "Shopping Mode")} className="cursor-pointer rounded-xl">
-                      <ShoppingCart className="w-4 h-4 mr-2 text-orange-500" />
-                      Shopping Mode
+                    <DropdownMenuItem onClick={() => handleModeSelect('normal')} className="cursor-pointer rounded-xl font-medium text-primary">
+                      <Bot className="w-4 h-4 mr-2" />
+                      Back to Normal Chat
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleQuickMode("Help me with financial research. Provide market analysis and investment insights.", "Financial Mode")} className="cursor-pointer rounded-xl">
-                      <TrendingUp className="w-4 h-4 mr-2 text-green-500" />
-                      Financial Mode
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleQuickMode("Help me with beauty and skincare advice. Provide product recommendations and tips.", "Beauty Mode")} className="cursor-pointer rounded-xl">
-                      <Sparkles className="w-4 h-4 mr-2 text-pink-500" />
-                      Beauty Mode
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleQuickMode("Give me today's top news and important updates from around the world.", "Today News")} className="cursor-pointer rounded-xl">
-                      <Newspaper className="w-4 h-4 mr-2 text-purple-500" />
-                      Today News
-                    </DropdownMenuItem>
-                    <div className="h-px bg-border my-2" />
+                    <div className="h-px bg-border/50 my-2" />
                   </>
                 )}
                 
@@ -320,7 +280,7 @@ export const ChatInput = memo(({
                   Image Generator
                 </DropdownMenuItem>
                 
-                <div className="h-px bg-border my-2" />
+                <div className="h-px bg-border/50 my-2" />
                 <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Mindset Modes</p>
                 
                 <DropdownMenuItem onClick={() => handleModeSelect('rich')} className="cursor-pointer rounded-xl">
@@ -334,7 +294,7 @@ export const ChatInput = memo(({
 
                 {isPremium && (
                   <>
-                    <div className="h-px bg-border my-2" />
+                    <div className="h-px bg-border/50 my-2" />
                     <p className="text-[11px] font-semibold text-primary uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
                       <Sparkles className="w-3 h-3" /> Premium Models
                     </p>
@@ -356,7 +316,7 @@ export const ChatInput = memo(({
                   </>
                 )}
                 
-                <div className="h-px bg-border my-2" />
+                <div className="h-px bg-border/50 my-2" />
                 <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1 mb-1">Attach</p>
                 
                 <DropdownMenuItem onClick={openGallery} className="cursor-pointer rounded-xl">
@@ -427,7 +387,7 @@ export const ChatInput = memo(({
                 type="submit" 
                 size="icon" 
                 disabled={disabled || !message.trim()} 
-                className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-foreground text-background hover:opacity-90 disabled:opacity-30 disabled:bg-muted-foreground/20 btn-press transition-all shrink-0 shadow-sm"
+                className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-foreground text-background hover:opacity-90 disabled:opacity-20 disabled:bg-muted-foreground/20 btn-press transition-all shrink-0 shadow-sm"
               >
                 <Send className="w-4 h-4" />
               </Button>
@@ -435,7 +395,7 @@ export const ChatInput = memo(({
           </div>
         </form>
         
-        <p className="text-center text-[11px] sm:text-xs text-muted-foreground/80 mt-2">
+        <p className="text-center text-[11px] sm:text-xs text-muted-foreground/80 mt-1.5">
           CoreAI can make mistakes. Check important info.
         </p>
       </div>
