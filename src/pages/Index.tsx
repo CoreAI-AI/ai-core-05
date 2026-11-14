@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatInput } from "@/components/ChatInput";
+import { Auth } from "@/components/Auth";
 import { Settings } from "@/components/Settings";
 import { QuickActionCards } from "@/components/QuickActionCards";
 import { QuickActionButtons } from "@/components/QuickActionButtons";
@@ -32,7 +33,7 @@ import {
   X 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import premiumLogo from "@/assets/premium-logo.png";
+const premiumLogo = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjZmZmMWE2Ii8+PHN0b3Agb2Zmc2V0PSIwLjQ4IiBzdG9wLWNvbG9yPSIjZjZjNDUzIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjYjc3OTFmIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHBhdGggZmlsbD0idXJsKCNnKSIgc3Ryb2tlPSIjZmZmMGIzIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik0zMiAzIDU3IDIyIDQ3IDU1IDE3IDU1IDcgMjJaIi8+PHBhdGggZmlsbD0iI2ZmZjhkOCIgb3BhY2l0eT0iLjk1IiBkPSJtMzIgMTEgOSAxMS05IDI5LTktMjlaIi8+PHBhdGggZmlsbD0iI2Q2OWEzMiIgZD0iTTcgMjJoNTBMNDcgNTVIMTdaIiBvcGFjaXR5PSIuNTUiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiNmZmY2ZDUiIHN0cm9rZS13aWR0aD0iMiIgZD0ibTcgMjIgMjUgMCAyNSAwTTE3IDU1bDE1LTMzIDE1IDMzIi8+PC9zdmc+";
 import { getFounderIdentityResponse, isFounderIdentityQuery } from "@/lib/brandIdentity";
 import { isCacheable, getCached, tryLocalReply } from "@/lib/queryCache";
 import { recordUsage } from "@/lib/usageMetrics";
@@ -89,7 +90,7 @@ const Index = () => {
     reason: 'daily'
   });
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string; index: number } | null>(null);
-  const [, setIsUserTyping] = useState(false);
+  const [isUserTyping, setIsUserTyping] = useState(false);
   const [openTabs, setOpenTabs] = useState<any[]>([]);
   const [hasNewMessage, setHasNewMessage] = useState(false);
 
