@@ -62,25 +62,35 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         if (error) throw error;
 
         if (data.user) {
-          await sb.from('profiles').insert({
-            user_id: data.user.id,
-            display_name: displayName.trim() || email.split('@')[0],
-            email: email.trim(),
-          });
+          try {
+            await sb.from('profiles').upsert({
+              user_id: data.user.id,
+              display_name: displayName.trim() || email.split('@')[0],
+              email: email.trim(),
+            });
+          } catch {}
+
           localStorage.removeItem("coreai_intro_seen");
           localStorage.setItem("coreai_intro_source", "signup");
-          toast.success("Account created! Welcome to CoreAI 🎉");
-          onAuthSuccess();
+
+          // यदि सेशन तुरंत मिल गया तो सीधे ऐप में ले जाओ
+          if (data.session) {
+            toast.success("Account created! Welcome to CoreAI 🎉");
+            onAuthSuccess();
+          } else {
+            toast.success("Account created! Please sign in with your password.");
+            setIsSignUp(false);
+          }
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email: email.trim(),
           password,
         });
 
         if (error) {
-          if (error.message.includes('Invalid login')) {
-            throw new Error("Incorrect email or password. Please try again.");
+          if (error.message.includes('Invalid login') || error.message.includes('Email not confirmed')) {
+            throw new Error("Invalid credentials or email unconfirmed. Please verify or try Demo Account.");
           }
           throw error;
         }
@@ -91,7 +101,6 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
           localStorage.removeItem('rememberedEmail');
         }
 
-        // Replay intro on every login so users re-see CoreAI features
         localStorage.removeItem("coreai_intro_seen");
         localStorage.setItem("coreai_intro_source", "login");
 
@@ -105,18 +114,14 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
     }
   };
 
-
   const handleDemoLogin = async () => {
     setIsDemoLoading(true);
-    
     try {
       const { data, error } = await supabase.functions.invoke('create-demo-user');
-      
       if (error) throw error;
       if (!data?.success) throw new Error(data?.error || 'Failed to create demo account');
 
       const { email: demoEmail, password: demoPassword } = data.credentials;
-      
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: demoEmail,
         password: demoPassword,
@@ -127,7 +132,6 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
       toast.success("Demo account ready! Explore CoreAI 🚀");
       onAuthSuccess();
     } catch (error: any) {
-      console.error('Demo login error:', error);
       toast.error(error.message || "Demo setup failed. Please try again.");
     } finally {
       setIsDemoLoading(false);
@@ -144,23 +148,15 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <motion.div 
-          className="text-center space-y-2"
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-        >
-          <motion.img 
+        <div className="text-center space-y-2">
+          <img 
             src={coreaiLogo} 
             alt="CoreAI" 
             className="w-20 h-20 rounded-full shadow-lg mx-auto mb-4 ring-4 ring-primary/20"
-            initial={{ rotate: -180, scale: 0 }}
-            animate={{ rotate: 0, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
           />
           <h1 className="text-3xl font-bold gradient-text">CoreAI</h1>
           <p className="text-muted-foreground">Intelligent Assistant</p>
-        </motion.div>
+        </div>
 
         <Card className="border-border/50 shadow-xl">
           <CardHeader className="text-center pb-4">
@@ -170,7 +166,6 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-
             <form onSubmit={handleAuth} className="space-y-3">
               {isSignUp && (
                 <div>
@@ -261,7 +256,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
               {isDemoLoading ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Setting up demo...</>
               ) : (
-                <><Zap className="w-4 h-4 mr-2 text-primary" /> Try Demo Account</>
+                <><Zap className="w-4 h-4 mr-2 text-primary" /> Try Demo Account (Instant)</>
               )}
             </Button>
             
@@ -279,3 +274,5 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
     </div>
   );
 };
+
+export default Auth;
