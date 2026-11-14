@@ -45,8 +45,6 @@ export const ChatInput = memo(({
   editingMessage,
   onCancelEdit,
   onTypingChange,
-  isPremium,
-  onModelChange,
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const isMobile = useIsMobile();
@@ -66,7 +64,7 @@ export const ChatInput = memo(({
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
     }
   }, [message]);
 
@@ -91,79 +89,68 @@ export const ChatInput = memo(({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (message.trim() && !disabled) {
       triggerHaptic();
       const sanitized = sanitizeInput(message.trim());
       const validation = chatMessageSchema.safeParse({ content: sanitized });
       if (!validation.success) {
-        toast.error("Message is too long or contains invalid characters");
+        toast.error("Please enter a valid message");
         return;
       }
       onSendMessage(sanitized);
       setMessage("");
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      handleSubmit();
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && onFileSelect) {
-      try {
-        validateFile(file);
-        onFileSelect(file);
-        toast.success(`Selected file: ${file.name}`);
-      } catch (err: any) {
-        toast.error(err.message || "Invalid file format");
+      const validation = validateFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error);
+        return;
       }
+      onFileSelect(file);
+      toast.success(`Attached ${file.name}`);
     }
   };
 
-  const openGallery = () => {
-    triggerHaptic();
-    fileInputRef.current?.click();
-  };
-
-  const openFileExplorer = () => {
-    triggerHaptic();
-    anyFileInputRef.current?.click();
-  };
-
-  const openCamera = async () => {
-    triggerHaptic();
+  const handleTakePhoto = async () => {
     try {
       const image = await CapCamera.getPhoto({
-        quality: 85,
+        quality: 90,
         allowEditing: false,
         resultType: CameraResultType.Uri,
-        source: CameraSource.Camera
+        source: CameraSource.Camera,
       });
-      
+
       if (image.webPath && onFileSelect) {
         const response = await fetch(image.webPath);
         const blob = await response.blob();
-        const file = new (window as any).File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
-        
-        validateFile(file);
+        const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
         onFileSelect(file);
-        toast.success("Photo captured!");
+        toast.success("Photo attached");
       }
-    } catch (error: any) {
-      if (!error.message?.includes('User cancelled')) {
-        fileInputRef.current?.click();
-      }
+    } catch (error) {
+      toast.error("Could not capture photo");
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="relative w-full">
+    <div className="w-full max-w-3xl mx-auto px-2 sm:px-4">
+      {/* Hidden File Inputs */}
       <input
         type="file"
         ref={fileInputRef}
@@ -175,110 +162,103 @@ export const ChatInput = memo(({
         type="file"
         ref={anyFileInputRef}
         onChange={handleFileChange}
-        accept=".pdf,.txt,.csv"
+        accept=".pdf,.doc,.docx,.txt"
         className="hidden"
       />
 
-      <div className="relative flex items-end gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-muted/40 hover:bg-muted/60 focus-within:bg-background border border-border/60 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20 rounded-3xl transition-all duration-200 shadow-sm">
-        {/* Attachment menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 flex-shrink-0"
-              disabled={disabled}
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-48 rounded-xl p-1 shadow-lg">
-            <DropdownMenuItem onClick={openGallery} className="gap-2.5 rounded-lg cursor-pointer text-xs">
-              <ImageIcon className="h-4 w-4 text-cyan-500" />
-              <span>Upload Image</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={openCamera} className="gap-2.5 rounded-lg cursor-pointer text-xs">
-              <Camera className="h-4 w-4 text-purple-500" />
-              <span>Take Photo</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={openFileExplorer} className="gap-2.5 rounded-lg cursor-pointer text-xs">
-              <FileIcon className="h-4 w-4 text-blue-500" />
-              <span>Attach Document</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onModeChange?.('deep-search')} className="gap-2.5 rounded-lg cursor-pointer text-xs">
-              <Search className="h-4 w-4 text-emerald-500" />
-              <span>Deep Research</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onModeChange?.('code')} className="gap-2.5 rounded-lg cursor-pointer text-xs">
-              <Code className="h-4 w-4 text-orange-500" />
-              <span>Code Mode</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onModeChange?.('study')} className="gap-2.5 rounded-lg cursor-pointer text-xs">
-              <GraduationCap className="h-4 w-4 text-indigo-500" />
-              <span>Study Mode</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {/* Floating Composer Card with Gradient Send Button */}
+      <div className="relative bg-card/95 backdrop-blur-md border border-border/80 rounded-2xl sm:rounded-3xl shadow-md p-1.5 sm:p-2 transition-all duration-200 focus-within:border-primary/50 focus-within:shadow-lg">
+        <div className="flex items-center gap-1 sm:gap-2">
+          {/* Plus Actions Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 sm:h-9 sm:m-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 shrink-0"
+                title="Add attachments or modes"
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
+              <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs sm:text-sm">
+                <ImageIcon className="h-4 w-4 mr-2 text-cyan-500" />
+                Upload Image
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs sm:text-sm">
+                <FileIcon className="h-4 w-4 mr-2 text-amber-500" />
+                Attach Document
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-xs sm:text-sm">
+                <Camera className="h-4 w-4 mr-2 text-emerald-500" />
+                Take Photo
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onModeChange?.('deep-search')} className="rounded-xl cursor-pointer text-xs sm:text-sm">
+                <Search className="h-4 w-4 mr-2 text-blue-500" />
+                Deep Search
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onModeChange?.('code')} className="rounded-xl cursor-pointer text-xs sm:text-sm">
+                <Code className="h-4 w-4 mr-2 text-purple-500" />
+                Code Assistant
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
-        {/* Input text field */}
-        <Textarea
-          ref={textareaRef}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Ask CoreAI anything..."
-          disabled={disabled || transcribing}
-          rows={1}
-          className="flex-1 min-h-[38px] max-h-[160px] resize-none border-0 bg-transparent p-2 text-sm sm:text-base text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:ring-offset-0 leading-relaxed"
-        />
+          {/* Text Area Input */}
+          <Textarea
+            ref={textareaRef}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Message CoreAI..."
+            disabled={disabled}
+            rows={1}
+            className="flex-1 min-h-[36px] max-h-[140px] resize-none border-0 bg-transparent p-1.5 sm:p-2 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+          />
 
-        {/* Voice recording button */}
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          onClick={handleVoiceRecording}
-          disabled={disabled || transcribing}
-          className={`h-9 w-9 rounded-full transition-all flex-shrink-0 ${
-            isRecording 
-              ? "bg-destructive text-destructive-foreground animate-pulse" 
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
-          }`}
-        >
-          {transcribing ? (
-            <Loader2 className="h-4 w-4 animate-spin text-primary" />
-          ) : isRecording ? (
-            <Square className="h-4 w-4" />
-          ) : (
-            <Mic className="h-4 w-4" />
-          )}
-        </Button>
-
-        {/* Send or Edit Cancel button */}
-        {editingMessage ? (
+          {/* Microphone Voice Button */}
           <Button
             type="button"
             variant="ghost"
-            size="sm"
-            onClick={onCancelEdit}
-            className="text-xs h-9 px-3 rounded-full text-muted-foreground hover:text-foreground"
-          >
-            Cancel
-          </Button>
-        ) : (
-          <Button
-            type="submit"
             size="icon"
+            onClick={handleVoiceRecording}
+            disabled={disabled || transcribing}
+            className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full shrink-0 transition-all ${
+              isRecording ? 'bg-destructive/20 text-destructive animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+            }`}
+            title={isRecording ? "Stop recording" : "Voice input"}
+          >
+            {transcribing ? (
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            ) : (
+              <Mic className="h-4 w-4" />
+            )}
+          </Button>
+
+          {/* Purple-Blue Gradient Send Button (Matching Screenshot) */}
+          <Button
+            type="button"
+            onClick={() => handleSubmit()}
             disabled={!message.trim() || disabled}
-            className="h-9 w-9 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-30 disabled:pointer-events-none transition-all flex-shrink-0 shadow-sm"
+            className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl sm:rounded-2xl p-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:opacity-90 text-white shrink-0 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            title="Send message"
           >
             <Send className="h-4 w-4" />
           </Button>
-        )}
+        </div>
       </div>
-    </form>
+
+      {/* Powered by Tagline at Bottom */}
+      <div className="text-center mt-2">
+        <p className="text-[11px] text-muted-foreground tracking-tight">
+          Powered by <span className="font-semibold text-foreground/80">CoreAI</span> • Fast, intelligent, reliable
+        </p>
+      </div>
+    </div>
   );
 });
 
 ChatInput.displayName = "ChatInput";
+export default ChatInput;
