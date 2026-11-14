@@ -10,22 +10,26 @@ import {
   GraduationCap, 
   Code, 
   Mic, 
-  Square, 
   Plus, 
-  Loader2 
+  Loader2,
+  Sparkles,
+  Brain,
+  FileText,
+  ChevronDown
 } from "lucide-react";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { chatMessageSchema, validateFile, sanitizeInput } from "@/lib/validation";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
-import { useIsMobile } from "@/hooks/use-mobile";
+
+type ModeType = 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   onFileSelect?: (file: File) => void;
-  onModeChange?: (mode: 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework') => void;
+  onModeChange?: (mode: ModeType) => void;
   editingMessage?: {
     id: string;
     content: string;
@@ -37,6 +41,16 @@ interface ChatInputProps {
   onModelChange?: (model: string) => void;
 }
 
+const availableModes: { id: ModeType; label: string; icon: any; color: string }[] = [
+  { id: 'normal', label: 'Auto (Normal)', icon: Sparkles, color: 'text-primary' },
+  { id: 'deep-search', label: 'Deep Search', icon: Search, color: 'text-blue-500' },
+  { id: 'code', label: 'Code Assistant', icon: Code, color: 'text-purple-500' },
+  { id: 'homework', label: 'Study & Homework', icon: GraduationCap, color: 'text-amber-500' },
+  { id: 'creative', label: 'Creative Writing', icon: Brain, color: 'text-pink-500' },
+  { id: 'photo', label: 'Image Studio', icon: ImageIcon, color: 'text-cyan-500' },
+  { id: 'analyze', label: 'Analyze & Summarize', icon: FileText, color: 'text-emerald-500' },
+];
+
 export const ChatInput = memo(({
   onSendMessage,
   disabled,
@@ -47,7 +61,7 @@ export const ChatInput = memo(({
   onTypingChange,
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
-  const isMobile = useIsMobile();
+  const [currentMode, setCurrentMode] = useState<ModeType>("normal");
 
   useEffect(() => {
     if (editingMessage) {
@@ -60,11 +74,13 @@ export const ChatInput = memo(({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-resize textarea
+  // Auto-resize textarea like Lovable / ChatGPT (compact 1-line by default, smoothly expands as you type)
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 140)}px`;
+      const scrollH = textareaRef.current.scrollHeight;
+      const nextHeight = Math.min(Math.max(scrollH, 24), 140);
+      textareaRef.current.style.height = `${nextHeight}px`;
     }
   }, [message]);
 
@@ -148,8 +164,16 @@ export const ChatInput = memo(({
     }
   };
 
+  const handleSelectMode = (modeId: ModeType, modeLabel: string) => {
+    setCurrentMode(modeId);
+    onModeChange?.(modeId);
+    toast.info(`Mode set to ${modeLabel}`);
+  };
+
+  const activeModeConfig = availableModes.find((m) => m.id === currentMode) || availableModes[0];
+
   return (
-    <div className="w-full max-w-3xl mx-auto px-2 sm:px-4">
+    <div className="w-full max-w-2xl mx-auto px-2 sm:px-3">
       {/* Hidden File Inputs */}
       <input
         type="file"
@@ -166,47 +190,76 @@ export const ChatInput = memo(({
         className="hidden"
       />
 
-      {/* Floating Composer Card with Gradient Send Button */}
-      <div className="relative bg-card/95 backdrop-blur-md border border-border/80 rounded-2xl sm:rounded-3xl shadow-md p-1.5 sm:p-2 transition-all duration-200 focus-within:border-primary/50 focus-within:shadow-lg">
-        <div className="flex items-center gap-1 sm:gap-2">
-          {/* Plus Actions Dropdown */}
+      {/* ChatGPT-style Sleek Composer Box */}
+      <div className="relative bg-card/95 border border-border/80 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm p-1.5 sm:p-2 transition-all duration-150 focus-within:border-primary/50 focus-within:shadow-md">
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          {/* + Attachment Menu: Photo, Camera, File */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 sm:h-9 sm:m-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 shrink-0"
-                title="Add attachments or modes"
+                className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 shrink-0"
+                title="Attach photo, camera, or file"
               >
                 <Plus className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
-              <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs sm:text-sm">
+            <DropdownMenuContent align="start" className="w-44 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
+              <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs">
                 <ImageIcon className="h-4 w-4 mr-2 text-cyan-500" />
-                Upload Image
+                Photo (Gallery)
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs sm:text-sm">
-                <FileIcon className="h-4 w-4 mr-2 text-amber-500" />
-                Attach Document
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-xs sm:text-sm">
+              <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-xs">
                 <Camera className="h-4 w-4 mr-2 text-emerald-500" />
-                Take Photo
+                Camera (Take Photo)
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onModeChange?.('deep-search')} className="rounded-xl cursor-pointer text-xs sm:text-sm">
-                <Search className="h-4 w-4 mr-2 text-blue-500" />
-                Deep Search
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onModeChange?.('code')} className="rounded-xl cursor-pointer text-xs sm:text-sm">
-                <Code className="h-4 w-4 mr-2 text-purple-500" />
-                Code Assistant
+              <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs">
+                <FileIcon className="h-4 w-4 mr-2 text-amber-500" />
+                File (Document)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Text Area Input */}
+          {/* Modes Dropdown (Right next to + button) */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-7 sm:h-8 px-2 gap-1 rounded-full text-[11px] sm:text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/70 shrink-0 border border-border/40"
+                title="Select Mode"
+              >
+                <activeModeConfig.icon className={`h-3 w-3 ${activeModeConfig.color}`} />
+                <span className="hidden xs:inline sm:inline max-w-[70px] truncate">{activeModeConfig.label.split(' ')[0]}</span>
+                <ChevronDown className="h-3 w-3 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-52 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
+              <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                Select Mode
+              </div>
+              {availableModes.map((m) => (
+                <DropdownMenuItem
+                  key={m.id}
+                  onClick={() => handleSelectMode(m.id, m.label)}
+                  className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl cursor-pointer text-xs ${
+                    currentMode === m.id ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <m.icon className={`h-3.5 w-3.5 ${m.color}`} />
+                    <span>{m.label}</span>
+                  </div>
+                  {currentMode === m.id && <span className="text-[10px] text-primary font-semibold">Active</span>}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Dynamic Auto-Expanding Textarea */}
           <Textarea
             ref={textareaRef}
             value={message}
@@ -215,7 +268,7 @@ export const ChatInput = memo(({
             placeholder="Message CoreAI..."
             disabled={disabled}
             rows={1}
-            className="flex-1 min-h-[36px] max-h-[140px] resize-none border-0 bg-transparent p-1.5 sm:p-2 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+            className="flex-1 min-h-[28px] max-h-[140px] resize-none border-0 bg-transparent p-1 sm:p-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
           />
 
           {/* Microphone Voice Button */}
@@ -225,7 +278,7 @@ export const ChatInput = memo(({
             size="icon"
             onClick={handleVoiceRecording}
             disabled={disabled || transcribing}
-            className={`h-8 w-8 sm:h-9 sm:w-9 rounded-full shrink-0 transition-all ${
+            className={`h-8 w-8 rounded-full shrink-0 transition-all ${
               isRecording ? 'bg-destructive/20 text-destructive animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
             }`}
             title={isRecording ? "Stop recording" : "Voice input"}
@@ -237,12 +290,12 @@ export const ChatInput = memo(({
             )}
           </Button>
 
-          {/* Purple-Blue Gradient Send Button (Matching Screenshot) */}
+          {/* Purple-Blue Gradient Send Button */}
           <Button
             type="button"
             onClick={() => handleSubmit()}
             disabled={!message.trim() || disabled}
-            className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl sm:rounded-2xl p-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:opacity-90 text-white shrink-0 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="h-8 w-8 rounded-xl sm:rounded-2xl p-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:opacity-90 text-white shrink-0 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             title="Send message"
           >
             <Send className="h-4 w-4" />
@@ -251,7 +304,7 @@ export const ChatInput = memo(({
       </div>
 
       {/* Powered by Tagline at Bottom */}
-      <div className="text-center mt-2">
+      <div className="text-center mt-1.5">
         <p className="text-[11px] text-muted-foreground tracking-tight">
           Powered by <span className="font-semibold text-foreground/80">CoreAI</span> • Fast, intelligent, reliable
         </p>
