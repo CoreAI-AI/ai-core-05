@@ -72,6 +72,18 @@ export const ChatInput = memo(({
   const [message, setMessage] = useState("");
   const [currentMode, setCurrentMode] = useState<ModeType>("normal");
 
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const anyFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Logo animation / app open hone par direct chatbar focus hona (ChatGPT style)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 280);
+    return () => clearTimeout(timer);
+  }, []);
+
   useEffect(() => {
     if (editingMessage) {
       setMessage(editingMessage.content);
@@ -79,16 +91,12 @@ export const ChatInput = memo(({
     }
   }, [editingMessage]);
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const anyFileInputRef = useRef<HTMLInputElement>(null);
-
-  // Auto-resize textarea smoothly as user types
+  // Smooth auto-grow textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
       const scrollH = textareaRef.current.scrollHeight;
-      const nextHeight = Math.min(Math.max(scrollH, 24), 140);
+      const nextHeight = Math.min(Math.max(scrollH, 38), 140);
       textareaRef.current.style.height = `${nextHeight}px`;
     }
   }, [message]);
@@ -101,7 +109,7 @@ export const ChatInput = memo(({
 
   const triggerHaptic = () => {
     if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-      navigator.vibrate(8);
+      navigator.vibrate(10);
     }
   };
 
@@ -199,55 +207,54 @@ export const ChatInput = memo(({
         className="hidden"
       />
 
-      {/* ChatGPT-style Mobile-Optimized Composer Box */}
-      <div className="relative bg-card/95 border border-border/80 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm p-1 sm:p-2 transition-all duration-150 focus-within:border-primary/50 focus-within:shadow-md">
-        <div className="flex items-center gap-1 sm:gap-1.5">
-          {/* + Attachment Menu */}
+      {/* Medium Size Ergonomic Composer Box */}
+      <div className="relative bg-card/95 border border-border/80 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm p-1.5 sm:p-2 transition-all duration-150 focus-within:border-primary/60 focus-within:shadow-md">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* + Attachment Menu (Medium Size) */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7 sm:h-8 sm:w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 shrink-0"
+                className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/80 shrink-0 flex items-center justify-center transition-colors"
                 title="Attach photo, camera, or file"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-5 w-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-44 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
-              <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs">
-                <ImageIcon className="h-4 w-4 mr-2 text-cyan-500" />
+            <DropdownMenuContent align="start" className="w-48 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
+              <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
+                <ImageIcon className="h-4 w-4 mr-2.5 text-cyan-500" />
                 Photo (Gallery)
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-xs">
-                <Camera className="h-4 w-4 mr-2 text-emerald-500" />
+              <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-xs py-2">
+                <Camera className="h-4 w-4 mr-2.5 text-emerald-500" />
                 Camera (Take Photo)
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs">
-                <FileIcon className="h-4 w-4 mr-2 text-amber-500" />
+              <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
+                <FileIcon className="h-4 w-4 mr-2.5 text-amber-500" />
                 File (Document)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Modes Dropdown */}
+          {/* Modes Pill (Medium Size, Comfortable Tap Target) */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 type="button"
                 variant="ghost"
-                size="sm"
-                className="h-7 sm:h-8 px-1.5 sm:px-2 gap-0.5 sm:gap-1 rounded-full text-[11px] sm:text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/70 shrink-0 border border-border/40"
+                className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-full text-xs font-medium bg-muted/50 hover:bg-muted text-foreground/90 shrink-0 border border-border/60 transition-all"
                 title="Select Mode"
               >
-                <activeModeConfig.icon className={`h-3 w-3 ${activeModeConfig.color}`} />
-                <span className="hidden xs:inline sm:inline max-w-[65px] truncate">{activeModeConfig.label.split(' ')[0]}</span>
-                <ChevronDown className="h-2.5 w-2.5 opacity-50" />
+                <activeModeConfig.icon className={`h-3.5 w-3.5 ${activeModeConfig.color}`} />
+                <span className="hidden xs:inline sm:inline max-w-[80px] sm:max-w-none truncate">{activeModeConfig.label.split(' ')[0]}</span>
+                <ChevronDown className="h-3 w-3 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 max-h-[300px] overflow-y-auto p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
-              <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+            <DropdownMenuContent align="start" className="w-56 max-h-[320px] overflow-y-auto p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
+              <div className="px-2.5 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                 All 11 Modes
               </div>
               {availableModes.map((m) => (
@@ -268,7 +275,7 @@ export const ChatInput = memo(({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Textarea */}
+          {/* Textarea (Clear and Roomy) */}
           <Textarea
             ref={textareaRef}
             value={message}
@@ -277,37 +284,37 @@ export const ChatInput = memo(({
             placeholder="Message CoreAI..."
             disabled={disabled}
             rows={1}
-            className="flex-1 min-h-[26px] max-h-[140px] resize-none border-0 bg-transparent p-1 sm:p-1.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none leading-normal"
+            className="flex-1 min-h-[38px] max-h-[140px] resize-none border-0 bg-transparent py-2 px-1 text-sm sm:text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
           />
 
-          {/* Microphone */}
+          {/* Microphone (Medium Size) */}
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={handleVoiceRecording}
             disabled={disabled || transcribing}
-            className={`h-7 w-7 sm:h-8 sm:w-8 rounded-full shrink-0 transition-all ${
+            className={`h-9 w-9 rounded-full shrink-0 transition-all ${
               isRecording ? 'bg-destructive/20 text-destructive animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
             }`}
             title={isRecording ? "Stop recording" : "Voice input"}
           >
             {transcribing ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
             ) : (
-              <Mic className="h-3.5 w-3.5" />
+              <Mic className="h-4.5 w-4.5" />
             )}
           </Button>
 
-          {/* Send Button */}
+          {/* Send Button (Medium Size with CoreAI Gradient) */}
           <Button
             type="button"
             onClick={() => handleSubmit()}
             disabled={!message.trim() || disabled}
-            className="h-7 w-7 sm:h-8 sm:w-8 rounded-xl sm:rounded-2xl p-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:opacity-90 text-white shrink-0 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="h-9 w-9 rounded-full p-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 hover:opacity-90 text-white shrink-0 shadow-sm flex items-center justify-center transition-all disabled:opacity-30 disabled:scale-95"
             title="Send message"
           >
-            <Send className="h-3.5 w-3.5" />
+            <Send className="h-4 w-4" />
           </Button>
         </div>
       </div>
