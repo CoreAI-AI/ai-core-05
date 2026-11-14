@@ -116,7 +116,7 @@ const Index = () => {
     }
   }, []);
 
-  // Robust Auto-Scroll: Keeps pinned to bottom while streaming unless user actively browses older messages
+  // Robust Auto-Scroll
   useEffect(() => {
     const container = scrollAreaRef.current;
     if (!container) return;
@@ -151,18 +151,14 @@ const Index = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-        e.preventDefault();
-        setSidebarCollapsed(prev => !prev);
-      }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'f' && messages.length > 0) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setShowSearch(prev => !prev);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [messages.length]);
+  }, []);
 
   useEffect(() => {
     if (currentChat && !openTabs.find(t => t.id === currentChat.id)) {
@@ -172,10 +168,12 @@ const Index = () => {
 
   const handleCloseTab = (chatId: string) => {
     setOpenTabs(prev => prev.filter(t => t.id !== chatId));
-    if (currentChat?.id === chatId && openTabs.length > 1) {
-      const remainingTabs = openTabs.filter(t => t.id !== chatId);
-      if (remainingTabs.length > 0) {
-        selectChat(remainingTabs[remainingTabs.length - 1]);
+    if (currentChat?.id === chatId) {
+      const remaining = openTabs.filter(t => t.id !== chatId);
+      if (remaining.length > 0) {
+        selectChat(remaining[remaining.length - 1]);
+      } else {
+        startNewChat();
       }
     }
   };
@@ -197,8 +195,8 @@ const Index = () => {
     const element = document.getElementById(`message-${messageId}`);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      element.classList.add('bg-primary/10');
-      setTimeout(() => element.classList.remove('bg-primary/10'), 2000);
+      element.classList.add('ring-2', 'ring-primary', 'transition-all');
+      setTimeout(() => element.classList.remove('ring-2', 'ring-primary'), 2000);
     }
   };
 
@@ -208,15 +206,15 @@ const Index = () => {
     if (!lastAIMessage) return;
     
     const actionPrompts: Record<string, string> = {
-      rewrite: `Please rewrite the following response in a different way: "${lastAIMessage.content}"`,
-      summarize: `Please summarize this response briefly: "${lastAIMessage.content}"`,
-      translate: `Please translate this response to Hindi: "${lastAIMessage.content}"`,
-      improve: `Please improve this response with more details: "${lastAIMessage.content}"`,
+      rewrite: `Please rewrite this more clearly:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
+      summarize: `Please summarize the key points of this response in bullet points:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
+      translate: `Please translate this to Hindi:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
+      improve: `Please improve and expand on this response with more details and examples:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
     };
-    
+
     if (action === 'regenerate') {
       const aiMsgIndex = messages.findIndex(m => m.id === lastAIMessage.id);
-      if (aiMsgIndex > 0) {
+      if (aiMsgIndex >= 0) {
         handleRegenerateResponse(lastAIMessage.id, aiMsgIndex);
       }
     } else if (actionPrompts[action]) {
@@ -273,7 +271,7 @@ const Index = () => {
       }
     } else {
       setFilePreview(null);
-      toast.success(`File selected: ${file.name}`);
+      toast.success(`Attached ${file.name}`);
     }
   };
 
@@ -289,6 +287,7 @@ const Index = () => {
     for (const msg of messagesToDelete) {
       await deleteMessage(msg.id);
     }
+
     await updateMessage(editingMessage.id, content);
     setEditingMessage(null);
 
@@ -312,8 +311,7 @@ const Index = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
         },
         body: JSON.stringify({
           message: content,
@@ -358,7 +356,7 @@ const Index = () => {
       await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
     } catch (error) {
       console.error('Error regenerating AI response:', error);
-      toast.error("Failed to regenerate response. Please try again.");
+      toast.error("Failed to regenerate response");
     } finally {
       setIsLoading(false);
       setIsAITyping(false);
@@ -370,7 +368,7 @@ const Index = () => {
     const userMessageIndex = aiMessageIndex - 1;
     if (userMessageIndex < 0) return;
     const userMessage = messages[userMessageIndex];
-    if (!userMessage || !userMessage.is_user) return;
+
     setIsLoading(true);
     setIsAITyping(true);
     try {
@@ -388,8 +386,7 @@ const Index = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
         },
         body: JSON.stringify({
           message: userMessage.content,
@@ -434,7 +431,7 @@ const Index = () => {
       await updateMessage(aiMessageId, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
       toast.success("Response regenerated");
     } catch (error) {
-      console.error('Error regenerating response:', error);
+      console.error('Error regenerating AI response:', error);
       toast.error("Failed to regenerate response");
     } finally {
       setIsLoading(false);
@@ -454,8 +451,8 @@ const Index = () => {
       const modeLabels: Record<string, string> = { chat: 'Chat', study: 'Study', image: 'Image', code: 'Code' };
       setUnlockPopup({
         open: true,
-        reason: gate.reason,
-        modeLabel: gate.limitMode ? modeLabels[gate.limitMode] : undefined,
+        reason: gate.reason || 'daily',
+        modeLabel: modeLabels[chatMode] || chatMode
       });
       return;
     }
@@ -483,8 +480,8 @@ const Index = () => {
       if (isPremium) {
         let savedPlanName = "Premium";
         try {
-          const savedPlan = localStorage.getItem("coreai_selected_plan");
-          if (savedPlan) savedPlanName = JSON.parse(savedPlan)?.name || "Premium";
+          const raw = localStorage.getItem("coreai_active_plan");
+          if (raw) savedPlanName = JSON.parse(raw).name || "Premium";
         } catch {}
         await addMessage(
           chatToUse.id,
@@ -492,13 +489,14 @@ const Index = () => {
           false
         );
         setTimeout(() => setShowSubscriptionPopup(true), 400);
-        return;
+      } else {
+        await addMessage(
+          chatToUse.id,
+          `CoreAI offers **Plus**, **Pro**, and **Team** plans for high-speed, unlimited access. I’ve opened the plans page for you below.`,
+          false
+        );
+        setTimeout(() => setShowSubscriptionPopup(true), 400);
       }
-      await addMessage(
-        chatToUse.id,
-        "CoreAI abhi sabke liye **100% free** hai — koi Premium plan ya subscription nahi hai. 🎉\n\nHar din aapko free chats milti hain, jo roz subah apne aap reset ho jaati hain. Bas chat karte rahiye! 🚀",
-        false
-      );
       return;
     }
 
@@ -574,8 +572,7 @@ const Index = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
         },
         body: JSON.stringify({
           message: content,
@@ -629,7 +626,7 @@ const Index = () => {
                   accumulatedContent += parsed.content;
                   updateMessageLocal(aiMessage.id, accumulatedContent);
                 }
-                              if (parsed.images?.length > 0) {
+                if (parsed.images?.length > 0) {
                   receivedImages = parsed.images;
                   updateMessageLocal(aiMessage.id, accumulatedContent, parsed.images);
                 }
@@ -752,7 +749,7 @@ const Index = () => {
                 onDeleteChat={deleteChat} 
                 onExportChat={handleExportChat} 
                 user={user} 
-                onCollapse={() => setSidebarCollapsed(true)} 
+                onCollapse={() => setSidebarCollapsed(true)}
               />
             </motion.div>
           </>
@@ -853,14 +850,19 @@ const Index = () => {
                     <ResponseLengthControl value={responseLength} onChange={setResponseLength} />
                   </div>
 
-                  {/* Bold Search Trigger */}
+                  {/* Search Button - Always active */}
                   <Button 
                     variant="ghost" 
                     size="sm" 
-                    onClick={() => setShowSearch(true)} 
-                    className="h-8 px-2 sm:px-2.5 gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/70 rounded-xl border border-border/30 transition-all shadow-2xs" 
-                    title="Search chat" 
-                    disabled={messages.length === 0}
+                    onClick={() => {
+                      if (messages.length > 0) {
+                        setShowSearch(true);
+                      } else {
+                        setSidebarCollapsed(false);
+                      }
+                    }} 
+                    className="h-8 w-8 sm:w-auto p-0 sm:px-2.5 gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/70 rounded-xl border border-border/30 transition-all shadow-2xs" 
+                    title="Search" 
                   >
                     <Search className="h-3.5 w-3.5" />
                     <span className="hidden sm:inline text-[11px] font-medium text-muted-foreground">Search</span>
@@ -912,7 +914,7 @@ const Index = () => {
 
               {/* Scrollable Messages Canvas with Auto-Scroll & Pull to Refresh */}
               <div 
-                className="chat-messages-container" 
+                className={`chat-messages-container ${messages.length === 0 ? "overflow-hidden h-full flex flex-col justify-center" : ""}`} 
                 ref={(el) => {
                   (scrollAreaRef as any).current = el;
                   (pullRef as any).current = el;
@@ -929,16 +931,16 @@ const Index = () => {
                   />
                 )}
                 
-                <div className="p-2 sm:p-4 md:p-6 pb-6 min-h-full flex flex-col">
-                  <div className="max-w-3xl mx-auto w-full flex-1 flex flex-col">
+                <div className={`p-2 sm:p-4 ${messages.length === 0 ? "h-full flex flex-col justify-center" : "pb-6 min-h-full flex flex-col"}`}>
+                  <div className="max-w-2xl mx-auto w-full flex-1 flex flex-col justify-center">
                     {messages.length === 0 ? (
-                      <div className="flex-1 flex flex-col items-center justify-center py-6 sm:py-10">
+                      <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-8">
                         <AnimatePresence mode="wait">
                           {showQuickActions ? (
                             <motion.div 
                               key="cards" 
-                              className="w-full max-w-xl px-2" 
-                              initial={{ opacity: 0, y: 16 }} 
+                              className="w-full max-w-xl px-1 sm:px-2" 
+                              initial={{ opacity: 0, y: 14 }} 
                               animate={{ opacity: 1, y: 0 }} 
                               exit={{ opacity: 0, scale: 0.96 }} 
                               transition={{ duration: 0.25, ease: "easeOut" }}
@@ -946,7 +948,7 @@ const Index = () => {
                               <QuickActionCards onAction={handleSendMessage} onSkip={() => setShowQuickActions(false)} />
                             </motion.div>
                           ) : (
-                                                        <motion.div 
+                            <motion.div 
                               key="show-btn" 
                               initial={{ opacity: 0, scale: 0.9 }} 
                               animate={{ opacity: 1, scale: 1 }} 
@@ -1002,18 +1004,18 @@ const Index = () => {
               
               {/* File Preview */}
               {selectedFile && (
-                <div className="p-4">
-                  <div className="max-w-3xl mx-auto">
-                    <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                      {filePreview && <img src={filePreview} alt="Preview" className="w-16 h-16 object-cover rounded" />}
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{selectedFile.name}</p>
-                        <p className="text-xs text-muted-foreground">{(selectedFile.size / 1024).toFixed(2)} KB</p>
+                <div className="p-3 sm:p-4">
+                  <div className="max-w-2xl mx-auto">
+                    <div className="flex items-center gap-3 p-2.5 sm:p-3 bg-muted rounded-xl">
+                      {filePreview && <img src={filePreview} alt="Preview" className="w-14 h-14 object-cover rounded-lg" />}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-medium truncate">{selectedFile.name}</p>
+                        <p className="text-[11px] text-muted-foreground">{(selectedFile.size / 1024).toFixed(2)} KB</p>
                       </div>
                       <Button variant="ghost" size="sm" onClick={() => {
                         setSelectedFile(null);
                         setFilePreview(null);
-                      }}>
+                      }} className="h-7 w-7 p-0 rounded-full">
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
@@ -1021,14 +1023,14 @@ const Index = () => {
                 </div>
               )}
               
-              <div className="px-2 py-3 sm:p-4">
-                <div className="max-w-3xl mx-auto w-full">
+              <div className="px-2 py-2 sm:py-3 sm:p-4">
+                <div className="max-w-2xl mx-auto w-full">
                   {!isPremium && (
-                    <p className="text-center text-xs text-muted-foreground pb-1" aria-live="polite">
+                    <p className="text-center text-[11px] text-muted-foreground pb-1" aria-live="polite">
                       ⚡ {usageLimits.remaining}/{usageLimits.DAILY_CHAT_LIMIT} free chats left today
                     </p>
                   )}
-                                    <ChatInput 
+                  <ChatInput 
                     onSendMessage={handleSendMessage} 
                     disabled={isLoading} 
                     onFileSelect={handleFileSelect} 
