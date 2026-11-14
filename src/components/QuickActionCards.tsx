@@ -30,7 +30,7 @@ interface QuickActionCardsProps {
   onSkip?: () => void;
 }
 
-// 4 Color Coded Grid Cards (Exact from image-23.png)
+// 4 Color Coded Grid Cards
 const featureCards = [
   {
     id: "shopping",
@@ -149,21 +149,18 @@ const moreActionItems = [
   },
 ];
 
-// Chips above chatbar
-const suggestionChips = [
-  "Mujhe ek joke sunao",
-  "Aaj ka motivational quote",
-  "Explain quantum computing simply",
-  "Plan my day in 5 steps",
-];
-
-// Rotating greeting options
+// 10 Distinct Animated Greetings
 const animatedGreetings = [
-  "How can I help you?",
+  "How can I help you today?",
   "What would you like to explore?",
   "Ask me anything...",
   "What should we create today?",
-  "Need help with study, code, or ideas?",
+  "Need help with code, study, or ideas?",
+  "Brainstorm your next big project",
+  "Summarize, analyze, or research",
+  "Generate creative images with AI",
+  "Solve complex problems in seconds",
+  "Let's learn something new today",
 ];
 
 export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
@@ -178,7 +175,7 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
   useEffect(() => {
     const timer = setInterval(() => {
       setGreetingIndex((prev) => (prev + 1) % animatedGreetings.length);
-    }, 3800);
+    }, 3400);
     return () => clearInterval(timer);
   }, []);
 
@@ -202,33 +199,33 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-2 sm:px-4 flex flex-col items-center justify-center select-none">
-      {/* Animated Heading */}
-      <div className="text-center mb-4 sm:mb-5 h-10 sm:h-12 flex items-center justify-center overflow-hidden">
+    <div className="w-full max-w-xl mx-auto px-2 sm:px-4 flex flex-col items-center justify-center select-none">
+      {/* 10 Animated Greetings with Smooth Blur/Fade Animation */}
+      <div className="text-center mb-3 sm:mb-4 h-10 sm:h-12 flex items-center justify-center overflow-hidden">
         <AnimatePresence mode="wait">
           <motion.h1
             key={greetingIndex}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight text-foreground"
+            initial={{ opacity: 0, y: 14, filter: "blur(3px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            exit={{ opacity: 0, y: -14, filter: "blur(3px)" }}
+            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+            className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground"
           >
             {animatedGreetings[greetingIndex]}
           </motion.h1>
         </AnimatePresence>
       </div>
 
-      {/* Pill Modal Dialog (जब कोई पिल क्लिक हो) */}
+      {/* Pill Modal Dialog */}
       <AnimatePresence>
         {selectedAction && (
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
-            className="w-full mb-4 p-3.5 bg-card border border-border/80 rounded-2xl shadow-lg"
+            className="w-full mb-3.5 p-3.5 bg-card border border-border/80 rounded-2xl shadow-lg"
           >
-            <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center justify-between mb-2">
               <h3 className="font-medium text-foreground text-xs sm:text-sm">{selectedAction.title}</h3>
               <Button
                 variant="ghost"
@@ -239,12 +236,12 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
                 <X className="h-3.5 w-3.5" />
               </Button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
               {selectedAction.options.map((option, idx) => (
                 <Button
                   key={idx}
                   variant="outline"
-                  className="justify-start text-left h-auto py-2 px-3 text-xs rounded-xl border-border/60 hover:bg-muted/80 whitespace-normal"
+                  className="justify-start text-left h-auto py-1.5 px-3 text-xs rounded-xl border-border/60 hover:bg-muted/80 whitespace-normal"
                   onClick={() => handleOptionClick(option)}
                 >
                   {option}
@@ -272,16 +269,16 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
         )}
       </AnimatePresence>
 
-      {/* 2-Row Action Pills (Exactly as in screenshot) */}
+      {/* 2-Row Action Pills */}
       {!selectedAction && (
-        <div className="flex flex-col items-center gap-2 mb-4 sm:mb-5">
+        <div className="flex flex-col items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
           {/* Row 1: Create image, Get advice */}
           <div className="flex items-center gap-2">
             {pillRow1.map((action) => (
               <Button
                 key={action.id}
                 variant="outline"
-                className="flex items-center gap-2 px-3.5 sm:px-4 py-1.5 h-8 sm:h-9 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs sm:text-sm font-medium shadow-2xs active:scale-[0.98]"
+                className="flex items-center gap-1.5 px-3.5 py-1 h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
                 onClick={() => handleActionClick(action)}
               >
                 <action.icon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -296,7 +293,7 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
               <Button
                 key={action.id}
                 variant="outline"
-                className="flex items-center gap-2 px-3.5 sm:px-4 py-1.5 h-8 sm:h-9 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs sm:text-sm font-medium shadow-2xs active:scale-[0.98]"
+                className="flex items-center gap-1.5 px-3.5 py-1 h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
                 onClick={() => handleActionClick(action)}
               >
                 <action.icon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -308,7 +305,7 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="flex items-center gap-1 px-3 sm:px-3.5 py-1.5 h-8 sm:h-9 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs sm:text-sm font-medium shadow-2xs active:scale-[0.98]"
+                  className="flex items-center gap-1 px-3 py-1 h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
                 >
                   <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
                   <span>More</span>
@@ -318,7 +315,7 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
                 {moreActionItems.map((action) => (
                   <DropdownMenuItem
                     key={action.id}
-                    className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-xl text-xs sm:text-sm"
+                    className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-xl text-xs"
                     onClick={() => handleActionClick(action)}
                   >
                     <action.icon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -332,46 +329,33 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
       )}
 
       {/* 4 Feature Cards (2x2 Grid) */}
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 mb-4 sm:mb-5">
+      <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
         {featureCards.map((card, index) => (
           <motion.div
             key={card.id}
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.04 }}
+            transition={{ delay: index * 0.03 }}
           >
             <Card
               onClick={() => onAction(card.prompt)}
-              className="p-3 bg-card hover:bg-muted/40 border border-border/70 hover:border-foreground/20 rounded-2xl transition-all duration-150 cursor-pointer active:scale-[0.99] shadow-2xs group"
+              className="p-2.5 sm:p-3 bg-card hover:bg-muted/40 border border-border/70 hover:border-foreground/20 rounded-2xl transition-all duration-150 cursor-pointer active:scale-[0.99] shadow-2xs group"
             >
-              <div className="flex items-center gap-3">
-                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 border ${card.colorBg} group-hover:scale-105 transition-transform`}>
+              <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${card.colorBg} group-hover:scale-105 transition-transform`}>
                   <card.icon className="w-4 h-4" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-foreground text-xs sm:text-sm truncate">
                     {card.title}
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-muted-foreground truncate">
+                  <p className="text-[11px] text-muted-foreground truncate">
                     {card.description}
                   </p>
                 </div>
               </div>
             </Card>
           </motion.div>
-        ))}
-      </div>
-
-      {/* Suggestion Chips (Above Chatbar) */}
-      <div className="w-full pt-1 border-t border-border/30 flex items-center justify-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar flex-wrap">
-        {suggestionChips.map((chip, idx) => (
-          <button
-            key={idx}
-            onClick={() => onAction(chip)}
-            className="text-[11px] sm:text-xs font-medium px-3 py-1 rounded-full bg-muted/60 hover:bg-primary/10 hover:text-primary border border-border/50 text-muted-foreground transition-all duration-150 whitespace-nowrap active:scale-95 shadow-2xs"
-          >
-            {chip}
-          </button>
         ))}
       </div>
     </div>
