@@ -15,7 +15,11 @@ import {
   Sparkles,
   Brain,
   FileText,
-  ChevronDown
+  ChevronDown,
+  BookOpen,
+  Utensils,
+  TrendingUp,
+  PiggyBank
 } from "lucide-react";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -41,14 +45,19 @@ interface ChatInputProps {
   onModelChange?: (model: string) => void;
 }
 
+// All 11 CoreAI Modes
 const availableModes: { id: ModeType; label: string; icon: any; color: string }[] = [
   { id: 'normal', label: 'Auto (Normal)', icon: Sparkles, color: 'text-primary' },
   { id: 'deep-search', label: 'Deep Search', icon: Search, color: 'text-blue-500' },
   { id: 'code', label: 'Code Assistant', icon: Code, color: 'text-purple-500' },
-  { id: 'homework', label: 'Study & Homework', icon: GraduationCap, color: 'text-amber-500' },
-  { id: 'creative', label: 'Creative Writing', icon: Brain, color: 'text-pink-500' },
+  { id: 'study', label: 'Study Notes', icon: BookOpen, color: 'text-emerald-500' },
+  { id: 'homework', label: 'Homework Helper', icon: GraduationCap, color: 'text-amber-500' },
   { id: 'photo', label: 'Image Studio', icon: ImageIcon, color: 'text-cyan-500' },
-  { id: 'analyze', label: 'Analyze & Summarize', icon: FileText, color: 'text-emerald-500' },
+  { id: 'creative', label: 'Creative Writing', icon: Brain, color: 'text-pink-500' },
+  { id: 'analyze', label: 'Analyze & Summarize', icon: FileText, color: 'text-indigo-500' },
+  { id: 'recipe', label: 'Recipe & Cooking', icon: Utensils, color: 'text-orange-500' },
+  { id: 'rich', label: 'Rich Mode (Wealth)', icon: TrendingUp, color: 'text-emerald-400' },
+  { id: 'poor', label: 'Poor Mode (Savings)', icon: PiggyBank, color: 'text-teal-400' },
 ];
 
 export const ChatInput = memo(({
@@ -222,7 +231,7 @@ export const ChatInput = memo(({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Modes Dropdown (Right next to + button) */}
+          {/* Modes Dropdown (Right next to + button, with all 11 modes) */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -237,9 +246,9 @@ export const ChatInput = memo(({
                 <ChevronDown className="h-3 w-3 opacity-50" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-52 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
+            <DropdownMenuContent align="start" className="w-56 max-h-[300px] overflow-y-auto p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
               <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                Select Mode
+                All 11 Modes
               </div>
               {availableModes.map((m) => (
                 <DropdownMenuItem
