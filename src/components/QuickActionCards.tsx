@@ -199,17 +199,17 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto px-2 sm:px-4 flex flex-col items-center justify-center select-none">
-      {/* 10 Animated Greetings with Smooth Blur/Fade Animation */}
-      <div className="text-center mb-3 sm:mb-4 h-10 sm:h-12 flex items-center justify-center overflow-hidden">
+    <div className="w-full max-w-lg sm:max-w-xl mx-auto px-2 sm:px-4 flex flex-col items-center justify-center select-none">
+      {/* 10 Animated Greetings: No Clipping, Full Visibility on Mobile */}
+      <div className="text-center mb-2.5 sm:mb-4 min-h-[52px] sm:min-h-[58px] flex items-center justify-center px-1">
         <AnimatePresence mode="wait">
           <motion.h1
             key={greetingIndex}
-            initial={{ opacity: 0, y: 14, filter: "blur(3px)" }}
+            initial={{ opacity: 0, y: 10, filter: "blur(2px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -14, filter: "blur(3px)" }}
-            transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
-            className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground"
+            exit={{ opacity: 0, y: -10, filter: "blur(2px)" }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight text-foreground leading-snug"
           >
             {animatedGreetings[greetingIndex]}
           </motion.h1>
@@ -223,7 +223,7 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
-            className="w-full mb-3.5 p-3.5 bg-card border border-border/80 rounded-2xl shadow-lg"
+            className="w-full mb-3 p-3 bg-card border border-border/80 rounded-2xl shadow-lg"
           >
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-medium text-foreground text-xs sm:text-sm">{selectedAction.title}</h3>
@@ -236,12 +236,12 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
                 <X className="h-3.5 w-3.5" />
               </Button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 mb-2">
               {selectedAction.options.map((option, idx) => (
                 <Button
                   key={idx}
                   variant="outline"
-                  className="justify-start text-left h-auto py-1.5 px-3 text-xs rounded-xl border-border/60 hover:bg-muted/80 whitespace-normal"
+                  className="justify-start text-left h-auto py-1.5 px-2.5 text-xs rounded-xl border-border/60 hover:bg-muted/80 whitespace-normal"
                   onClick={() => handleOptionClick(option)}
                 >
                   {option}
@@ -271,32 +271,32 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
 
       {/* 2-Row Action Pills */}
       {!selectedAction && (
-        <div className="flex flex-col items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4">
+        <div className="flex flex-col items-center gap-1.5 mb-2.5 sm:mb-3.5">
           {/* Row 1: Create image, Get advice */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {pillRow1.map((action) => (
               <Button
                 key={action.id}
                 variant="outline"
-                className="flex items-center gap-1.5 px-3.5 py-1 h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
+                className="flex items-center gap-1.5 px-3 py-1 h-7 sm:h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
                 onClick={() => handleActionClick(action)}
               >
-                <action.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                <action.icon className="h-3 w-3 text-muted-foreground" />
                 <span>{action.title}</span>
               </Button>
             ))}
           </div>
 
           {/* Row 2: Summarize text, More */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {pillRow2.map((action) => (
               <Button
                 key={action.id}
                 variant="outline"
-                className="flex items-center gap-1.5 px-3.5 py-1 h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
+                className="flex items-center gap-1.5 px-3 py-1 h-7 sm:h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
                 onClick={() => handleActionClick(action)}
               >
-                <action.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                <action.icon className="h-3 w-3 text-muted-foreground" />
                 <span>{action.title}</span>
               </Button>
             ))}
@@ -305,9 +305,9 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="flex items-center gap-1 px-3 py-1 h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
+                  className="flex items-center gap-1 px-2.5 py-1 h-7 sm:h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
                 >
-                  <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+                  <MoreHorizontal className="h-3 w-3 text-muted-foreground" />
                   <span>More</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -328,28 +328,28 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
         </div>
       )}
 
-      {/* 4 Feature Cards (2x2 Grid) */}
-      <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5">
+      {/* 4 Feature Cards: Exactly 2x2 Grid on BOTH Mobile and Desktop */}
+      <div className="w-full grid grid-cols-2 gap-2 sm:gap-2.5">
         {featureCards.map((card, index) => (
           <motion.div
             key={card.id}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.03 }}
+            transition={{ delay: index * 0.02 }}
           >
             <Card
               onClick={() => onAction(card.prompt)}
-              className="p-2.5 sm:p-3 bg-card hover:bg-muted/40 border border-border/70 hover:border-foreground/20 rounded-2xl transition-all duration-150 cursor-pointer active:scale-[0.99] shadow-2xs group"
+              className="p-2 sm:p-2.5 bg-card hover:bg-muted/40 border border-border/70 hover:border-foreground/20 rounded-2xl transition-all duration-150 cursor-pointer active:scale-[0.98] shadow-2xs group"
             >
-              <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 border ${card.colorBg} group-hover:scale-105 transition-transform`}>
-                  <card.icon className="w-4 h-4" />
+              <div className="flex items-center gap-2">
+                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shrink-0 border ${card.colorBg} group-hover:scale-105 transition-transform`}>
+                  <card.icon className="w-3.5 h-3.5" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-foreground text-xs sm:text-sm truncate">
                     {card.title}
                   </h3>
-                  <p className="text-[11px] text-muted-foreground truncate">
+                  <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
                     {card.description}
                   </p>
                 </div>
