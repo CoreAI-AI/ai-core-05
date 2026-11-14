@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatInput } from "@/components/ChatInput";
-import { Auth } from "@/components/Auth";
 import { Settings } from "@/components/Settings";
 import { QuickActionCards } from "@/components/QuickActionCards";
 import { QuickActionButtons } from "@/components/QuickActionButtons";
@@ -90,7 +89,7 @@ const Index = () => {
     reason: 'daily'
   });
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string; index: number } | null>(null);
-  const [isUserTyping, setIsUserTyping] = useState(false);
+  const [, setIsUserTyping] = useState(false);
   const [openTabs, setOpenTabs] = useState<any[]>([]);
   const [hasNewMessage, setHasNewMessage] = useState(false);
 
