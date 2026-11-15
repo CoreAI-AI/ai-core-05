@@ -4,7 +4,6 @@ import { Search, X, ChevronUp, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Message } from "@/hooks/useChats";
-import { cn } from "@/lib/utils";
 
 interface ChatSearchProps {
   messages: Message[];
@@ -22,10 +21,8 @@ export const ChatSearch = ({
   const [query, setQuery] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Search results
   const results = useMemo(() => {
     if (!query.trim()) return [];
-    
     const lowerQuery = query.toLowerCase();
     return messages.filter(msg => 
       msg.content.toLowerCase().includes(lowerQuery)
@@ -35,7 +32,14 @@ export const ChatSearch = ({
   const handleSearch = useCallback((value: string) => {
     setQuery(value);
     setCurrentIndex(0);
-  }, []);
+    if (value.trim()) {
+      const lower = value.toLowerCase();
+      const firstMatch = messages.find(m => m.content.toLowerCase().includes(lower));
+      if (firstMatch) {
+        onScrollToMessage(firstMatch.id);
+      }
+    }
+  }, [messages, onScrollToMessage]);
 
   const navigateResult = (direction: 'up' | 'down') => {
     if (results.length === 0) return;
@@ -53,6 +57,7 @@ export const ChatSearch = ({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
+      e.preventDefault();
       if (e.shiftKey) {
         navigateResult('up');
       } else {
@@ -68,54 +73,58 @@ export const ChatSearch = ({
   return (
     <AnimatePresence>
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
+        initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: -10 }}
-        className="absolute top-0 left-0 right-0 z-20 p-2 bg-background border-b border-border"
+        exit={{ opacity: 0, y: -8 }}
+        transition={{ duration: 0.15 }}
+        className="absolute top-2 left-4 right-4 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-xl z-30 bg-background/95 backdrop-blur-md rounded-2xl border border-border/80 shadow-lg p-2"
       >
-        <div className="flex items-center gap-2 max-w-2xl mx-auto">
+        <div className="flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search in conversation..."
+              placeholder="Search in chat..."
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="pl-9 pr-20 h-9"
+              className="pl-9 pr-24 h-9.5 rounded-xl bg-muted/40 border-border/50 text-sm focus-visible:ring-1"
               autoFocus
             />
-            {results.length > 0 && (
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
-                {currentIndex + 1} of {results.length}
+            {query.trim() && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-mono text-muted-foreground bg-muted/80 px-2 py-0.5 rounded-md">
+                {results.length > 0 ? `${currentIndex + 1} of ${results.length}` : 'No matches'}
               </span>
             )}
           </div>
           
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 rounded-lg hover:bg-muted"
               onClick={() => navigateResult('up')}
               disabled={results.length === 0}
+              title="Previous (Shift+Enter)"
             >
               <ChevronUp className="w-4 h-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 rounded-lg hover:bg-muted"
               onClick={() => navigateResult('down')}
               disabled={results.length === 0}
+              title="Next (Enter)"
             >
               <ChevronDown className="w-4 h-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0"
+              className="h-8 w-8 p-0 rounded-lg hover:bg-muted ml-1"
               onClick={onClose}
+              title="Close (Esc)"
             >
               <X className="w-4 h-4" />
             </Button>
