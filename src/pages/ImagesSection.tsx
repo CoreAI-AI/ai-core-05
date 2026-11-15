@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Search, Sparkles } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -95,9 +95,8 @@ const ImagesSection = () => {
               <ArrowLeft className="w-4 h-4" />
             </Button>
             <div>
-              <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground flex items-center gap-1.5">
+              <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground">
                 Image Styles
-                <Sparkles className="w-4 h-4 text-primary" />
               </h1>
             </div>
           </div>
