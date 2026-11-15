@@ -98,15 +98,16 @@ export const ChatMessage = memo(({
     );
   };
 
+  // User Message (Right-aligned pill like image-27)
   if (isUser) {
     return (
       <motion.div 
-        className="flex justify-end mb-4 sm:mb-5 group will-change-transform"
-        initial={{ opacity: 0, y: 8, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className="flex justify-end mb-4 sm:mb-6 group will-change-transform"
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.2, ease: "easeOut" }}
       >
-        <div className="flex items-end gap-1.5 max-w-[88%] sm:max-w-[80%] lg:max-w-[70%]">
+        <div className="flex items-end gap-1.5 max-w-[88%] sm:max-w-[78%]">
           <MessageActions 
             message={message} 
             messageId={messageId}
@@ -117,19 +118,19 @@ export const ChatMessage = memo(({
           
           <div className="relative min-w-0 flex-1">
             <motion.div 
-              className="bg-muted/80 hover:bg-muted text-foreground rounded-2xl sm:rounded-3xl px-4 py-2.5 sm:px-5 sm:py-3 shadow-2xs border border-border/50 transition-colors"
-              initial={{ scale: 0.96 }}
+              className="bg-muted/90 hover:bg-muted text-foreground rounded-2xl sm:rounded-3xl px-4 py-2 sm:px-5 sm:py-2.5 shadow-2xs border border-border/40 transition-colors font-sans text-sm sm:text-base leading-relaxed break-words whitespace-normal [overflow-wrap:anywhere]"
+              initial={{ scale: 0.98 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.15 }}
             >
               {renderAttachments()}
               
               {message && (
-                <p className="text-sm sm:text-base leading-relaxed break-words whitespace-normal [overflow-wrap:anywhere]">{message}</p>
+                <p>{message}</p>
               )}
               
               {timestamp && (
-                <p className="text-[10px] text-muted-foreground mt-1 text-right">{timestamp}</p>
+                <p className="text-[10px] text-muted-foreground/70 mt-1 text-right">{timestamp}</p>
               )}
             </motion.div>
           </div>
@@ -145,31 +146,19 @@ export const ChatMessage = memo(({
     );
   }
 
+  // Assistant Message (Left-corner aligned, covers full reading width, elegant typography)
   return (
     <motion.div 
-      className="flex mb-5 sm:mb-6 group will-change-transform"
-      initial={{ opacity: 0, y: 8, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
+      className="flex flex-col mb-6 sm:mb-8 group will-change-transform w-full"
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
     >
-      <motion.div 
-        className="mr-2.5 sm:mr-3.5 flex items-start shrink-0 pt-0.5"
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ duration: 0.2 }}
-      >
-        <img 
-          src={coreaiLogo} 
-          alt="CoreAI" 
-          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full shadow-2xs ring-1 ring-border/50" 
-        />
-      </motion.div>
-      
-      <div className="flex-1 min-w-0 max-w-[92%] sm:max-w-[88%] lg:max-w-[82%]">
+      <div className="w-full min-w-0">
         <motion.div 
           className="text-foreground pt-0.5"
-          initial={{ scale: 0.98, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.15 }}
         >
           {images && images.length > 0 && (
@@ -217,14 +206,9 @@ export const ChatMessage = memo(({
           )}
           
           {message && (
-            <motion.div 
-              className="text-sm sm:text-base leading-relaxed font-normal"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.15 }}
-            >
+            <div className="text-base sm:text-[17px] leading-[1.75] font-serif tracking-normal text-foreground/95 select-text">
               <MarkdownRenderer content={message} className="break-words [overflow-wrap:anywhere]" />
-            </motion.div>
+            </div>
           )}
           
           {timestamp && (
@@ -232,15 +216,18 @@ export const ChatMessage = memo(({
           )}
         </motion.div>
         
+        {/* Actions aligned directly beneath the response on the left */}
         {message && (
-          <MessageActions 
-            message={message} 
-            messageId={messageId}
-            isUser={false} 
-            onRegenerate={onRegenerate}
-            question={question}
-            className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-          />
+          <div className="mt-2.5 flex items-center">
+            <MessageActions 
+              message={message} 
+              messageId={messageId}
+              isUser={false} 
+              onRegenerate={onRegenerate}
+              question={question}
+              className="opacity-90 group-hover:opacity-100 transition-opacity duration-150"
+            />
+          </div>
         )}
       </div>
       
