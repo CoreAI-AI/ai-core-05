@@ -12,7 +12,6 @@ import {
   Mic, 
   Plus, 
   Loader2,
-  Sparkles,
   Brain,
   FileText,
   ChevronDown,
@@ -26,6 +25,7 @@ import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { chatMessageSchema, validateFile, sanitizeInput } from "@/lib/validation";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
+import coreaiLogo from "@/assets/coreai-logo.png";
 
 type ModeType = 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework';
 
@@ -45,9 +45,9 @@ interface ChatInputProps {
   onModelChange?: (model: string) => void;
 }
 
-// All 11 CoreAI Modes
+// All 11 CoreAI Modes (Auto uses CoreAI Logo)
 const availableModes: { id: ModeType; label: string; icon: any; color: string }[] = [
-  { id: 'normal', label: 'Auto (Normal)', icon: Sparkles, color: 'text-primary' },
+  { id: 'normal', label: 'Auto (Normal)', icon: null, color: 'text-primary' },
   { id: 'deep-search', label: 'Deep Search', icon: Search, color: 'text-blue-500' },
   { id: 'code', label: 'Code Assistant', icon: Code, color: 'text-purple-500' },
   { id: 'study', label: 'Study Notes', icon: BookOpen, color: 'text-emerald-500' },
@@ -239,7 +239,7 @@ export const ChatInput = memo(({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Modes Pill (Medium Size, Comfortable Tap Target) */}
+          {/* Modes Pill (Shows CoreAI Logo for Auto, Medium Size) */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -248,7 +248,11 @@ export const ChatInput = memo(({
                 className="h-9 px-2.5 sm:px-3 gap-1.5 rounded-full text-xs font-medium bg-muted/50 hover:bg-muted text-foreground/90 shrink-0 border border-border/60 transition-all"
                 title="Select Mode"
               >
-                <activeModeConfig.icon className={`h-3.5 w-3.5 ${activeModeConfig.color}`} />
+                {activeModeConfig.id === 'normal' ? (
+                  <img src={coreaiLogo} alt="CoreAI" className="h-4 w-4 rounded-full object-contain shrink-0" />
+                ) : (
+                  <activeModeConfig.icon className={`h-3.5 w-3.5 ${activeModeConfig.color}`} />
+                )}
                 <span className="hidden xs:inline sm:inline max-w-[80px] sm:max-w-none truncate">{activeModeConfig.label.split(' ')[0]}</span>
                 <ChevronDown className="h-3 w-3 opacity-60" />
               </Button>
@@ -266,7 +270,11 @@ export const ChatInput = memo(({
                   }`}
                 >
                   <div className="flex items-center gap-2">
-                    <m.icon className={`h-3.5 w-3.5 ${m.color}`} />
+                    {m.id === 'normal' ? (
+                      <img src={coreaiLogo} alt="CoreAI" className="h-4 w-4 rounded-full object-contain shrink-0" />
+                    ) : (
+                      <m.icon className={`h-3.5 w-3.5 ${m.color}`} />
+                    )}
                     <span>{m.label}</span>
                   </div>
                   {currentMode === m.id && <span className="text-[10px] text-primary font-semibold">Active</span>}
