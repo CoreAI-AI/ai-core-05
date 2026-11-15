@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -7,33 +7,33 @@ import StyleCard from "@/components/StyleCard";
 import ImageUploadModal from "@/components/ImageUploadModal";
 import { 
   getActiveFestival, 
-  getTrendingStyles,
+  getTrendingStyles, 
   updateTrendScores,
   type Festival,
   type TrendingStyle
 } from "@/lib/festivalDetection";
 
-// Curated aesthetic styles
+// High-Definition Curated Aesthetic Styles for CoreAI
 const allStylesList = [
-  { name: "Ghibli Dreamscape", category: "Anime & 3D", image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=400&h=500&fit=crop", prompt: "Studio Ghibli style anime scene with watercolor skies" },
-  { name: "3D Pixar Character", category: "Anime & 3D", image: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=400&h=500&fit=crop", prompt: "3D Pixar-style animated character with smooth rendering" },
-  { name: "Cyberpunk Neon", category: "Cinematic", image: "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=400&h=500&fit=crop", prompt: "Cyberpunk neon city with glowing futuristic aesthetic" },
-  { name: "Classical Oil", category: "Artistic", image: "https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?w=400&h=500&fit=crop", prompt: "Classical oil painting with Renaissance lighting and textures" },
-  { name: "Anime Portrait", category: "Anime & 3D", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=400&h=500&fit=crop", prompt: "Detailed anime portrait with vibrant colors" },
-  { name: "Watercolor Art", category: "Artistic", image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=400&h=500&fit=crop", prompt: "Soft watercolor painting with flowing washes" },
-  { name: "Retro 70s Film", category: "Cinematic", image: "https://images.unsplash.com/photo-1533158326339-7f3cf2404354?w=400&h=500&fit=crop", prompt: "Vintage 35mm film grain with warm nostalgic palette" },
-  { name: "Pop Art Bold", category: "Artistic", image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=400&h=500&fit=crop", prompt: "Bold halftone dot pop art with thick outlines" },
-  { name: "Parisian Postcard", category: "Artistic", image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=400&h=500&fit=crop", prompt: "Vintage Parisian postcard with romantic soft tone" },
-  { name: "Bollywood Poster", category: "Cinematic", image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=400&h=500&fit=crop", prompt: "Dramatic Bollywood movie poster aesthetic" },
-  { name: "Madhubani Art", category: "Artistic", image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=400&h=500&fit=crop", prompt: "Intricate traditional Mithila art patterns" },
-  { name: "Jaipur Textile", category: "Artistic", image: "https://images.unsplash.com/photo-1558171813-4c088753af8f?w=400&h=500&fit=crop", prompt: "Block-print textile styling with rich royal dyes" },
-  { name: "Pencil Sketch", category: "Artistic", image: "https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?w=400&h=500&fit=crop", prompt: "Fine graphite pencil sketch with soft shading" },
-  { name: "Moody Cinematic", category: "Cinematic", image: "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=400&h=500&fit=crop", prompt: "High contrast cinematic lighting with moody atmosphere" },
-  { name: "Fisheye Street", category: "Cinematic", image: "https://images.unsplash.com/photo-1533158326339-7f3cf2404354?w=400&h=500&fit=crop", prompt: "Ultra-wide fisheye perspective with street lens flare" },
-  { name: "Holiday Glow", category: "Festive", image: "https://images.unsplash.com/photo-1512389142860-9c449e58a814?w=400&h=500&fit=crop", prompt: "Cozy warm bokeh lighting with festive aesthetic" }
+  { name: "Photorealistic 8K", category: "Cinematic", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&h=650&fit=crop", prompt: "Hyper-realistic 8K studio portrait, Rembrandt lighting, ultra-detailed skin textures" },
+  { name: "Ghibli Dreamscape", category: "Anime & 3D", image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=500&h=650&fit=crop", prompt: "Studio Ghibli style anime scene with watercolor cloudscapes, vibrant lush hills" },
+  { name: "3D Pixar Character", category: "Anime & 3D", image: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=500&h=650&fit=crop", prompt: "3D Pixar animated hero character, cinematic sub-surface scattering lighting" },
+  { name: "Cyberpunk 2099", category: "Cinematic", image: "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=500&h=650&fit=crop", prompt: "Cyberpunk neon city street in rain, holographic signs, moody teal and magenta glow" },
+  { name: "Royal Rajputi Heritage", category: "Indian & Heritage", image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=500&h=650&fit=crop", prompt: "Majestic Indian royal palace courtyard, regal golden embroidery, historic grandeur" },
+  { name: "Classical Oil Painting", category: "Artistic", image: "https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?w=500&h=650&fit=crop", prompt: "Renaissance oil painting masterwork with deep chiaroscuro and rich textures" },
+  { name: "Bollywood Blockbuster", category: "Cinematic", image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=500&h=650&fit=crop", prompt: "Grand Bollywood movie cinematic poster with dramatic backlighting and smoke" },
+  { name: "Anime Neon Portrait", category: "Anime & 3D", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&h=650&fit=crop", prompt: "Crisp modern Makoto Shinkai aesthetic anime portrait with dynamic lens flare" },
+  { name: "Jaipur Block-Print", category: "Indian & Heritage", image: "https://images.unsplash.com/photo-1558171813-4c088753af8f?w=500&h=650&fit=crop", prompt: "Intricate Rajasthani floral block-print pattern with natural indigo and saffron dyes" },
+  { name: "Vintage 70s Polaroid", category: "Cinematic", image: "https://images.unsplash.com/photo-1533158326339-7f3cf2404354?w=500&h=650&fit=crop", prompt: "Nostalgic 1970s Polaroid film grain, warm nostalgic tones, authentic light leak" },
+  { name: "Soft Watercolor Wash", category: "Artistic", image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=500&h=650&fit=crop", prompt: "Dreamy botanical watercolor painting with soft pastel splashes on cold-press paper" },
+  { name: "Vogue Fashion Editorial", category: "Cinematic", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&h=650&fit=crop", prompt: "High fashion editorial magazine cover portrait, bold high-contrast avant-garde style" },
+  { name: "Madhubani Folk Art", category: "Indian & Heritage", image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&h=650&fit=crop", prompt: "Traditional Mithila Madhubani line art with sacred peacock and lotus motifs" },
+  { name: "Fine Graphite Sketch", category: "Artistic", image: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=500&h=650&fit=crop", prompt: "Detailed charcoal and graphite pencil sketch with realistic cross-hatching" },
+  { name: "Cozy Golden Hour Glow", category: "Festive", image: "https://images.unsplash.com/photo-1512389142860-9c449e58a814?w=500&h=650&fit=crop", prompt: "Warm magical festival lights bokeh, cozy golden atmosphere and sparkling reflections" },
+  { name: "Minimalist Vector Flat", category: "Artistic", image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=500&h=650&fit=crop", prompt: "Modern sleek vector illustration with bold shapes, smooth gradients, and clean lines" }
 ];
 
-const CATEGORIES = ["All", "Trending", "Cinematic", "Artistic", "Anime & 3D", "Festive"];
+const CATEGORIES = ["All", "Trending", "Indian & Heritage", "Cinematic", "Anime & 3D", "Artistic", "Festive"];
 
 const ImagesSection = () => {
   const navigate = useNavigate();
@@ -62,14 +62,14 @@ const ImagesSection = () => {
 
     if (selectedCategory === "Trending") {
       const trendingNames = new Set(trendingStyles.map(t => t.name.toLowerCase()));
-      list = list.filter(s => trendingNames.has(s.name.toLowerCase()) || s.name.includes("Ghibli") || s.name.includes("Cyberpunk"));
+      list = list.filter(s => trendingNames.has(s.name.toLowerCase()) || s.name.includes("Photorealistic") || s.name.includes("Ghibli") || s.name.includes("Cyberpunk"));
     } else if (selectedCategory !== "All") {
       list = list.filter(s => s.category === selectedCategory);
     }
 
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase().trim();
-      list = list.filter(s => s.name.toLowerCase().includes(q) || s.prompt.toLowerCase().includes(q));
+      list = list.filter(s => s.name.toLowerCase().includes(q) || s.prompt.toLowerCase().includes(q) || s.category.toLowerCase().includes(q));
     }
 
     return list;
@@ -94,13 +94,16 @@ const ImagesSection = () => {
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground">
-              Image Styles
-            </h1>
+            <div>
+              <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground flex items-center gap-1.5">
+                Image Styles
+                <Sparkles className="w-4 h-4 text-primary" />
+              </h1>
+            </div>
           </div>
 
           {/* Quick Search Input */}
-          <div className="relative w-36 sm:w-64">
+          <div className="relative w-40 sm:w-64">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
             <Input
               value={searchQuery}
@@ -140,7 +143,7 @@ const ImagesSection = () => {
           <div 
             onClick={() => handleOpenStyle({
               name: activeFestival.styleName,
-              image: "https://images.unsplash.com/photo-1604948501466-4e9c339b9c24?w=400&h=400&fit=crop",
+              image: "https://images.unsplash.com/photo-1604948501466-4e9c339b9c24?w=500&h=500&fit=crop",
               prompt: `Celebrate ${activeFestival.name} in majestic visual style`
             })}
             className="relative rounded-2xl overflow-hidden border border-border/40 bg-card/40 p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:border-foreground/20 transition-all duration-200 group"
@@ -148,7 +151,7 @@ const ImagesSection = () => {
             <div className="flex items-center gap-3 sm:gap-4 min-w-0">
               <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl overflow-hidden shrink-0 border border-border/50">
                 <img
-                  src="https://images.unsplash.com/photo-1604948501466-4e9c339b9c24?w=400&h=400&fit=crop"
+                  src="https://images.unsplash.com/photo-1604948501466-4e9c339b9c24?w=500&h=500&fit=crop"
                   alt={activeFestival.name}
                   className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
