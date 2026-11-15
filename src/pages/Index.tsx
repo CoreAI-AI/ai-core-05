@@ -26,7 +26,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft, Search, Star, Palette, Clock, Sparkles } from "lucide-react";
+import { X, PanelLeft, Search, SquarePen, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
@@ -82,10 +82,6 @@ const Index = () => {
   const [openTabs, setOpenTabs] = useState<Chat[]>([]);
   const [showSearch, setShowSearch] = useState(false);
   const [responseLength, setResponseLength] = useState<'short' | 'normal' | 'detailed'>('normal');
-  const [favoriteChats, setFavoriteChats] = useState<Set<string>>(() => {
-    const saved = localStorage.getItem('favorite_chats');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
   
   const [editingMessage, setEditingMessage] = useState<{
     id: string;
@@ -176,19 +172,6 @@ const Index = () => {
         startNewChat();
       }
     }
-  };
-
-  const toggleFavorite = (chatId: string) => {
-    setFavoriteChats(prev => {
-      const next = new Set(prev);
-      if (next.has(chatId)) {
-        next.delete(chatId);
-      } else {
-        next.add(chatId);
-      }
-      localStorage.setItem('favorite_chats', JSON.stringify([...next]));
-      return next;
-    });
   };
 
   const scrollToMessage = (messageId: string) => {
@@ -472,7 +455,6 @@ const Index = () => {
     const userMessage = await addMessage(chatToUse.id, content, true, messageImages);
     if (!userMessage) return;
 
-    // Reset user scroll so chat automatically follows new messages
     userScrolledUpRef.current = false;
     forceScrollToBottom();
 
@@ -791,15 +773,15 @@ const Index = () => {
                 />
               </div>
 
-              {/* Bold Modern Header */}
-              <header className="glass-navbar px-3 py-2.5 sm:px-4 sm:py-3 flex justify-between items-center shrink-0 gap-2 z-20 border-b border-border/40 backdrop-blur-md bg-background/80">
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              {/* Claude-Style Minimalist Clean Header */}
+              <header className="px-3 py-2 sm:px-4 sm:py-2.5 flex justify-between items-center shrink-0 gap-2 z-20 border-b border-border/30 backdrop-blur-md bg-background/80">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   {sidebarCollapsed && (
                     <motion.button 
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setSidebarCollapsed(false)} 
-                      className="h-8 w-8 p-0 shrink-0 inline-flex items-center justify-center rounded-xl bg-muted/60 hover:bg-muted text-foreground border border-border/40 transition-colors shadow-2xs"
+                      className="h-8 w-8 p-0 shrink-0 inline-flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                       title="Open sidebar"
                     >
                       <PanelLeft className="h-4 w-4" />
@@ -807,42 +789,25 @@ const Index = () => {
                   )}
                   
                   <div className="flex items-center gap-2 min-w-0">
-                    <h1 className="text-sm sm:text-base font-bold text-foreground truncate tracking-tight">
+                    <h1 className="text-sm font-semibold text-foreground truncate tracking-tight">
                       {currentChat ? currentChat.title : "CoreAI"}
                     </h1>
-                    {!currentChat && (
-                      <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary border border-primary/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                        AI Ready
-                      </span>
-                    )}
                   </div>
-
-                  {currentChat && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 w-7 p-0 shrink-0 rounded-full hover:bg-muted"
-                      onClick={() => toggleFavorite(currentChat.id)}
-                    >
-                      <Star className={`h-3.5 w-3.5 ${favoriteChats.has(currentChat.id) ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground"}`} />
-                    </Button>
-                  )}
 
                   {isPremium && (
                     <button
                       onClick={() => setShowManageSubscription(true)}
-                      className="h-7 px-2.5 rounded-full flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 via-yellow-500/15 to-purple-500/15 border border-amber-500/30 hover:from-amber-500/25 transition-all shadow-2xs"
+                      className="h-6 px-2 rounded-full flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 to-purple-500/15 border border-amber-500/30 hover:opacity-90 transition-all"
                       title="CoreAI Premium"
                     >
-                      <img src={premiumLogo} alt="Premium" width={16} height={16} className="w-4 h-4" />
-                      <span className="text-[10px] font-bold bg-gradient-to-r from-amber-400 to-purple-500 bg-clip-text text-transparent">PREMIUM</span>
+                      <img src={premiumLogo} alt="Premium" width={14} height={14} className="w-3.5 h-3.5" />
+                      <span className="text-[9px] font-bold text-amber-500">PREMIUM</span>
                     </button>
                   )}
                 </div>
 
-                {/* Right Action Icons */}
-                <div className="flex items-center gap-1.5 shrink-0">
+                {/* Claude-Style Right Action Icons (Clean & Focused) */}
+                <div className="flex items-center gap-1 shrink-0">
                   <div className="hidden sm:block">
                     <MemoryControl chatId={currentChat?.id} />
                   </div>
@@ -850,10 +815,10 @@ const Index = () => {
                     <ResponseLengthControl value={responseLength} onChange={setResponseLength} />
                   </div>
 
-                  {/* Search Button - Always active */}
+                  {/* Search Button */}
                   <Button 
                     variant="ghost" 
-                    size="sm" 
+                    size="icon" 
                     onClick={() => {
                       if (messages.length > 0) {
                         setShowSearch(true);
@@ -861,35 +826,35 @@ const Index = () => {
                         setSidebarCollapsed(false);
                       }
                     }} 
-                    className="h-8 w-8 sm:w-auto p-0 sm:px-2.5 gap-1.5 text-muted-foreground hover:text-foreground hover:bg-muted/70 rounded-xl border border-border/30 transition-all shadow-2xs" 
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl transition-all" 
                     title="Search" 
                   >
-                    <Search className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline text-[11px] font-medium text-muted-foreground">Search</span>
+                    <Search className="h-4 w-4" />
                   </Button>
 
+                  {/* Image Styles Shortcut */}
                   <Button 
                     variant="ghost" 
-                    size="sm" 
+                    size="icon" 
                     onClick={() => navigate("/images")} 
-                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/70 rounded-xl border border-border/30 transition-all shadow-2xs" 
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl transition-all" 
                     title="Image Styles"
                   >
-                    <Palette className="h-4 w-4 text-cyan-400" />
+                    <Palette className="h-4 w-4" />
                   </Button>
 
+                  {/* New Chat Button (Claude-Style SquarePen) */}
                   <Button
                     variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground hover:bg-muted/70 rounded-xl border border-border/30 transition-all shadow-2xs"
-                    title="Temporary Chat"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl transition-all"
+                    title="New Chat"
                     onClick={() => {
                       startNewChat();
                       setChatMode("normal");
-                      toast.info("Temporary chat started — won't be saved to history");
                     }}
                   >
-                    <Clock className="h-4 w-4" />
+                    <SquarePen className="h-4 w-4" />
                   </Button>
                 </div>
               </header>
@@ -984,9 +949,9 @@ const Index = () => {
             </>
           )}
 
-          {/* Input - Always fixed at bottom with sticky positioning */}
+          {/* Input - Fixed at bottom with sticky positioning */}
           {!showSettings && (
-            <div className="chat-input-fixed glass-navbar border-t-0 glow-border">
+            <div className="chat-input-fixed glass-navbar border-t-0">
               {/* Quick Action Buttons - Desktop only */}
               {messages.length > 0 && (
                 <div className="hidden md:flex justify-center py-2">
