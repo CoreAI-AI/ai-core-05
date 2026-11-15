@@ -897,7 +897,7 @@ const Index = () => {
                 )}
                 
                 <div className={`p-2 sm:p-4 ${messages.length === 0 ? "h-full flex flex-col justify-center" : "pb-6 min-h-full flex flex-col"}`}>
-                  <div className={`max-w-2xl mx-auto w-full flex-1 flex flex-col ${messages.length === 0 ? "justify-center" : "justify-start"}`}>
+                  <div className={`max-w-3xl xl:max-w-4xl mx-auto w-full flex-1 flex flex-col ${messages.length === 0 ? "justify-center" : "justify-start"}`}>
                     {messages.length === 0 ? (
                       <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-8">
                         <AnimatePresence mode="wait">
@@ -989,7 +989,7 @@ const Index = () => {
               )}
               
               <div className="px-2 py-2 sm:py-3 sm:p-4">
-                <div className="max-w-2xl mx-auto w-full">
+                <div className="max-w-3xl xl:max-w-4xl mx-auto w-full">
                   {!isPremium && (
                     <p className="text-center text-[11px] text-muted-foreground pb-1" aria-live="polite">
                       ⚡ {usageLimits.remaining}/{usageLimits.DAILY_CHAT_LIMIT} free chats left today
