@@ -13,7 +13,8 @@ import {
   Brain, 
   Compass,
   X, 
-  Send 
+  Send,
+  Sparkles
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -30,43 +31,68 @@ interface QuickActionCardsProps {
   onSkip?: () => void;
 }
 
-// 4 Color Coded Grid Cards
+// 4 Feature Cards with Dynamic Rotating Subtitles and Soft Pastel Themes
 const featureCards = [
   {
     id: "shopping",
     icon: ShoppingCart,
     title: "Shopping",
-    description: "Best deals & products",
-    colorBg: "bg-orange-500/10 text-orange-500 border-orange-500/20",
-    prompt: "Help me with shopping research. I want to find the best products, reviews, and deals.",
+    rotatingSubtitles: [
+      "Best deals & products",
+      "Find discount coupons & sales",
+      "Compare gadget prices",
+      "Curated shopping guides"
+    ],
+    // Clean pastel squircle badge matching image
+    badgeClasses: "bg-orange-500/12 text-orange-500 border-orange-500/20 dark:bg-orange-500/20",
+    hoverBorder: "hover:border-orange-500/40 hover:shadow-orange-500/5",
+    prompt: "Help me with smart shopping research. I want to find the best quality products, real user reviews, and top deals.",
   },
   {
     id: "deep-search",
     icon: Search,
     title: "Deep Search",
-    description: "In-depth research",
-    colorBg: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    prompt: "Perform deep research on a topic and provide comprehensive information with key insights.",
+    rotatingSubtitles: [
+      "In-depth research",
+      "Fact-checked citations",
+      "Comprehensive topic analysis",
+      "Uncover hidden insights"
+    ],
+    badgeClasses: "bg-blue-500/12 text-blue-500 border-blue-500/20 dark:bg-blue-500/20",
+    hoverBorder: "hover:border-blue-500/40 hover:shadow-blue-500/5",
+    prompt: "Perform deep research on a topic and provide comprehensive information with structured key insights and sources.",
   },
   {
     id: "financial",
     icon: TrendingUp,
     title: "Financial",
-    description: "Market insights",
-    colorBg: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-    prompt: "Help me with financial research. Provide market analysis, trends, and beginner-friendly financial insights.",
+    rotatingSubtitles: [
+      "Market insights",
+      "Crypto & stock trends",
+      "Smart budgeting & savings",
+      "Beginner investment basics"
+    ],
+    badgeClasses: "bg-emerald-500/12 text-emerald-500 border-emerald-500/20 dark:bg-emerald-500/20",
+    hoverBorder: "hover:border-emerald-500/40 hover:shadow-emerald-500/5",
+    prompt: "Help me with financial research. Provide market analysis, current trends, and practical financial planning insights.",
   },
   {
     id: "news",
     icon: Newspaper,
     title: "Today News",
-    description: "Latest updates",
-    colorBg: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-    prompt: "Give me today's top global news stories and important technology updates.",
+    rotatingSubtitles: [
+      "Latest updates",
+      "Breaking global headlines",
+      "Tech & AI breakthroughs",
+      "Daily world briefing"
+    ],
+    badgeClasses: "bg-purple-500/12 text-purple-500 border-purple-500/20 dark:bg-purple-500/20",
+    hoverBorder: "hover:border-purple-500/40 hover:shadow-purple-500/5",
+    prompt: "Give me today's top global news stories, important geopolitical updates, and exciting technology news.",
   },
 ];
 
-// Top Action Pills in 2 rows
+// Top Action Pills Row 1 & Row 2
 const pillRow1 = [
   {
     id: "create-image",
@@ -165,6 +191,7 @@ const animatedGreetings = [
 
 export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
   const [greetingIndex, setGreetingIndex] = useState(0);
+  const [subtitleCycle, setSubtitleCycle] = useState(0);
   const [selectedAction, setSelectedAction] = useState<{
     title: string;
     options: string[];
@@ -172,10 +199,19 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
   } | null>(null);
   const [customInput, setCustomInput] = useState("");
 
+  // Rotate greeting heading
   useEffect(() => {
     const timer = setInterval(() => {
       setGreetingIndex((prev) => (prev + 1) % animatedGreetings.length);
     }, 3400);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Rotate card subtitles smoothly
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSubtitleCycle((prev) => prev + 1);
+    }, 3600);
     return () => clearInterval(timer);
   }, []);
 
@@ -200,15 +236,15 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
 
   return (
     <div className="w-full max-w-lg sm:max-w-xl mx-auto px-2 sm:px-4 flex flex-col items-center justify-center select-none">
-      {/* 10 Animated Greetings: No Clipping, Full Visibility on Mobile */}
-      <div className="text-center mb-2.5 sm:mb-4 min-h-[52px] sm:min-h-[58px] flex items-center justify-center px-1">
+      {/* 10 Animated Greetings */}
+      <div className="text-center mb-3 sm:mb-4 min-h-[50px] sm:min-h-[56px] flex items-center justify-center px-1">
         <AnimatePresence mode="wait">
           <motion.h1
             key={greetingIndex}
-            initial={{ opacity: 0, y: 10, filter: "blur(2px)" }}
+            initial={{ opacity: 0, y: 8, filter: "blur(2px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -10, filter: "blur(2px)" }}
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0, y: -8, filter: "blur(2px)" }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight text-foreground leading-snug"
           >
             {animatedGreetings[greetingIndex]}
@@ -269,21 +305,32 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
         )}
       </AnimatePresence>
 
-      {/* 2-Row Action Pills */}
+      {/* Action Pills with Staggered Entrance */}
       {!selectedAction && (
-        <div className="flex flex-col items-center gap-1.5 mb-2.5 sm:mb-3.5">
+        <motion.div 
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+          className="flex flex-col items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4"
+        >
           {/* Row 1: Create image, Get advice */}
           <div className="flex items-center gap-1.5 sm:gap-2">
-            {pillRow1.map((action) => (
-              <Button
+            {pillRow1.map((action, idx) => (
+              <motion.div
                 key={action.id}
-                variant="outline"
-                className="flex items-center gap-1.5 px-3 py-1 h-7 sm:h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
-                onClick={() => handleActionClick(action)}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
               >
-                <action.icon className="h-3 w-3 text-muted-foreground" />
-                <span>{action.title}</span>
-              </Button>
+                <Button
+                  variant="outline"
+                  className="flex items-center gap-2 px-3.5 py-1 h-8 sm:h-8.5 rounded-full border-border/60 bg-card hover:bg-muted/70 hover:border-foreground/20 text-foreground text-xs font-medium shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
+                  onClick={() => handleActionClick(action)}
+                >
+                  <action.icon className="h-3.5 w-3.5 text-muted-foreground/80 shrink-0" />
+                  <span>{action.title}</span>
+                </Button>
+              </motion.div>
             ))}
           </div>
 
@@ -293,10 +340,10 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
               <Button
                 key={action.id}
                 variant="outline"
-                className="flex items-center gap-1.5 px-3 py-1 h-7 sm:h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
+                className="flex items-center gap-2 px-3.5 py-1 h-8 sm:h-8.5 rounded-full border-border/60 bg-card hover:bg-muted/70 hover:border-foreground/20 text-foreground text-xs font-medium shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
                 onClick={() => handleActionClick(action)}
               >
-                <action.icon className="h-3 w-3 text-muted-foreground" />
+                <action.icon className="h-3.5 w-3.5 text-muted-foreground/80 shrink-0" />
                 <span>{action.title}</span>
               </Button>
             ))}
@@ -305,58 +352,78 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
-                  className="flex items-center gap-1 px-2.5 py-1 h-7 sm:h-8 rounded-full border-border/70 bg-card hover:bg-muted text-foreground text-xs font-medium shadow-2xs active:scale-[0.98]"
+                  className="flex items-center gap-1.5 px-3 py-1 h-8 sm:h-8.5 rounded-full border-border/60 bg-card hover:bg-muted/70 hover:border-foreground/20 text-foreground text-xs font-medium shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
                 >
-                  <MoreHorizontal className="h-3 w-3 text-muted-foreground" />
+                  <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground/80 shrink-0" />
                   <span>More</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-48 p-1 bg-popover border border-border/80 rounded-2xl shadow-xl z-50">
+              <DropdownMenuContent align="center" className="w-48 p-1.5 bg-popover border border-border/80 rounded-2xl shadow-xl z-50">
                 {moreActionItems.map((action) => (
                   <DropdownMenuItem
                     key={action.id}
-                    className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-xl text-xs"
+                    className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-xl text-xs hover:bg-muted font-medium"
                     onClick={() => handleActionClick(action)}
                   >
-                    <action.icon className="h-3.5 w-3.5 text-muted-foreground" />
+                    <action.icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                     <span>{action.title}</span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      {/* 4 Feature Cards: Exactly 2x2 Grid on BOTH Mobile and Desktop */}
+      {/* 4 Feature Cards: Clean 2x2 Grid with Rotating Subtitle Text */}
       <div className="w-full grid grid-cols-2 gap-2 sm:gap-2.5">
-        {featureCards.map((card, index) => (
-          <motion.div
-            key={card.id}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.02 }}
-          >
-            <Card
-              onClick={() => onAction(card.prompt)}
-              className="p-2 sm:p-2.5 bg-card hover:bg-muted/40 border border-border/70 hover:border-foreground/20 rounded-2xl transition-all duration-150 cursor-pointer active:scale-[0.98] shadow-2xs group"
+        {featureCards.map((card, index) => {
+          const currentSubtitle = card.rotatingSubtitles[subtitleCycle % card.rotatingSubtitles.length];
+
+          return (
+            <motion.div
+              key={card.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.12 + index * 0.05, duration: 0.28, ease: "easeOut" }}
             >
-              <div className="flex items-center gap-2">
-                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center shrink-0 border ${card.colorBg} group-hover:scale-105 transition-transform`}>
-                  <card.icon className="w-3.5 h-3.5" />
+              <Card
+                onClick={() => onAction(card.prompt)}
+                className={`p-2.5 sm:p-3 bg-card hover:bg-muted/30 border border-border/70 ${card.hoverBorder} rounded-2xl sm:rounded-3xl transition-all duration-200 cursor-pointer hover:-translate-y-0.5 active:scale-[0.98] shadow-xs group`}
+              >
+                <div className="flex items-center gap-2.5">
+                  {/* Clean rounded squircle icon container */}
+                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border ${card.badgeClasses} group-hover:scale-105 transition-transform duration-200`}>
+                    <card.icon className="w-4 h-4" />
+                  </div>
+
+                  {/* Title & Dynamically Animated Subtitle */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground text-xs sm:text-[13px] tracking-tight truncate">
+                      {card.title}
+                    </h3>
+                    
+                    {/* Animated Rotating Subtitle Text */}
+                    <div className="h-[16px] overflow-hidden relative">
+                      <AnimatePresence mode="wait">
+                        <motion.p
+                          key={currentSubtitle}
+                          initial={{ opacity: 0, y: 4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          transition={{ duration: 0.2 }}
+                          className="text-[10px] sm:text-[11px] text-muted-foreground/80 truncate leading-tight font-normal"
+                        >
+                          {currentSubtitle}
+                        </motion.p>
+                      </AnimatePresence>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold text-foreground text-xs sm:text-sm truncate">
-                    {card.title}
-                  </h3>
-                  <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate">
-                    {card.description}
-                  </p>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
+              </Card>
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
