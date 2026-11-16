@@ -377,6 +377,21 @@ After providing your answer, ALWAYS end with these follow-up options formatted e
       requestBody.modalities = ["image", "text"];
       console.log("Added image modalities to request (generation)");
     }
+// Groq Call with Full 11 Modes Instructions (Lines ~380-410)
+const MODE_PROMPTS: Record<string, string> = {
+  'deep-search': 'You are in Deep Search Mode. Provide deep, comprehensive research with multi-perspective analysis, logical breakdown, and high-level critical insights.',
+  'code': 'You are in Code Assistant Mode. Provide clean, production-ready, well-formatted code blocks with syntax highlighting and performance tips.',
+  'study': 'You are in Study Notes Mode. Act as a world-class tutor. Break down complex topics into clear notes, mnemonics, and practice questions.',
+  'homework': 'You are in Homework Helper Mode. Solve questions step-by-step with formulas, calculations, highlighted final answers, and a Concept Recap.',
+  'photo': 'You are in Image Studio Mode. When users ask for images, generate high-quality visuals.',
+  'creative': 'You are in Creative Writing Mode. Write imaginative, engaging stories, poetry, scripts, or content with rich vocabulary.',
+  'analyze': 'You are in Analyze & Summarize Mode. Critically analyze data and text, extract key takeaways, metrics, and actionable conclusions.',
+  'recipe': 'You are in Recipe & Cooking Mode. Provide: 1) Dish name, 2) Ingredients with exact quantities, 3) Step-by-step method, 4) Servings, 5) Chef tips.',
+  'rich': 'You are in Rich Mode (Wealth Mindset). Focus on assets, ROI, scale, high-value opportunities, and wealth creation.',
+  'poor': 'You are in Poor Mode (Savings & Frugality). Focus on smart budgeting, maximum cost-cutting, zero-waste DIY solutions, and survival money hacks.',
+};
+
+const activeModeRule = mode !== 'normal' && MODE_PROMPTS[mode] ? `\n\n=== ACTIVE MODE INSTRUCTION ===\n${MODE_PROMPTS[mode]}\n=== END MODE INSTRUCTION ===\n` : '';
 
     // Free text chat → Groq (Llama 3.3 70B) first; falls back to Lovable AI Gateway on any failure.
     const groqKey = Deno.env.get("GROQ_API_KEY");
