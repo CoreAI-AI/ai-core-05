@@ -14,7 +14,11 @@ import {
   Compass,
   X, 
   Send,
-  Sparkles
+  GraduationCap,
+  Utensils,
+  Briefcase,
+  Dumbbell,
+  RefreshCw
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,65 +35,125 @@ interface QuickActionCardsProps {
   onSkip?: () => void;
 }
 
-// 4 Feature Cards with Dynamic Rotating Subtitles and Soft Pastel Themes
-const featureCards = [
-  {
-    id: "shopping",
-    icon: ShoppingCart,
-    title: "Shopping",
-    rotatingSubtitles: [
-      "Best deals & products",
-      "Find discount coupons & sales",
-      "Compare gadget prices",
-      "Curated shopping guides"
-    ],
-    // Clean pastel squircle badge matching image
-    badgeClasses: "bg-orange-500/12 text-orange-500 border-orange-500/20 dark:bg-orange-500/20",
-    hoverBorder: "hover:border-orange-500/40 hover:shadow-orange-500/5",
-    prompt: "Help me with smart shopping research. I want to find the best quality products, real user reviews, and top deals.",
-  },
-  {
-    id: "deep-search",
-    icon: Search,
-    title: "Deep Search",
-    rotatingSubtitles: [
-      "In-depth research",
-      "Fact-checked citations",
-      "Comprehensive topic analysis",
-      "Uncover hidden insights"
-    ],
-    badgeClasses: "bg-blue-500/12 text-blue-500 border-blue-500/20 dark:bg-blue-500/20",
-    hoverBorder: "hover:border-blue-500/40 hover:shadow-blue-500/5",
-    prompt: "Perform deep research on a topic and provide comprehensive information with structured key insights and sources.",
-  },
-  {
-    id: "financial",
-    icon: TrendingUp,
-    title: "Financial",
-    rotatingSubtitles: [
-      "Market insights",
-      "Crypto & stock trends",
-      "Smart budgeting & savings",
-      "Beginner investment basics"
-    ],
-    badgeClasses: "bg-emerald-500/12 text-emerald-500 border-emerald-500/20 dark:bg-emerald-500/20",
-    hoverBorder: "hover:border-emerald-500/40 hover:shadow-emerald-500/5",
-    prompt: "Help me with financial research. Provide market analysis, current trends, and practical financial planning insights.",
-  },
-  {
-    id: "news",
-    icon: Newspaper,
-    title: "Today News",
-    rotatingSubtitles: [
-      "Latest updates",
-      "Breaking global headlines",
-      "Tech & AI breakthroughs",
-      "Daily world briefing"
-    ],
-    badgeClasses: "bg-purple-500/12 text-purple-500 border-purple-500/20 dark:bg-purple-500/20",
-    hoverBorder: "hover:border-purple-500/40 hover:shadow-purple-500/5",
-    prompt: "Give me today's top global news stories, important geopolitical updates, and exciting technology news.",
-  },
+// 3 Dynamic Card Sets (Total 12 Distinct CoreAI Cards)
+const cardSets = [
+  // Set 1: Explore & News
+  [
+    {
+      id: "shopping",
+      icon: ShoppingCart,
+      title: "Shopping",
+      description: "Best deals & products",
+      badgeClasses: "bg-orange-500/12 text-orange-500 border-orange-500/20 dark:bg-orange-500/20",
+      hoverBorder: "hover:border-orange-500/40 hover:shadow-orange-500/5",
+      prompt: "Help me with smart shopping research. I want to find the best quality products, real user reviews, and top deals.",
+    },
+    {
+      id: "deep-search",
+      icon: Search,
+      title: "Deep Search",
+      description: "In-depth research",
+      badgeClasses: "bg-blue-500/12 text-blue-500 border-blue-500/20 dark:bg-blue-500/20",
+      hoverBorder: "hover:border-blue-500/40 hover:shadow-blue-500/5",
+      prompt: "Perform deep research on a topic and provide comprehensive information with structured key insights and sources.",
+    },
+    {
+      id: "financial",
+      icon: TrendingUp,
+      title: "Financial",
+      description: "Market insights",
+      badgeClasses: "bg-emerald-500/12 text-emerald-500 border-emerald-500/20 dark:bg-emerald-500/20",
+      hoverBorder: "hover:border-emerald-500/40 hover:shadow-emerald-500/5",
+      prompt: "Help me with financial research. Provide market analysis, current trends, and practical financial planning insights.",
+    },
+    {
+      id: "news",
+      icon: Newspaper,
+      title: "Today News",
+      description: "Latest updates",
+      badgeClasses: "bg-purple-500/12 text-purple-500 border-purple-500/20 dark:bg-purple-500/20",
+      hoverBorder: "hover:border-purple-500/40 hover:shadow-purple-500/5",
+      prompt: "Give me today's top global news stories, important geopolitical updates, and exciting technology news.",
+    },
+  ],
+  // Set 2: Create & Build
+  [
+    {
+      id: "code-studio",
+      icon: Code,
+      title: "Code Studio",
+      description: "Build & debug apps",
+      badgeClasses: "bg-indigo-500/12 text-indigo-500 border-indigo-500/20 dark:bg-indigo-500/20",
+      hoverBorder: "hover:border-indigo-500/40 hover:shadow-indigo-500/5",
+      prompt: "Help me write, review, and debug clean and modern code. Let me explain what I want to build.",
+    },
+    {
+      id: "creative-writing",
+      icon: Brain,
+      title: "Creative Writing",
+      description: "Stories, blogs & essays",
+      badgeClasses: "bg-pink-500/12 text-pink-500 border-pink-500/20 dark:bg-pink-500/20",
+      hoverBorder: "hover:border-pink-500/40 hover:shadow-pink-500/5",
+      prompt: "Help me draft engaging creative content: compelling stories, articles, social posts, or essays with strong hooks.",
+    },
+    {
+      id: "study-helper",
+      icon: GraduationCap,
+      title: "Study Notes",
+      description: "Homework & exam prep",
+      badgeClasses: "bg-amber-500/12 text-amber-500 border-amber-500/20 dark:bg-amber-500/20",
+      hoverBorder: "hover:border-amber-500/40 hover:shadow-amber-500/5",
+      prompt: "Act as an expert tutor. Break down complex concepts into simple steps with exam-focused summaries and practice questions.",
+    },
+    {
+      id: "image-studio",
+      icon: ImageIcon,
+      title: "Image Studio",
+      description: "AI art & 3D renders",
+      badgeClasses: "bg-cyan-500/12 text-cyan-500 border-cyan-500/20 dark:bg-cyan-500/20",
+      hoverBorder: "hover:border-cyan-500/40 hover:shadow-cyan-500/5",
+      prompt: "Help me generate stunning visual prompts and detailed image descriptions for logos, digital art, and illustrations.",
+    },
+  ],
+  // Set 3: Life & Planning
+  [
+    {
+      id: "travel-planner",
+      icon: Compass,
+      title: "Travel Planner",
+      description: "Trips & dream itineraries",
+      badgeClasses: "bg-sky-500/12 text-sky-500 border-sky-500/20 dark:bg-sky-500/20",
+      hoverBorder: "hover:border-sky-500/40 hover:shadow-sky-500/5",
+      prompt: "Plan a detailed day-by-day travel itinerary with budget tips, hidden gems, and local recommendations.",
+    },
+    {
+      id: "chef-recipes",
+      icon: Utensils,
+      title: "Chef & Cooking",
+      description: "Healthy quick recipes",
+      badgeClasses: "bg-rose-500/12 text-rose-500 border-rose-500/20 dark:bg-rose-500/20",
+      hoverBorder: "hover:border-rose-500/40 hover:shadow-rose-500/5",
+      prompt: "Suggest healthy, delicious, and easy recipes with cooking instructions based on ingredients I have.",
+    },
+    {
+      id: "career-skills",
+      icon: Briefcase,
+      title: "Career & Skills",
+      description: "Resume & interview prep",
+      badgeClasses: "bg-teal-500/12 text-teal-500 border-teal-500/20 dark:bg-teal-500/20",
+      hoverBorder: "hover:border-teal-500/40 hover:shadow-teal-500/5",
+      prompt: "Help me with career advice: review my resume bullet points, prepare for interviews, and suggest skills to master.",
+    },
+    {
+      id: "fitness-health",
+      icon: Dumbbell,
+      title: "Fitness & Habit",
+      description: "Workouts & daily routines",
+      badgeClasses: "bg-lime-500/12 text-lime-600 dark:text-lime-400 border-lime-500/20 dark:bg-lime-500/20",
+      hoverBorder: "hover:border-lime-500/40 hover:shadow-lime-500/5",
+      prompt: "Design a practical weekly workout and healthy habit routine tailored to my schedule and fitness goals.",
+    },
+  ],
 ];
 
 // Top Action Pills Row 1 & Row 2
@@ -191,7 +255,9 @@ const animatedGreetings = [
 
 export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
   const [greetingIndex, setGreetingIndex] = useState(0);
-  const [subtitleCycle, setSubtitleCycle] = useState(0);
+  const [activeSetIndex, setActiveSetIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
   const [selectedAction, setSelectedAction] = useState<{
     title: string;
     options: string[];
@@ -207,13 +273,14 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Rotate card subtitles smoothly
+  // Rotate card sets every 5.5s (pauses on hover)
   useEffect(() => {
+    if (isPaused) return;
     const timer = setInterval(() => {
-      setSubtitleCycle((prev) => prev + 1);
-    }, 3600);
+      setActiveSetIndex((prev) => (prev + 1) % cardSets.length);
+    }, 5500);
     return () => clearInterval(timer);
-  }, []);
+  }, [isPaused]);
 
   const handleActionClick = (action: { title: string; options: string[]; placeholder?: string }) => {
     setSelectedAction(action);
@@ -233,6 +300,12 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
       setCustomInput("");
     }
   };
+
+  const handleNextSet = () => {
+    setActiveSetIndex((prev) => (prev + 1) % cardSets.length);
+  };
+
+  const currentCards = cardSets[activeSetIndex];
 
   return (
     <div className="w-full max-w-lg sm:max-w-xl mx-auto px-2 sm:px-4 flex flex-col items-center justify-center select-none">
@@ -305,7 +378,7 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
         )}
       </AnimatePresence>
 
-      {/* Action Pills with Staggered Entrance */}
+      {/* Action Pills */}
       {!selectedAction && (
         <motion.div 
           initial={{ opacity: 0, y: 6 }}
@@ -375,55 +448,78 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
         </motion.div>
       )}
 
-      {/* 4 Feature Cards: Clean 2x2 Grid with Rotating Subtitle Text */}
-      <div className="w-full grid grid-cols-2 gap-2 sm:gap-2.5">
-        {featureCards.map((card, index) => {
-          const currentSubtitle = card.rotatingSubtitles[subtitleCycle % card.rotatingSubtitles.length];
-
-          return (
-            <motion.div
-              key={card.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.12 + index * 0.05, duration: 0.28, ease: "easeOut" }}
-            >
-              <Card
-                onClick={() => onAction(card.prompt)}
-                className={`p-2.5 sm:p-3 bg-card hover:bg-muted/30 border border-border/70 ${card.hoverBorder} rounded-2xl sm:rounded-3xl transition-all duration-200 cursor-pointer hover:-translate-y-0.5 active:scale-[0.98] shadow-xs group`}
+      {/* 4 Feature Cards (Auto-Rotating Sets of 4 with Staggered Transitions) */}
+      <div 
+        className="w-full relative"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeSetIndex}
+            initial={{ opacity: 0, y: 10, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.985 }}
+            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full grid grid-cols-2 gap-2 sm:gap-2.5"
+          >
+            {currentCards.map((card, index) => (
+              <motion.div
+                key={card.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.04, duration: 0.2 }}
               >
-                <div className="flex items-center gap-2.5">
-                  {/* Clean rounded squircle icon container */}
-                  <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border ${card.badgeClasses} group-hover:scale-105 transition-transform duration-200`}>
-                    <card.icon className="w-4 h-4" />
-                  </div>
+                <Card
+                  onClick={() => onAction(card.prompt)}
+                  className={`p-2.5 sm:p-3 bg-card hover:bg-muted/30 border border-border/70 ${card.hoverBorder} rounded-2xl sm:rounded-3xl transition-all duration-200 cursor-pointer hover:-translate-y-0.5 active:scale-[0.98] shadow-xs group`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    {/* Rounded Squircle Badge */}
+                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border ${card.badgeClasses} group-hover:scale-105 transition-transform duration-200`}>
+                      <card.icon className="w-4 h-4" />
+                    </div>
 
-                  {/* Title & Dynamically Animated Subtitle */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-foreground text-xs sm:text-[13px] tracking-tight truncate">
-                      {card.title}
-                    </h3>
-                    
-                    {/* Animated Rotating Subtitle Text */}
-                    <div className="h-[16px] overflow-hidden relative">
-                      <AnimatePresence mode="wait">
-                        <motion.p
-                          key={currentSubtitle}
-                          initial={{ opacity: 0, y: 4 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -4 }}
-                          transition={{ duration: 0.2 }}
-                          className="text-[10px] sm:text-[11px] text-muted-foreground/80 truncate leading-tight font-normal"
-                        >
-                          {currentSubtitle}
-                        </motion.p>
-                      </AnimatePresence>
+                    {/* Title & Subtitle */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-foreground text-xs sm:text-[13px] tracking-tight truncate">
+                        {card.title}
+                      </h3>
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground/80 truncate leading-tight font-normal">
+                        {card.description}
+                      </p>
                     </div>
                   </div>
-                </div>
-              </Card>
-            </motion.div>
-          );
-        })}
+                </Card>
+              </motion.div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Carousel Dots + Shuffle Button */}
+        <div className="flex items-center justify-center gap-1.5 mt-2.5">
+          {cardSets.map((_, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setActiveSetIndex(idx)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                activeSetIndex === idx 
+                  ? "w-4 bg-foreground/60" 
+                  : "w-1.5 bg-muted-foreground/25 hover:bg-muted-foreground/50"
+              }`}
+              title={`Switch to set ${idx + 1}`}
+            />
+          ))}
+          <button
+            type="button"
+            onClick={handleNextSet}
+            className="p-1 text-muted-foreground/40 hover:text-muted-foreground/80 transition-colors ml-1"
+            title="Next feature cards"
+          >
+            <RefreshCw className="h-2.5 w-2.5" />
+          </button>
+        </div>
       </div>
     </div>
   );
