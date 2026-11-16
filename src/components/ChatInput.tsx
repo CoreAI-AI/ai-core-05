@@ -33,6 +33,7 @@ interface ChatInputProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   onFileSelect?: (file: File) => void;
+  onFilesSelect?: (files: File[]) => void;
   onModeChange?: (mode: ModeType) => void;
   editingMessage?: {
     id: string;
@@ -77,6 +78,7 @@ export const ChatInput = memo(({
   onSendMessage,
   disabled,
   onFileSelect,
+  onFilesSelect,
   onModeChange,
   editingMessage,
   onCancelEdit,
@@ -119,24 +121,20 @@ export const ChatInput = memo(({
 
     if (!isDeleting) {
       if (placeholderText.length < currentPhrase.length) {
-        // Typing characters
         timer = setTimeout(() => {
           setPlaceholderText(currentPhrase.slice(0, placeholderText.length + 1));
         }, 55);
       } else {
-        // Pause when full phrase is typed
         timer = setTimeout(() => {
           setIsDeleting(true);
         }, 2200);
       }
     } else {
       if (placeholderText.length > 0) {
-        // Backspacing / Deleting characters
         timer = setTimeout(() => {
           setPlaceholderText(currentPhrase.slice(0, placeholderText.length - 1));
         }, 28);
       } else {
-        // Switch to next phrase
         setIsDeleting(false);
         setPromptIndex((prev) => (prev + 1) % placeholderPrompts.length);
       }
@@ -201,17 +199,33 @@ export const ChatInput = memo(({
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file && onFileSelect) {
+  // Multiple files selection handler (up to 8 images)
+  const handleMultipleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawFiles = e.target.files;
+    if (!rawFiles || rawFiles.length === 0) return;
+
+    const fileList = Array.from(rawFiles);
+    const validFiles: File[] = [];
+
+    for (const file of fileList) {
       const validation = validateFile(file);
       if (!validation.valid) {
-        toast.error(validation.error);
-        return;
+        toast.error(`${file.name}: ${validation.error}`);
+      } else {
+        validFiles.push(file);
       }
-      onFileSelect(file);
-      toast.success(`Attached ${file.name}`);
     }
+
+    if (validFiles.length > 0) {
+      if (onFilesSelect) {
+        onFilesSelect(validFiles);
+      } else if (onFileSelect) {
+        onFileSelect(validFiles[0]);
+      }
+    }
+
+    // Reset input value so same files can be re-selected if removed
+    e.target.value = '';
   };
 
   const handleTakePhoto = async () => {
@@ -223,11 +237,15 @@ export const ChatInput = memo(({
         source: CameraSource.Camera,
       });
 
-      if (image.webPath && onFileSelect) {
+      if (image.webPath) {
         const response = await fetch(image.webPath);
         const blob = await response.blob();
         const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
-        onFileSelect(file);
+        if (onFilesSelect) {
+          onFilesSelect([file]);
+        } else if (onFileSelect) {
+          onFileSelect(file);
+        }
         toast.success("Photo attached");
       }
     } catch (error) {
@@ -245,18 +263,19 @@ export const ChatInput = memo(({
 
   return (
     <div className="w-full max-w-xl sm:max-w-2xl mx-auto px-2 sm:px-3">
-      {/* Hidden File Inputs */}
+      {/* Hidden File Inputs — multiple enabled up to 8 */}
       <input
         type="file"
         ref={fileInputRef}
-        onChange={handleFileChange}
+        onChange={handleMultipleFilesChange}
         accept="image/*"
+        multiple
         className="hidden"
       />
       <input
         type="file"
         ref={anyFileInputRef}
-        onChange={handleFileChange}
+        onChange={handleMultipleFilesChange}
         accept=".pdf,.doc,.docx,.txt"
         className="hidden"
       />
@@ -288,15 +307,15 @@ export const ChatInput = memo(({
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 shrink-0 transition-colors"
-                  title="Attach file or photo"
+                  title="Attach up to 8 images or files"
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
+              <DropdownMenuContent align="start" className="w-52 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
                 <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
                   <ImageIcon className="h-4 w-4 mr-2.5 text-cyan-500" />
-                  Photo (Gallery)
+                  Photos (Up to 8 Images)
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-xs py-2">
                   <Camera className="h-4 w-4 mr-2.5 text-emerald-500" />
@@ -304,7 +323,7 @@ export const ChatInput = memo(({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
                   <FileIcon className="h-4 w-4 mr-2.5 text-amber-500" />
-                  File (Document)
+                  File (Document / PDF)
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
