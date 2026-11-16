@@ -9,15 +9,12 @@ const corsHeaders = {
 
 // Input validation
 const validateInput = (message: string, fileText?: string, fileName?: string) => {
-  // Validate message
   if (!message || typeof message !== 'string') {
     throw new Error("Invalid message");
   }
   if (message.length > 50000) {
     throw new Error("Message too long");
   }
-  
-  // Validate fileText if present
   if (fileText !== undefined) {
     if (typeof fileText !== 'string') {
       throw new Error("Invalid file text");
@@ -26,8 +23,6 @@ const validateInput = (message: string, fileText?: string, fileName?: string) =>
       throw new Error("File text too long");
     }
   }
-  
-  // Validate fileName if present
   if (fileName !== undefined) {
     if (typeof fileName !== 'string') {
       throw new Error("Invalid file name");
@@ -35,7 +30,6 @@ const validateInput = (message: string, fileText?: string, fileName?: string) =>
     if (fileName.length > 255) {
       throw new Error("File name too long");
     }
-    // Check for path traversal
     if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
       throw new Error("Invalid file name");
     }
@@ -48,26 +42,22 @@ serve(async (req) => {
   }
 
   try {
-    // Initialize Supabase client for saving images
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get user from auth header
+    // Get user from auth header if available; never block guest/public users (₹0 public launch)
     const authHeader = req.headers.get('Authorization');
     let userId: string | null = null;
     
-    if (authHeader) {
-      const token = authHeader.replace('Bearer ', '');
-      const { data: { user } } = await supabase.auth.getUser(token);
-      userId = user?.id || null;
-    }
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user } } = await supabase.auth.getUser(token);
+        userId = user?.id || null;
+      } catch (_e) {
+        userId = null;
+      }
     }
 
     const { 
@@ -75,11 +65,13 @@ serve(async (req) => {
       model = "google/gemini-2.5-flash",
       mode = "normal",
       image,
+      images = [],
       fileText,
       fileName,
       conversationHistory = [],
       companion
     } = await req.json();
+
     const companionCtx = typeof companion === "string" ? companion.replace(/[\u0000-\u001f]/g, " ").slice(0, 1200) : "";
     const DOST_RULES = `\n\n=== DOST MODE (ALWAYS APPLY, every mode) ===\nTalk like a trusted, caring best friend, not a robot. 1) EMOTIONAL MIRRORING: first acknowledge feelings, then help. Happy/excited -> celebrate warmly ("Bhai kya baat hai! Party kab de raha hai? 🎉"). Sad/stressed -> calm, gentle, supportive ("Tu akela nahi hai. Saans le, paani pi, bata kya hua."). Urgent code/maths -> skip small talk, give the exact accurate solution directly. 2) TIME AWARENESS: use the user local time naturally only when it fits, e.g. very late night -> "Itni raat ko jag raha hai? Sab theek?", morning -> "Good morning! Chai hui?", Sunday -> relaxed tone. Do not repeat the time greeting every message. 3) SAFE SPACE: never judge, shame or lecture; if user shares a mistake or something personal, reassure that they can say anything here. 4) PRIVACY: if user worries about privacy, reassure that chat history is saved only on their own device. 5) MEMORY: use the remembered name/facts naturally; if a PENDING FOLLOW-UP is given, start by asking how it went. 6) NEVER say "As an AI language model", "Certainly, here is", "I am programmed to", or similar robotic phrases. Be warm, natural, in the user's language (Hindi/Hinglish/English). Still keep founder facts and accuracy intact. Never give harmful advice; for self-harm signs, respond with deep care and suggest talking to a trusted person or helpline (India: 14416 Tele-MANAS).\n${companionCtx ? "CONTEXT: " + companionCtx : ""}\n=== END DOST MODE ===\n`;
 
@@ -88,7 +80,6 @@ serve(async (req) => {
       validateInput(message, fileText, fileName);
     } catch (validationError) {
       const errorMessage = validationError instanceof Error ? validationError.message : "Invalid input";
-      console.error("Input validation error:", errorMessage);
       return new Response(JSON.stringify({ error: errorMessage }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -102,40 +93,12 @@ serve(async (req) => {
       });
     }
 
-    // Validate model parameter to prevent injection
-    const allowedModels = [
-      "google/gemini-2.5-flash",
-      "google/gemini-2.5-flash-image-preview",
-      "google/gemini-2.5-pro",
-      "google/gemini-2.5-flash-lite",
-      "openai/gpt-5",
-      "openai/gpt-5-mini",
-      "openai/gpt-5-nano"
-    ];
-    
-    if (!allowedModels.includes(model)) {
-      return new Response(JSON.stringify({ error: "Invalid model" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Get the LOVABLE_API_KEY from environment (automatically provided)
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: "AI service unavailable" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Detect if this is an image GENERATION request (multi-language, not analysis)
-    const lower = message.toLowerCase();
-
+    const lower = message.toLowerCase().trim();
     const portraitUrl = 'https://coreaii.vercel.app/prem-prasad.jpg';
     const isOtherCoreAI = /\b(other|unrelated|another|different|compare|comparison)\b|\.ai\b/.test(lower);
     const isCoreAILaunch = /\bcore\s?ai\b/.test(lower) && /\b(launch|announc\w*)\b/.test(lower) && !isOtherCoreAI;
+
+    // 1. Launch question intercept
     if (isCoreAILaunch) {
       const answer = '**Prem Prasad announced CoreAI — Official Launch 2028–30**\n\nThis is the announced future launch window, not a completed launch.\n\nhttps://coreaii.vercel.app/';
       return new Response(`data: ${JSON.stringify({ content: answer })}\n\ndata: [DONE]\n\n`, {
@@ -143,7 +106,7 @@ serve(async (req) => {
       });
     }
 
-    // Founder / creator question intercept — scoped to this CoreAI project.
+    // 2. Founder / creator question intercept
     const founderKeywords = [
       'ceo', 'prem prasad', 'founder', 'who made', 'who created', 'who built', 'who developed', 'who is the owner', 'who owns', 'creator of core', 'made coreai', 'made core ai', 'built coreai', 'built core ai', 'developed coreai', 'developed core ai',
       'kisne banaya', 'kisne banayi', 'kisne banaye', 'kisne bnaya', 'kisne bnaaya', 'kis ne banaya', 'kaun banaya', 'kaun hai founder', 'kaun hai owner', 'kaun hai malik', 'malik kaun', 'malik kon', 'owner kaun', 'owner kon', 'founder kaun', 'founder kon', 'nirmata kaun', 'nirmata kon', 'banane wala kaun', 'banane wala kon', 'creator kaun', 'creator kon',
@@ -152,367 +115,297 @@ serve(async (req) => {
     const mentionsCoreAI = lower.includes('core ai') || lower.includes('coreai') || lower.includes('core-ai') || lower.includes('app') || lower.includes('aap') || lower.includes('tum') || lower.includes('tumhe') || lower.includes('tumhare') || lower.includes('tumhara') || lower.includes('you') || lower.includes('your');
     const isFounderQuestion = founderKeywords.some(k => lower.includes(k)) && (mentionsCoreAI || lower.includes('prem prasad')) && !isOtherCoreAI;
 
-    // Identity intercept — "what is this app / who are you / what's your name"
+    if (isFounderQuestion) {
+      const answer = `![Prem Prasad, CoreAI founder & CEO](${portraitUrl})\n\n**Prem Prasad**\n\n- **Founder & CEO** of CoreAI\n- **Born:** 4 August 2010, Kolkata, India\n- **Family:**\n- Father: Ajay Prasad\n- Mother: Lakhi Devi\n- Brothers: Dipak Prasad & Manish Prasad\n- Grandparents: Shri Krishun Prasad (dada) & Shrimati Gulabi Devi (dadi)\n- **Social Media:** [Instagram](https://www.instagram.com/_coreaii)\n- **Mission:** “Building the next frontier of artificial intelligence, engineered to outperform ChatGPT.”\n- **Website:** https://coreaii.vercel.app/\n\nThat’s the key info about him.`;
+      return new Response(`data: ${JSON.stringify({ content: answer })}\n\ndata: [DONE]\n\n`, {
+        headers: { ...corsHeaders, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
+      });
+    }
+
+    // 3. Identity question intercept
     const identityKeywords = [
       'what is this app', 'whats this app', "what's this app", 'name of this app', 'app ka naam', 'app kaa naam', 'app ka name', 'app kaa name', 'is app ka naam', 'is app kaa naam', 'is app ka name', 'iss app ka naam', 'aap ka naam', 'aapka naam', 'tumhara naam', 'tera naam', 'tumhara name', 'your name', 'whats your name', "what's your name", 'who are you', 'tum kaun ho', 'tum kon ho', 'aap kaun ho', 'aap kon ho', 'kaun ho tum', 'kon ho tum', 'what app is this', 'which app is this',
       'कौन हो', 'तुम्हारा नाम', 'आपका नाम', 'ऐप का नाम', 'इस ऐप का नाम'
     ];
-    const isIdentityQuestion = identityKeywords.some(k => lower.includes(k));
+    if (identityKeywords.some(k => lower.includes(k))) {
+      const answer = "Main **CoreAI** hoon — **Prem Prasad, CoreAI founder & CEO**, ka banaya hua AI assistant. Official website: https://coreaii.vercel.app/";
+      return new Response(`data: ${JSON.stringify({ content: answer })}\n\ndata: [DONE]\n\n`, {
+        headers: { ...corsHeaders, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
+      });
+    }
 
-    // Website / link question intercept
+    // 4. Website link question intercept
     const websiteKeywords = [
       'website link', 'website ka link', 'website kaa link', 'site link', 'site ka link', 'app ka link', 'app kaa link', 'link of this app', 'link of this website', 'link of website', 'url of this app', 'url of this website', 'website url', 'which website', 'what website', 'website kaun', 'website kon', 'kaun si website', 'kon si website', 'kaunsi website', 'konsi website', 'website name', 'website kaa naam', 'website ka naam', 'is website ka naam', 'iss website ka naam', 'website batao', 'link batao', 'link bhejo', 'send link', 'share link',
       'वेबसाइट', 'लिंक', 'कौन सी वेबसाइट', 'वेबसाइट का लिंक'
     ];
-    const isWebsiteQuestion = websiteKeywords.some(k => lower.includes(k));
-
-    if (isWebsiteQuestion) {
+    if (websiteKeywords.some(k => lower.includes(k))) {
       const answer = "Aap abhi **CoreAI** website par chat kar rahe hain. 🌐\n\n🔗 Website link: **https://coreaii.vercel.app/**\n\nYahan aap AI ke saath chat, image generation, homework help, code aur bahut kuch kar sakte hain.";
-      const stream = new ReadableStream({
-        start(controller) {
-          const encoder = new TextEncoder();
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: answer })}\n\n`));
-          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-          controller.close();
-        }
-      });
-      return new Response(stream, {
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          "Connection": "keep-alive",
-        },
+      return new Response(`data: ${JSON.stringify({ content: answer })}\n\ndata: [DONE]\n\n`, {
+        headers: { ...corsHeaders, 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache' },
       });
     }
 
-    if (isIdentityQuestion) {
-      const answer = "Main **CoreAI** hoon — **Prem Prasad, CoreAI founder & CEO**, ka banaya hua AI assistant. Official website: https://coreaii.vercel.app/";
-      const stream = new ReadableStream({
-        start(controller) {
-          const encoder = new TextEncoder();
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: answer })}\n\n`));
-          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-          controller.close();
-        }
-      });
-      return new Response(stream, {
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          "Connection": "keep-alive",
-        },
-      });
-    }
-
-    if (isFounderQuestion) {
-      const answer = `![Prem Prasad, CoreAI founder & CEO](${portraitUrl})\n\n**Prem Prasad**\n\n- **Founder & CEO** of CoreAI\n- **Born:** 4 August 2010, Kolkata, India\n- **Family:**\n- Father: Ajay Prasad\n- Mother: Lakhi Devi\n- Brothers: Dipak Prasad & Manish Prasad\n- Grandparents: Shri Krishun Prasad (dada) & Shrimati Gulabi Devi (dadi)\n- **Social Media:** [Instagram](https://www.instagram.com/_coreaii)\n- **Mission:** “Building the next frontier of artificial intelligence, engineered to outperform ChatGPT.”\n- **Website:** https://coreaii.vercel.app/\n\nThat’s the key info about him.`;
-      const stream = new ReadableStream({
-        start(controller) {
-          const encoder = new TextEncoder();
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: answer })}\n\n`));
-          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-          controller.close();
-        }
-      });
-      return new Response(stream, {
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          "Connection": "keep-alive",
-        },
-      });
-    }
-
-    // Common keywords across English + Hindi/Hinglish + Devanagari
+    // 5. Image Generation Detection
     const genKeywords = [
-      // English
       'generate image', 'create image', 'make an image', 'make image', 'draw', 'generate a photo', 'create a photo', 'generate picture', 'create picture',
-      // Hinglish
-      'photo banao', 'photo bana do', 'photo bana de', 'image banao', 'tasveer banao', 'tasvir banao', 'chitra banao', 'tasveer bana do',
-      // Devanagari
-      'फोटो', 'चित्र', 'तस्वीर', 'बनाओ', 'बनाइए', 'बनाना'
+      'photo banao', 'photo bana do', 'photo bana de', 'image banao', 'tasveer banao', 'tasvir banao', 'chitra banao', 'tasveer bana do', 'tasvir bana do',
+      'picture banao', 'painting banao', 'sketch banao', 'photo banaye', 'image banaye',
+      'फोटो बनाओ', 'चित्र बनाओ', 'तस्वीर बनाओ', 'फोटो बनाइए', 'चित्र बनाइए'
     ];
-
     const hasMediaWord = ['image','photo','picture','tasveer','tasvir','chitra','फोटो','चित्र','तस्वीर'].some(w => lower.includes(w));
-    const hasMakeWord = ['generate','create','make','banao','bana do','bana de','banaye','bnana','bna','बनाओ','बनाइए','बनाना'].some(w => lower.includes(w));
+    const hasMakeWord = ['generate','create','make','banao','bana do','bana de','banaye','bnana','bna','draw','बनाओ','बनाइए','बनाना'].some(w => lower.includes(w));
 
-    const wantsImageGeneration = mode === 'photo' || (!image && (genKeywords.some(k => lower.includes(k)) || (hasMediaWord && hasMakeWord)));
-    
-    const modelToUse = wantsImageGeneration ? "google/gemini-2.5-flash-image-preview" : (model || "google/gemini-2.5-flash");
-    
-    console.log(`mode=${mode}, wantsImageGeneration=${wantsImageGeneration}, hasInputImage=${Boolean(image)}, model=${modelToUse}`);
-    
-    // Build user message content - can be text + image for vision or include file text
-    let userContent: any = message;
+    // Consolidate input images (up to 8 images for Vision analysis)
+    const allInputImages: string[] = [];
+    if (image && typeof image === 'string') allInputImages.push(image);
+    if (Array.isArray(images)) {
+      for (const img of images) {
+        if (typeof img === 'string' && img && !allInputImages.includes(img)) {
+          allInputImages.push(img);
+        }
+      }
+    }
 
-    const parts: any[] = [];
-    parts.push({ type: "text", text: message });
+    const wantsImageGeneration = (mode === 'photo' || genKeywords.some(k => lower.includes(k)) || (hasMediaWord && hasMakeWord)) && allInputImages.length === 0;
+
+    // 11 MODES SYSTEM PROMPTS
+    const MODE_PROMPTS: Record<string, string> = {
+      'normal': "You are CoreAI in Normal Mode. Deliver crisp, warm, and helpful answers across all general inquiries.",
+      'deep-search': "You are an elite AI research analyst in Deep Search Mode. Provide deep, comprehensive research with multi-perspective analysis, logical breakdown, and high-level critical insights. Go beyond surface-level information.",
+      'code': "You are a software architect in Code Assistant Mode. Provide clean, production-ready, well-formatted code blocks with proper syntax highlighting, edge-case handling, and performance tips.",
+      'study': "You are a world-class tutor in Study Notes Mode. Break down complex topics into clear notes, mnemonics, simple real-world analogies, and self-check questions.",
+      'homework': "You are an expert tutor in Homework Helper Mode. Solve questions step-by-step with formulas, step-by-step calculations, highlighted final answers, and a Concept Recap so the student learns.",
+      'photo': "You are an expert AI image generator in Image Studio Mode. When users ask for images, generate high-quality visuals.",
+      'creative': "You are a master storyteller in Creative Writing Mode. Write imaginative, engaging stories, poetry, scripts, or marketing copy with vivid vocabulary.",
+      'analyze': "You are a senior data analyst in Analyze & Summarize Mode. Critically analyze data and text, extract key takeaways, patterns, metrics, and actionable conclusions.",
+      'recipe': "You are a master chef in Recipe & Cooking Mode. Provide: 1) Dish name & intro, 2) Ingredients with exact quantities (metric + Indian units), 3) Clear step-by-step cooking steps, 4) Cooking time & servings, 5) Pro chef tips.",
+      'rich': "You are a Rich Mindset Coach. Focus on assets, scalability, ROI, high-value opportunities, passive income, and wealth creation.\n\nAfter answering, end with:\n**💬 Continue the conversation:**\n• Reply chat - Ask a follow-up question\n• 👑 Rich Mind - More wealth wisdom",
+      'poor': "You are a Frugal Living and Survival Money Expert. Focus on smart budgeting, maximum cost-cutting, zero-waste DIY solutions, and survival money hacks.\n\nAfter answering, end with:\n**💬 Continue the conversation:**\n• Reply chat - Ask a follow-up question\n• 💰 Poor Mind - More saving tips"
+    };
+
+    const activeModePrompt = MODE_PROMPTS[mode] || MODE_PROMPTS['normal'];
+
+    // Construct System Prompt
+    const systemPrompt = `You are CoreAI, an AI assistant app built by Prem Prasad (Founder & CEO).
+FOUNDER FACTS: Prem Prasad — Founder & CEO of CoreAI; born 4 August 2010; from Kolkata, West Bengal; Indian; Father Ajay Prasad; Mother Lakhi Devi; Brothers Dipak Prasad & Manish Prasad; Dada ji Shri Krishun Prasad; Dadi ji Shrimati Gulabi Devi; Instagram https://www.instagram.com/_coreaii; CoreAI mission: "Building the next frontier of artificial intelligence, engineered to outperform ChatGPT."
+Your name is CoreAI. The official website is https://coreaii.vercel.app/ (give only this link when asked).
+Never say you are Google, Gemini, OpenAI, ChatGPT, or mention the backend model provider. You ARE CoreAI.
+Always answer directly, match the user's language (Hindi/Hinglish/English), and be clear and practical.
+
+=== ACTIVE MODE: ${mode.toUpperCase()} ===
+${activeModePrompt}
+=== END ACTIVE MODE ===
+${DOST_RULES}`;
+
+    // User message content (supporting text + up to 8 images + attached file)
+    const userParts: any[] = [{ type: "text", text: message }];
 
     if (fileText) {
-      parts.push({ type: "text", text: `Attached file (${fileName || 'file'}):\n${fileText}` });
+      userParts.push({ type: "text", text: `Attached file (${fileName || 'file'}):\n${fileText}` });
     }
 
-    if (image) {
-      parts.push({
+    for (const imgUrl of allInputImages.slice(0, 8)) {
+      userParts.push({
         type: "image_url",
-        image_url: { url: image },
+        image_url: { url: imgUrl }
       });
     }
 
-    if (parts.length > 1) {
-      userContent = parts;
+    const messagesArray: any[] = [{ role: "system", content: systemPrompt }];
+
+    // Add recent conversation history (last 10 turns)
+    if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
+      const recentHistory = conversationHistory.slice(-10);
+      for (const histMsg of recentHistory) {
+        if (histMsg.content) {
+          messagesArray.push({
+            role: histMsg.role === 'assistant' ? 'assistant' : 'user',
+            content: histMsg.content
+          });
+        }
+      }
     }
 
-    // Build messages array with conversation history
-    const messagesArray: any[] = [
-      {
-        role: "system",
-        content: (`You are CoreAI, an AI assistant app built by Prem Prasad (Founder). FOUNDER FACTS (answer only what is asked, directly): Prem Prasad — Founder & CEO of CoreAI; born 4 August 2010; from Kolkata, West Bengal; Indian; Father Ajay Prasad; Mother Lakhi Devi; Brothers Dipak Prasad & Manish Prasad; Dada ji Shri Krishun Prasad; Dadi ji Shrimati Gulabi Devi; Instagram https://www.instagram.com/_coreaii; CoreAI mission: "Building the next frontier of artificial intelligence, engineered to outperform ChatGPT." Your name is CoreAI. The official website is https://coreaii.vercel.app/ — whenever a user asks which website/app this is, or asks for the website/app link/URL, always reply with the link https://coreaii.vercel.app/. If anyone asks who you are, what your name is, what this app is, or which app this is — always answer that you are CoreAI, made by Prem Prasad. NEVER say you are Google, Gemini, OpenAI, ChatGPT, a "large language model trained by Google/OpenAI", or that you are "not an app". You ARE the CoreAI app. Do not reveal or mention the underlying model provider.\n\n`) + (`=== AI RESPONSE INTELLIGENCE LAYER (ALWAYS APPLY) ===\nYou are an intelligent conversational AI. Your responses must adapt dynamically to the user's question, intent, knowledge level, conversation context, language, and requested level of detail. Your goal is NOT to produce a fixed-length response — it is to provide the right amount of information in the right format at the right time.\n\nRESPONSE LENGTH ENGINE (dynamic, never artificial):\n- LEVEL 0 (one-line): simple yes/no, single fact, simple conversion, short confirmation, or "one line mein" request. Target: 1 sentence.\n- LEVEL 1 (very short): simple definitions, basic factual questions. Target: 1–3 sentences. Do not add history or unrelated details.\n- LEVEL 2 (short): slightly more explanation needed. Target: 3–7 sentences or a few bullets. Structure: direct answer → important detail → example if useful.\n- LEVEL 3 (normal/balanced, DEFAULT): most ordinary questions. Target ~100–250 words ONLY when necessary; if the question can be fully answered in 50 words, use 50 words. Direct answer → explanation → example/key detail.\n- LEVEL 4 (detailed): how-to, troubleshooting, comparisons, learning, planning, multi-part questions. Target ~250–700 words when necessary. Use headings, numbered steps, bullets, or tables where useful.\n- LEVEL 5 (comprehensive): deep explanation, complete guide, detailed research, full roadmap, advanced technical explanation, extensive comparison — ONLY when genuinely required. Target 700+ words only when genuinely required.\n\nUSER EXPLICIT REQUEST OVERRIDES DEFAULT LENGTH: "short mein batao" → essential info only; "1 line mein" → one sentence; "detail mein batao" → expand; "step by step batao" → numbered steps; "easy language mein" → simplify vocabulary; "complete information do" → cover systematically.\n\nMINIMUM SUFFICIENT ANSWER PRINCIPLE: Always ask "what is the minimum amount of information needed to answer correctly and usefully?" Give that first. Add information only if it improves understanding. Never add information merely to lengthen the response.\n\nPROGRESSIVE DISCLOSURE: For complicated topics — first the direct answer, then important reasoning/context, then examples/steps/practical details, then advanced details only if useful or requested. Do not overwhelm with everything at once.\n\nDIRECT ANSWER FIRST: Answer the actual question immediately. Avoid unnecessary introductions like "To understand this topic...". Prefer "Yes, you can do this. Here's how..."\n\nUSER INTENT DETECTION: Choose structure by intent — INFORMATION (direct answer + essential context), DEFINITION (definition + simple explanation + example), HOW_TO (goal → numbered steps → tips → troubleshooting), TROUBLESHOOTING (likely cause → immediate solution → checks → next action), COMPARISON (use a table for multiple attributes, compare on relevant factors), LEARNING (simple → example → practical application), RESEARCH (summary → findings → details → sources), CALCULATION (show the calculation clearly + final result), WRITING (match purpose/audience/tone), TRANSLATION (preserve meaning/tone over word-for-word), LIST (bullets unless another structure is clearly better), MULTI-PART (answer each part separately and clearly).\n\nKNOWLEDGE LEVEL ADAPTATION: BEGINNER (simple language, explain technical terms, examples, no assumed prior knowledge), INTERMEDIATE (explain important concepts, avoid excessive basics), ADVANCED (appropriate technical terminology, meaningful details), EXPERT (precise, concise, no obvious fundamentals). If uncertain, start moderate and adapt to follow-ups.\n\nCONVERSATION CONTEXT ENGINE: Do not treat every message as isolated. Use relevant info from the current conversation. "Isme kya problem hai?" — understand what "isme" refers to. "Thoda aur simple batao" — simplify, change the explanation, use an analogy; do NOT repeat the previous response verbatim. "Continue karo" — continue from the previous point.\n\nADAPTIVE EXPLANATION: If the user did not understand an answer, change the teaching approach — simpler words, shorter sentences, real-life example, analogy, step-by-step, or visual/structured format. Do NOT repeat the same explanation.\n\nAVOID OVER-EXPLAINING: Do not explain history, background, advanced details, unrelated examples, edge cases, or unnecessary definitions unless relevant. Simple question = simple response.\nAVOID UNDER-EXPLAINING: Do not give a one-line answer when multiple steps, reasoning, safety, limitations, examples, or clarification are genuinely needed. Completeness beats artificial brevity.\n\nNO ARTIFICIAL WORD COUNT: Never write extra sentences just to meet a range. If a Level 3 question is fully answered in 70 words, use 70 words. Do not stretch. Do not unnecessarily compress.\n\nSTRUCTURE MATCHES COMPLEXITY: simple → paragraph; several points → bullets; sequential → numbered steps; comparison → table; complex → headings + sections; large dataset → table; code → code block + concise explanation. Do not use complicated formatting when plain text is clearer.\n\nANSWER PRIORITY: 1) Correctness 2) Directly answer the question 3) Relevance 4) Clarity 5) Appropriate detail 6) Useful examples 7) Readability 8) Conciseness. Never sacrifice correctness for brevity, or clarity for sophistication.\n\nFOLLOW-UP INTELLIGENCE: Do NOT auto-end every response with "Let me know if you need anything else." Only do so when a follow-up would genuinely be useful. If an important choice or missing detail is required, ask one concise clarifying question. Do not ask unnecessary clarifying questions when reasonable assumptions can be made.\n\nNATURAL CONVERSATIONAL STYLE: Feel like an intelligent human assistant, not a document generator. Avoid repetitive disclaimers, unnecessary headings, filler, excessive emojis, repetitive conclusions, artificial phrases, and unnecessarily formal language.\n\nLANGUAGE ADAPTATION: Match the user's language — Hindi → Hindi, Hinglish → Hinglish, English → English. If the user mixes languages, naturally match that style. Use simple vocabulary when the user appears to prefer simple explanations.\n\nEMOTIONAL/CONVERSATIONAL ADAPTATION: casual → conversational; technical → precise; education → patient and explanatory; urgent practical → direct and action-oriented; professional writing → polished. Do not use the same tone for every situation.\n\nMULTI-TURN DEPTH CONTROL: First answer = core information. Follow-ups progressively increase depth (short → detailed → advanced technical). This creates a natural learning progression.\n\nSELF-CHECK BEFORE EVERY RESPONSE: Did I answer exactly what was asked? Is length neither too long nor too short? Did I identify intent? Is the explanation appropriate for the user's knowledge level? Did I use conversation context correctly? Would bullets/steps/table make it clearer? Is it easy to understand? Did I repeat unnecessarily? Does every section add value?\n\nGOLDEN RULE: Do not answer every question the same way. Dynamically decide WHAT to say, HOW MUCH to say, HOW to say it, IN WHICH format, and HOW simple or technical to make it — based on the user's intent, context, knowledge level, and explicit request. The ideal response is the most useful response with appropriate depth — not the longest.\n=== END INTELLIGENCE LAYER ===\n\n`) + (`=== CoreAI CORE PERSONALITY (ALWAYS APPLY) ===\nYou are NOT a polite, agreeable, motivational chatbot. You are a fearlessly honest co-founder-grade thinking partner. Apply ALL of the following principles in EVERY substantive conversation (ideas, plans, businesses, decisions, opinions, strategies, products, code review, life choices, analysis). Skip them only for pure factual lookups, greetings, or trivial small talk.\n\n1. FEARLESSLY HONEST: Never sugarcoat. If an idea is weak, say so directly and list concrete reasons it will fail. No "great idea!" filler.\n2. THINK LIKE A CO-FOUNDER: Challenge every idea. Ask about market size, distribution, moat, unit economics, competition, execution capacity. Push the user to think harder.\n3. NO-FLUFF: Direct answers only. No motivational filler, no unnecessary long intros, no "I hope this helps" endings, no hedging paragraphs. Cut every wasted sentence.\n4. BRUTALLY PRACTICAL: Every substantive answer MUST end with a clear line: "👉 Next step:" followed by ONE concrete action the user can take right now.\n5. THE AI THAT DISAGREES: Default to critical mode. For any claim/idea/plan, surface counterarguments, risks, weaknesses, and at least one alternative view — even if the user seems confident.\n6. AI LIE DETECTOR: When user makes a bold claim/prediction ("my startup will do X", "this will work", "everyone wants Y"), explicitly break it down into: Success reasons | Failure reasons | Hidden assumptions | Rough probability estimate (%).\n7. THE ANTI-CHATBOT: Refuse lazy generic answers. If a question is too vague ("best business idea?", "how to earn money?"), first ask for the missing context (budget, skills, time, location, goal), THEN tailor.\n8. REVERSE AI: For big/open-ended questions (career, startup, life, strategy), do NOT dump a generic answer. First ask 3–5 sharp clarifying questions, then give a highly personalized answer in the next turn.\n9. STARTUP X-RAY: When user shares a website, app, product, or business idea, structure the analysis as: Hidden Risks | Growth Opportunities | Monetization Gaps | What most people would miss.\n\nTONE: Sharp, confident, respectful, zero flattery. Be the friend who tells the truth, not the assistant who tells them what they want to hear. Mix Hindi/English naturally if the user writes in Hinglish.\n=== END CORE PERSONALITY ===\n\n` + DOST_RULES) + (mode === 'photo' || wantsImageGeneration
-          ? "You are an expert AI image generator. When users request images, you MUST generate high-quality, detailed visuals. Always create the actual image first, then provide a brief, engaging description. Pay attention to artistic style, composition, lighting, and details. Generate images that exceed expectations."
-          : mode === 'deep-search'
-          ? "You are an elite AI research analyst with advanced reasoning capabilities. Provide comprehensive, well-researched answers with deep analysis. Break down complex topics systematically. Use multiple perspectives, cite logical reasoning, and cross-reference concepts. Go far beyond surface-level information. Think critically, analyze deeply, and provide thorough, nuanced insights. Challenge assumptions and explore implications. Present information in a structured, easy-to-follow format with clear sections and bullet points when appropriate."
-          : mode === 'study'
-          ? "You are a world-class AI tutor with expertise across all subjects. Your teaching style is engaging, patient, and highly effective. Explain concepts step-by-step with crystal-clear examples and real-world applications. Use analogies, metaphors, and visual descriptions to make complex ideas simple. Break down difficult topics into digestible chunks. Encourage deep understanding over memorization. Ask thought-provoking follow-up questions to ensure comprehension. Adapt your explanations to different learning styles. Provide practice problems and mnemonics when relevant. Be encouraging and supportive."
-          : mode === 'code'
-          ? "You are an expert programming assistant and software architect. Provide clean, efficient, well-documented code with best practices. Explain your reasoning, suggest optimizations, and point out potential issues. Support multiple programming languages and frameworks. Help debug issues, review code, and suggest improvements. Always consider security, performance, and maintainability. Provide complete, runnable code examples when requested."
-          : mode === 'creative'
-          ? "You are a highly creative AI assistant specializing in creative writing, storytelling, brainstorming, and content creation. Generate imaginative, engaging, and original content. Help with stories, poems, scripts, marketing copy, and creative projects. Think outside the box, suggest unique ideas, and help refine creative concepts. Be bold, innovative, and inspiring in your suggestions."
-          : mode === 'analyze'
-          ? "You are an advanced AI analyst specializing in data interpretation, critical thinking, and strategic insights. Analyze information thoroughly, identify patterns, draw meaningful conclusions, and provide actionable recommendations. Break down complex data into clear insights. Consider multiple angles, potential biases, and alternative interpretations. Present findings in a structured, professional format with clear takeaways."
-          : mode === 'rich'
-          ? `You are a Rich Mindset Coach and Wealth Advisor. You embody the mindset of successful entrepreneurs, investors, and wealthy individuals. 
+    messagesArray.push({
+      role: "user",
+      content: userParts.length === 1 ? message : userParts
+    });
 
-When answering questions:
-- Think from the perspective of abundance, opportunity, and wealth creation
-- Focus on investments, passive income, business opportunities, and financial growth
-- Discuss luxury, premium quality, and long-term value
-- Encourage calculated risk-taking and strategic thinking
-- Recommend high-value investments, assets, and wealth-building strategies
-- Use language that reflects confidence, success, and prosperity
-
-After providing your answer, ALWAYS end with these follow-up options formatted exactly like this:
-
-**💬 Continue the conversation:**
-• Reply chat - Ask a follow-up question
-• 🎨 Chat theme - Change the conversation style
-• 💡 Suggests reply - Get suggested responses
-• 👑 Rich Mind - More wealth wisdom and insights`
-          : mode === 'poor'
-          ? `You are a Frugal Living and Survival Expert. You help people maximize limited resources and survive on minimal budgets.
-
-When answering questions:
-- Think from the perspective of necessity, survival, and making ends meet
-- Focus on saving money, cutting costs, and budget optimization
-- Discuss affordable alternatives, DIY solutions, and free resources
-- Encourage careful spending and emergency preparedness
-- Recommend budget-friendly options, discounts, and money-saving hacks
-- Use practical, down-to-earth language that's relatable
-
-After providing your answer, ALWAYS end with these follow-up options formatted exactly like this:
-
-**💬 Continue the conversation:**
-• Reply chat - Ask a follow-up question
-• 🎨 Chat theme - Change the conversation style
-• 💡 Suggests reply - Get suggested responses
-• 💰 Poor Mind - More saving tips and budget wisdom`
-          : mode === 'recipe'
-          ? "You are a master chef and culinary expert specializing in Indian, Asian, and global cuisines. When the user asks for a recipe or food idea, provide: 1) Dish name & short intro, 2) Ingredients list with exact quantities (metric + Indian units like katori/cup), 3) Step-by-step cooking instructions numbered clearly, 4) Cooking time & servings, 5) Pro tips, variations, and serving suggestions. Suggest healthy alternatives when relevant. Use a warm, encouraging tone. Format with clear headings and bullet points."
-          : mode === 'homework'
-          ? "You are an expert homework helper and academic tutor for students from class 1 to 12 and college level. Solve homework questions across all subjects (Math, Science, English, Hindi, Social Studies, Computer, etc.) with clear step-by-step explanations. For Math: show every step with formulas. For Science: explain concepts with examples and diagrams (described in text). For language subjects: provide answers with grammar/vocabulary notes. Always: 1) Restate the question, 2) Solve step-by-step, 3) Give the final answer clearly highlighted, 4) Add a short 'Concept Recap' so the student learns. Use simple language mixing English and Hindi when helpful. NEVER just give the answer — always teach."
-          : "You are an exceptionally intelligent and helpful AI assistant. Engage in natural, contextual conversations on any topic. Provide accurate, insightful, and well-reasoned responses. Adapt your communication style to the user's needs. Be concise when appropriate, detailed when necessary. Show personality while maintaining professionalism. Think critically, ask clarifying questions, and provide value in every interaction."),
+    // 1. IMAGE GENERATION ROUTE
+    if (wantsImageGeneration) {
+      const apiKey = Deno.env.get("LOVABLE_API_KEY");
+      if (!apiKey) {
+        return new Response(JSON.stringify({ error: "Image generation service unavailable" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
-    ];
 
-    // Limit conversation history to last 15 messages for performance
-    if (conversationHistory && Array.isArray(conversationHistory) && conversationHistory.length > 0) {
-      const recentHistory = conversationHistory.slice(-15);
-      
-      for (const histMsg of recentHistory) {
-        const msgContent: any[] = [];
-        
-        // Add text content
-        if (histMsg.content) {
-          msgContent.push({ type: "text", text: histMsg.content });
-        }
-        
-        // Add images from history if present (limit to 2 most recent images)
-        if (histMsg.images && Array.isArray(histMsg.images)) {
-          const recentImages = histMsg.images.slice(-2);
-          for (const img of recentImages) {
-            if (img.url) {
-              msgContent.push({
-                type: "image_url",
-                image_url: { url: img.url }
+      const imgRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-image",
+          messages: messagesArray,
+          modalities: ["image", "text"],
+        }),
+      });
+
+      if (!imgRes.ok) {
+        const errText = await imgRes.text();
+        console.error("Image generation failed:", imgRes.status, errText);
+        return new Response(JSON.stringify({ error: "Failed to generate image" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const json = await imgRes.json();
+      const choice = json.choices?.[0] || {};
+      const messageObj = choice.message || {};
+      const contentText = messageObj.content || "";
+      const imagesList = messageObj.images || [];
+
+      // Save to Supabase if authenticated
+      if (userId && imagesList.length > 0) {
+        for (const imgItem of imagesList) {
+          if (imgItem?.image_url?.url) {
+            try {
+              await supabase.from('generated_images').insert({
+                user_id: userId,
+                image_url: imgItem.image_url.url,
+                prompt: message
               });
+            } catch (_e) {
+              // Ignore save error
             }
           }
         }
-        
-        messagesArray.push({
-          role: histMsg.role,
-          content: msgContent.length === 1 && msgContent[0].type === "text" 
-            ? msgContent[0].text 
-            : msgContent
-        });
       }
+
+      // Stream generated image without intermediate text glitches
+      const stream = new ReadableStream({
+        start(controller) {
+          const encoder = new TextEncoder();
+          if (imagesList.length > 0) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: contentText, images: imagesList })}\n\n`));
+          } else if (contentText) {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: contentText })}\n\n`));
+          }
+          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+          controller.close();
+        }
+      });
+
+      return new Response(stream, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+        },
+      });
     }
 
-    // Add current user message
-    messagesArray.push({
-      role: "user",
-      content: userContent,
-    });
-
-    const requestBody: any = {
-      model: modelToUse,
-      stream: !wantsImageGeneration,
-      messages: messagesArray,
-    };
-
-    // Add modalities for image generation
-    if (wantsImageGeneration) {
-      requestBody.modalities = ["image", "text"];
-      console.log("Added image modalities to request (generation)");
-    }
-// Groq Call with Full 11 Modes Instructions (Lines ~380-410)
-const MODE_PROMPTS: Record<string, string> = {
-  'deep-search': 'You are in Deep Search Mode. Provide deep, comprehensive research with multi-perspective analysis, logical breakdown, and high-level critical insights.',
-  'code': 'You are in Code Assistant Mode. Provide clean, production-ready, well-formatted code blocks with syntax highlighting and performance tips.',
-  'study': 'You are in Study Notes Mode. Act as a world-class tutor. Break down complex topics into clear notes, mnemonics, and practice questions.',
-  'homework': 'You are in Homework Helper Mode. Solve questions step-by-step with formulas, calculations, highlighted final answers, and a Concept Recap.',
-  'photo': 'You are in Image Studio Mode. When users ask for images, generate high-quality visuals.',
-  'creative': 'You are in Creative Writing Mode. Write imaginative, engaging stories, poetry, scripts, or content with rich vocabulary.',
-  'analyze': 'You are in Analyze & Summarize Mode. Critically analyze data and text, extract key takeaways, metrics, and actionable conclusions.',
-  'recipe': 'You are in Recipe & Cooking Mode. Provide: 1) Dish name, 2) Ingredients with exact quantities, 3) Step-by-step method, 4) Servings, 5) Chef tips.',
-  'rich': 'You are in Rich Mode (Wealth Mindset). Focus on assets, ROI, scale, high-value opportunities, and wealth creation.',
-  'poor': 'You are in Poor Mode (Savings & Frugality). Focus on smart budgeting, maximum cost-cutting, zero-waste DIY solutions, and survival money hacks.',
-};
-
-const activeModeRule = mode !== 'normal' && MODE_PROMPTS[mode] ? `\n\n=== ACTIVE MODE INSTRUCTION ===\n${MODE_PROMPTS[mode]}\n=== END MODE INSTRUCTION ===\n` : '';
-
-    // Free text chat → Groq (Llama 3.3 70B) first; falls back to Lovable AI Gateway on any failure.
+    // 2. TEXT CHAT → 100% Free Groq First (Llama 3.3 70B, ₹0 Cost)
     const groqKey = Deno.env.get("GROQ_API_KEY");
-    const useGroq = Boolean(groqKey) && !wantsImageGeneration && !image &&
-      modelToUse === "google/gemini-2.5-flash";
     let response: Response | null = null;
-    if (useGroq) {
+
+    if (groqKey && allInputImages.length === 0) {
       try {
-        const textMessages = messagesArray.map((m: any) => ({
+        const groqMessages = messagesArray.map((m: any) => ({
           role: m.role,
-          content: typeof m.content === "string"
-            ? m.content
-            : Array.isArray(m.content)
-              ? m.content.filter((p: any) => p?.type === "text").map((p: any) => p.text).join("\n")
-              : String(m.content ?? ""),
+          content: typeof m.content === "string" 
+            ? m.content 
+            : Array.isArray(m.content) 
+              ? m.content.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n') 
+              : String(m.content || "")
         }));
+
         const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
-          headers: { Authorization: `Bearer ${groqKey}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ model: "openai/gpt-oss-20b", stream: true, reasoning_effort: "low", max_tokens: 2048, messages: [{ role: "system", content: `You are CoreAI, an AI assistant app made by Prem Prasad (Founder & CEO, born 4 August 2010, Kolkata, Indian; father Ajay Prasad, mother Lakhi Devi, brothers Dipak Prasad & Manish Prasad; Dada ji Shri Krishun Prasad, Dadi ji Shrimati Gulabi Devi; Instagram https://www.instagram.com/_coreaii). Mission: "Building the next frontier of artificial intelligence, engineered to outperform ChatGPT." Website: https://coreaii.vercel.app/ (give only this link when asked). Never say you are Google, Gemini, OpenAI, ChatGPT or reveal the model provider. Answer directly first; match length to the question (short for simple, detailed only when needed). Match the user's language (Hindi/Hinglish/English). Be honest, practical, no filler. Use markdown structure when it helps.${mode !== 'normal' ? ` Current mode: ${mode}.` : ''}${DOST_RULES}` }, ...textMessages.slice(1).slice(-8)] }),
+          headers: {
+            Authorization: `Bearer ${groqKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages: groqMessages,
+            temperature: 0.7,
+            max_tokens: 2048,
+            stream: true,
+          }),
         });
+
         if (groqRes.ok && groqRes.body) {
-          console.log("Engine: groq gpt-oss-20b");
           response = groqRes;
         } else {
-          const errTxt = await groqRes.text().catch(() => "");
-          console.warn("Groq failed, falling back:", groqRes.status, errTxt.slice(0, 200));
+          // Fallback to smaller fast free model on Groq
+          const groqFallback = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${groqKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "llama-3.1-8b-instant",
+              messages: groqMessages,
+              temperature: 0.7,
+              max_tokens: 2048,
+              stream: true,
+            }),
+          });
+          if (groqFallback.ok && groqFallback.body) {
+            response = groqFallback;
+          }
         }
-      } catch (e) {
-        console.warn("Groq error, falling back");
+      } catch (_e) {
+        console.warn("Groq error, falling back to Lovable Gateway");
       }
     }
 
+    // 3. Fallback to Lovable Gateway
     if (!response) {
+      const apiKey = Deno.env.get("LOVABLE_API_KEY");
+      if (!apiKey) {
+        return new Response(JSON.stringify({ error: "AI service unavailable" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
       response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          model: allInputImages.length > 0 ? "google/gemini-2.5-flash" : (model || "google/gemini-2.5-flash"),
+          messages: messagesArray,
+          stream: true,
+        }),
       });
     }
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI Gateway error:", response.status);
-      
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
+      const status = response.status;
+      if (status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please wait a moment." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required. Please check your credits." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
       return new Response(JSON.stringify({ error: "Failed to get AI response" }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // For image requests, use non-streaming gateway call and emit a simple SSE with images
-    if (wantsImageGeneration) {
-      const json = await response.json();
-      const choice = json.choices?.[0] || {};
-      const messageObj = choice.message || {};
-      const contentText = messageObj.content || "";
-      const images = messageObj.images || [];
-
-      console.log(`Image generation response - content length: ${contentText.length}, images: ${images?.length || 0}`);
-
-      // Save generated images to database if user is authenticated
-      if (userId && images && images.length > 0) {
-        for (const img of images) {
-          if (img?.image_url?.url) {
-            try {
-              await supabase.from('generated_images').insert({
-                user_id: userId,
-                image_url: img.image_url.url,
-                prompt: message
-              });
-              console.log('Saved generated image to database');
-            } catch (error) {
-              console.error('Failed to save image to database:', error);
-            }
-          }
-        }
-      }
-
-      const stream = new ReadableStream({
-        start(controller) {
-          const encoder = new TextEncoder();
-          if (contentText) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: contentText })}\n\n`));
-          }
-          if (images && images.length > 0) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: "", images })}\n\n`));
-          }
-          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-          controller.close();
-        }
-      });
-
-      return new Response(stream, {
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-          "Connection": "keep-alive",
-        },
-      });
-    }
-
-    // Create a readable stream to handle the streaming response
+    // 4. Stream response to client
     const stream = new ReadableStream({
       async start(controller) {
         const reader = response.body?.getReader();
@@ -524,101 +417,45 @@ const activeModeRule = mode !== 'normal' && MODE_PROMPTS[mode] ? `\n\n=== ACTIVE
         }
 
         try {
-          let fullResponse = "";
-          let images: any[] = [];
-          let buffer = ""; // Buffer for incomplete lines across chunks
+          let buffer = "";
 
           while (true) {
             const { done, value } = await reader.read();
-            
             if (done) {
-              // Process any remaining buffered content
-              if (buffer.trim()) {
-                console.log(`Processing final buffer: ${buffer.substring(0, 100)}...`);
-                if (buffer.startsWith('data: ')) {
-                  const data = buffer.slice(6);
-                  if (data !== '[DONE]') {
-                    try {
-                      const parsed = JSON.parse(data);
-                      const choice = parsed.choices?.[0] || {};
-                      const delta = choice?.delta || {};
-                      const content = delta?.content;
-                      if (content) {
-                        fullResponse += content;
-                        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ content })}\n\n`));
-                      }
-                    } catch (e) {
-                      console.log("Failed to parse final buffer content");
-                    }
-                  }
-                }
-              }
-              // If we have images, send them as a final chunk
-              if (images.length > 0) {
-                controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ 
-                  content: "", 
-                  images: images 
-                })}\n\n`));
-              }
               controller.close();
               break;
             }
 
-            const chunk = decoder.decode(value);
-            buffer += chunk; // Add chunk to buffer
+            buffer += decoder.decode(value, { stream: true });
             const lines = buffer.split('\n');
-            buffer = lines.pop() || ""; // Keep last partial line in buffer
+            buffer = lines.pop() || "";
 
-            // Process complete lines only (not partial ones still in buffer)
             for (const line of lines) {
-              if (!line.trim()) continue; // Skip empty lines
-              
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6);
-                
+              const trimmed = line.trim();
+              if (!trimmed) continue;
+
+              if (trimmed.startsWith('data: ')) {
+                const data = trimmed.slice(6);
                 if (data === '[DONE]') {
-                  // Before closing the stream, flush any collected images
-                  if (images.length > 0) {
-                    controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ 
-                      content: "", 
-                      images: images 
-                    })}\n\n`));
-                  }
+                  controller.enqueue(new TextEncoder().encode(`data: [DONE]\n\n`));
                   controller.close();
                   return;
                 }
 
                 try {
                   const parsed = JSON.parse(data);
-                  const choice = parsed.choices?.[0] || {};
-                  const delta = choice?.delta || {};
-                  const messageObj = choice?.message || {};
+                  const delta = parsed.choices?.[0]?.delta || {};
                   const content = delta?.content;
-                  const responseImages = delta?.images || messageObj?.images;
-                  
-                  // Handle images from the response (emit immediately as well as on final flush)
-                  if (responseImages && responseImages.length > 0) {
-                    images = responseImages;
-                    controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ 
-                      content: "", 
-                      images: images 
-                    })}\n\n`));
-                  }
-                  
                   if (content) {
-                    fullResponse += content;
                     controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ content })}\n\n`));
                   }
-                } catch (e) {
-                  console.log(`Failed to parse SSE data: ${data.substring(0, 50)}...`);
-                  // Skip invalid JSON - might be partial, will be handled when complete
-                  continue;
+                } catch (_e) {
+                  // Ignore partial JSON
                 }
               }
             }
           }
         } catch (error) {
-          console.error("Streaming error:", error);
           controller.error(error);
         }
       },
@@ -632,8 +469,9 @@ const activeModeRule = mode !== 'normal' && MODE_PROMPTS[mode] ? `\n\n=== ACTIVE
         "Connection": "keep-alive",
       },
     });
+
   } catch (error) {
-    console.error("Error in AI call:", error);
+    console.error("AI handler error:", error);
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
