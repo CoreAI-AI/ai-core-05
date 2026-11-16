@@ -5,27 +5,16 @@ import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatInput } from "@/components/ChatInput";
 import { QuickActionCards } from "@/components/QuickActionCards";
 import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
-import { ChatHeader } from "@/components/ChatHeader";
 import { ChatSearch } from "@/components/ChatSearch";
 import { Settings } from "@/components/Settings";
-import { SubscriptionPopup } from "@/components/SubscriptionPopup";
-import { ManageSubscriptionDialog } from "@/components/ManageSubscriptionDialog";
-import { UnlockPopup } from "@/components/UnlockPopup";
-import { MemoryControl } from "@/components/MemoryControl";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDailyLimit } from "@/hooks/useDailyLimit";
 import { useUsageLimits } from "@/hooks/useUsageLimits";
-import { useAutoScroll } from "@/hooks/useAutoScroll";
 import { toast } from "sonner";
-import { X, Sparkles, Image as ImageIcon } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { X, PanelLeft, Search, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getCached, setCached, isCacheable } from "@/lib/aiCache";
 import { tryLocalReply } from "@/lib/smallTalk";
-import { recordChatExport, recordChatShare } from "@/lib/analytics";
-import { Chat } from "@/hooks/useChats";
 import { getPendingFollowUp, clearPendingFollowUp, getCompanionMemory, setCompanionName, detectUserName } from "@/lib/companionMemory";
-import { FloatingQuickActions } from "@/components/FloatingQuickActions";
 
 interface AttachedFileItem {
   id: string;
@@ -44,7 +33,7 @@ const MODE_INSTRUCTIONS: Record<string, string> = {
   'analyze': 'You are in Analyze & Summarize Mode. Critically analyze data and text, extract key takeaways, metrics, underlying patterns, pros/cons, and actionable conclusions.',
   'recipe': 'You are in Recipe & Cooking Mode. Provide: 1) Dish name & short intro, 2) Ingredients list with exact quantities, 3) Step-by-step numbered cooking method, 4) Prep time & servings, 5) Chef pro tips.',
   'rich': 'You are in Rich Mode (Wealth Mindset). Think like a billionaire investor and entrepreneur. Focus on assets, cash flow, ROI, scalable businesses, high-value opportunities, and prosperity.',
-  'poor': 'You are in Poor Mode (Savings & Frugality). Focus on smart budgeting, maximum cost-cutting, zero-waste DIY solutions, and survival money hacks.',
+  'poor': 'You are in Poor Mode (Savings & Frugality). Focus on smart budgeting, maximum cost-cutting, zero-waste DIY solutions, and survival money hacks.'
 };
 
 const detectSubscriptionIntent = (text: string) => {
@@ -57,7 +46,7 @@ const detectSubscriptionIntent = (text: string) => {
   return keywords.some(k => lower.includes(k));
 };
 
-// Image generation intent detector in chat
+// In-chat image generation trigger words (Hindi + English)
 const isImageGenerationPrompt = (text: string) => {
   const lower = text.toLowerCase().trim();
   const directKeywords = [
@@ -78,31 +67,22 @@ const isImageGenerationPrompt = (text: string) => {
 
 const Index = () => {
   const { user } = useAuth();
-  const { chats, currentChat, messages, loading, createChat, selectChat, deleteChat, addMessage, updateMessage, updateMessageLocal } = useChats(user?.id);
+  const { chats, currentChat, messages, createChat, selectChat, deleteChat, addMessage, updateMessage, updateMessageLocal } = useChats(user?.id);
   const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
-  const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
-  const [showManageSubscription, setShowManageSubscription] = useState(false);
   const { isPremium } = useSubscription();
   const { recordUsage } = useDailyLimit(user?.id, isPremium);
   const usageLimits = useUsageLimits(user?.id, isPremium);
-  const [unlockPopup, setUnlockPopup] = useState<{ open: boolean; reason?: 'daily' | 'mode'; modeLabel?: string }>({ open: false });
+  const [, setUnlockPopup] = useState<{ open: boolean; reason?: 'daily' | 'mode'; modeLabel?: string }>({ open: false });
   const [isLoading, setIsLoading] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   
-  // Multiple files up to 8 images
+  // Up to 8 attached files / images
   const [attachedFiles, setAttachedFiles] = useState<AttachedFileItem[]>([]);
-  
   const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework'>('normal');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 768);
-  const [showQuickActions, setShowQuickActions] = useState(true);
-  const [hasNewMessage, setHasNewMessage] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
-  const [isUserTyping, setIsUserTyping] = useState(false);
-  
-  const [openTabs, setOpenTabs] = useState<Chat[]>([]);
-  const [activeTabId, setActiveTabId] = useState<string | null>(null);
+  const [, setIsUserTyping] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string; index: number } | null>(null);
 
@@ -110,12 +90,17 @@ const Index = () => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const userScrolledUpRef = useRef(false);
 
-  const { scrollToBottom, forceScrollToBottom } = useAutoScroll({
-    messagesLength: messages.length,
-    isLoading: isLoading || isAITyping || isGeneratingImage,
-    containerRef: chatContainerRef,
-    messagesEndRef
-  });
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior, block: 'end' });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!userScrolledUpRef.current) {
+      scrollToBottom('smooth');
+    }
+  }, [messages.length, isAITyping, isGeneratingImage, scrollToBottom]);
 
   const compressImage = (file: File, maxWidth = 1024, quality = 0.8): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -144,10 +129,9 @@ const Index = () => {
     });
   };
 
-  // Up to 8 files selection
   const handleFilesSelect = async (files: File[]) => {
     if (attachedFiles.length + files.length > 8) {
-      toast.error("Maximum 8 images can be attached at once.");
+      toast.error("Maximum 8 images/files can be attached at once.");
       return;
     }
 
@@ -156,7 +140,6 @@ const Index = () => {
       if (attachedFiles.length + newItems.length >= 8) break;
       const isImg = file.type.startsWith('image/');
       let preview: string | null = null;
-
       if (isImg) {
         try {
           preview = await compressImage(file);
@@ -168,7 +151,6 @@ const Index = () => {
           });
         }
       }
-
       newItems.push({
         id: `${file.name}-${Date.now()}-${Math.random()}`,
         file,
@@ -185,28 +167,23 @@ const Index = () => {
     setAttachedFiles(prev => prev.filter(f => f.id !== id));
   };
 
-  const buildCompanionContext = (incomingMessage: string): string => {
+  const buildCompanionContext = (incomingMessage: string) => {
     const memory = getCompanionMemory();
     const parts: string[] = [];
-
     const detected = detectUserName(incomingMessage);
     if (detected && detected !== memory.userName) {
       setCompanionName(detected);
       memory.userName = detected;
     }
-
     if (memory.userName) parts.push(`User name: ${memory.userName}`);
     const followUp = getPendingFollowUp();
     if (followUp) {
       parts.push(`PENDING FOLLOW-UP: User mentioned "${followUp.topic}" on ${new Date(followUp.date).toLocaleDateString()}. Ask warmly how it went.`);
       clearPendingFollowUp();
     }
-
-    // Add active mode instruction to context so Groq & Gemini ALWAYS follow it
     if (chatMode !== 'normal' && MODE_INSTRUCTIONS[chatMode]) {
       parts.push(`MODE INSTRUCTION: ${MODE_INSTRUCTIONS[chatMode]}`);
     }
-
     return parts.join(" | ");
   };
 
@@ -216,11 +193,7 @@ const Index = () => {
     const gate = usageLimits.checkCanSend(chatMode);
     if (!gate.allowed) {
       const modeLabels: Record<string, string> = { chat: 'Chat', study: 'Study', photo: 'Image', code: 'Code' };
-      setUnlockPopup({
-        open: true,
-        reason: gate.reason,
-        modeLabel: modeLabels[chatMode] || chatMode
-      });
+      setUnlockPopup({ open: true, reason: gate.reason, modeLabel: modeLabels[chatMode] || chatMode });
       return;
     }
 
@@ -231,32 +204,18 @@ const Index = () => {
       if (!chatToUse) return;
     }
 
-    // Multiple images (up to 8) for user message
     const messageImages = attachedFiles
       .filter(f => f.isImage && f.preview)
-      .map(f => ({
-        url: f.preview!,
-        type: f.file.type,
-        name: f.file.name
-      }));
+      .map(f => ({ url: f.preview as string, type: f.file.type, name: f.file.name }));
 
-    const userMessage = await addMessage(
-      chatToUse.id, 
-      content, 
-      true, 
-      messageImages.length > 0 ? messageImages : undefined
-    );
+    const userMessage = await addMessage(chatToUse.id, content, true, messageImages.length > 0 ? messageImages : undefined);
     if (!userMessage) return;
 
     userScrolledUpRef.current = false;
-    forceScrollToBottom();
+    scrollToBottom('auto');
 
     if (detectSubscriptionIntent(content)) {
-      await addMessage(
-        chatToUse.id,
-        `CoreAI is 100% free with 20 chats every day. Lifetime zero cost for you! ⚡`,
-        false
-      );
+      await addMessage(chatToUse.id, `CoreAI is 100% free with 20 chats every day. Lifetime zero cost for you! ⚡`, false);
       return;
     }
 
@@ -270,17 +229,17 @@ const Index = () => {
 
     recordUsage(chatMode);
     usageLimits.recordSend(chatMode);
-
     setIsLoading(true);
     setIsAITyping(true);
 
     try {
       const aiMessage = await addMessage(chatToUse.id, "", false);
       if (!aiMessage) return;
+
       const { data: session } = await supabase.auth.getSession();
       const authToken = session?.session?.access_token;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      // Extract file text if non-image file was uploaded
       let fileTextToSend: string | undefined;
       let fileNameToSend: string | undefined;
       const firstDoc = attachedFiles.find(f => !f.isImage);
@@ -291,13 +250,11 @@ const Index = () => {
         } catch {}
       }
 
-      // Check if this is an image generation request anywhere in chat
       const isImgGen = chatMode === 'photo' || isImageGenerationPrompt(content);
       let promptToSend = content;
 
       if (isImgGen) {
         setIsGeneratingImage(true);
-        // Enrich prompt if referential like "iska image banao"
         const isReferential = /\b(iska|iski|isko|is|inme|ye|yeh|this|that|it|same|story)\b/i.test(content);
         if (isReferential) {
           const lastAiMsg = [...messages].reverse().find(m => !m.is_user && m.content);
@@ -305,7 +262,6 @@ const Index = () => {
             promptToSend = `Create a high quality visual image representing this: ${lastAiMsg.content.slice(0, 300)}. Request: ${content}`;
           }
         }
-        setImageGenerationPrompt(promptToSend);
       }
 
       const recentMessages = messages.slice(-12);
@@ -322,7 +278,8 @@ const Index = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+          'apikey': anonKey,
+          'Authorization': `Bearer ${authToken || anonKey}`
         },
         body: JSON.stringify({
           message: promptToSend,
@@ -379,7 +336,6 @@ const Index = () => {
             }
             if (parsed.content) {
               accumulatedContent += parsed.content;
-              // CRITICAL: Do NOT stream premature text while image is generating!
               if (!isImgGen) {
                 updateMessageLocal(aiMessage.id, accumulatedContent);
               }
@@ -388,7 +344,6 @@ const Index = () => {
         }
       }
 
-      // Final update after completion
       if (isImgGen) {
         const finalTxt = accumulatedContent.trim() || (receivedImages.length > 0 ? "✨ Here is your generated image:" : "I could not generate the image. Please try a different prompt.");
         await updateMessage(aiMessage.id, finalTxt, receivedImages.length > 0 ? receivedImages : undefined);
@@ -397,7 +352,6 @@ const Index = () => {
         await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
       }
 
-      // Clear attachments after successful send
       setAttachedFiles([]);
     } catch (error) {
       console.error('Error calling AI:', error);
@@ -444,15 +398,43 @@ const Index = () => {
         onOpenSettings={() => setShowSettings(true)}
       />
 
-      {/* Main Canvas */}
+      {/* Main Chat Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 bg-background relative overflow-hidden">
-        <ChatHeader
-          currentChat={currentChat}
-          onToggleSidebar={() => setSidebarCollapsed(prev => !prev)}
-          onOpenSearch={() => setSearchOpen(true)}
-          onNewChat={() => createChat("New Chat")}
-          sidebarCollapsed={sidebarCollapsed}
-        />
+        {/* Sleek Header */}
+        <header className="px-3 py-2.5 sm:px-4 flex items-center justify-between shrink-0 gap-2 border-b border-border/30 bg-background/80 backdrop-blur-md z-10">
+          <div className="flex items-center gap-2 min-w-0">
+            {sidebarCollapsed && (
+              <button
+                onClick={() => setSidebarCollapsed(false)}
+                className="h-8 w-8 rounded-lg hover:bg-muted/70 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+                title="Open Sidebar"
+              >
+                <PanelLeft className="h-4 w-4" />
+              </button>
+            )}
+            <h1 className="text-sm font-semibold truncate text-foreground">
+              {currentChat?.title || "CoreAI"}
+            </h1>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="h-8 px-2.5 rounded-lg hover:bg-muted/70 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
+              title="Search Chat"
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Search</span>
+            </button>
+            <button
+              onClick={() => createChat("New Chat")}
+              className="h-8 px-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-xs font-medium text-primary flex items-center gap-1.5 transition-colors"
+              title="New Chat"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">New Chat</span>
+            </button>
+          </div>
+        </header>
 
         {searchOpen && (
           <ChatSearch
@@ -462,7 +444,7 @@ const Index = () => {
           />
         )}
 
-        {/* Content Area */}
+        {/* Message Container */}
         <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-2 sm:px-4 py-2">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center p-4">
@@ -479,7 +461,7 @@ const Index = () => {
           )}
         </div>
 
-        {/* Multiple Image Preview Strip (Up to 8 Images) */}
+        {/* Multi-Image Preview Strip (Up to 8 Images) */}
         {attachedFiles.length > 0 && (
           <div className="px-3 py-1.5 bg-muted/40 border-t border-border/50 max-w-2xl mx-auto w-full">
             <div className="flex items-center justify-between text-[11px] text-muted-foreground pb-1">
@@ -535,7 +517,17 @@ const Index = () => {
 
       {/* Settings Modal */}
       {showSettings && (
-        <Settings isOpen={showSettings} onClose={() => setShowSettings(false)} />
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-background border border-border rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
+            <button
+              onClick={() => setShowSettings(false)}
+              className="absolute top-4 right-4 h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <Settings user={user} />
+          </div>
+        </div>
       )}
     </div>
   );
