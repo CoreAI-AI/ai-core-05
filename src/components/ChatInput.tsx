@@ -204,8 +204,8 @@ export const ChatInput = memo(({
         className="hidden"
       />
 
-      {/* Option 2: Neon Cyan Pulse & Ambient Glass Effect */}
-      <div className="relative bg-card/90 dark:bg-[#12161F]/90 backdrop-blur-xl border border-border/80 dark:border-cyan-500/20 rounded-2xl sm:rounded-3xl shadow-sm hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-cyan-500/30 focus-within:shadow-[0_0_24px_rgba(6,182,212,0.18)] transition-all duration-300 ease-in-out p-2 sm:p-2.5">
+      {/* Option 3: Tactile Cushion Elastic Scale + Clean Offset Ring */}
+      <div className="relative bg-card/95 dark:bg-[#1A1A18]/95 backdrop-blur-md border border-border/70 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm hover:scale-[1.008] hover:border-foreground/25 hover:shadow-md focus-within:scale-[1.008] focus-within:border-foreground/40 focus-within:ring-2 focus-within:ring-foreground/20 focus-within:ring-offset-2 focus-within:ring-offset-background focus-within:shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] p-2 sm:p-2.5">
         
         {/* Top Textarea Area */}
         <Textarea
@@ -230,7 +230,7 @@ export const ChatInput = memo(({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-cyan-400 hover:bg-cyan-500/10 shrink-0 transition-colors"
+                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 shrink-0 transition-colors"
                   title="Attach file or photo"
                 >
                   <Plus className="h-4 w-4" />
@@ -258,7 +258,7 @@ export const ChatInput = memo(({
                 <Button
                   type="button"
                   variant="ghost"
-                  className="h-7 px-2.5 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent hover:border-cyan-500/30 transition-all"
+                  className="h-7 px-2.5 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent hover:border-border/40 transition-all"
                   title="Change CoreAI Mode"
                 >
                   {activeModeConfig.id === 'normal' ? (
@@ -323,7 +323,7 @@ export const ChatInput = memo(({
               disabled={!message.trim() || disabled}
               className={`h-8 w-8 rounded-xl p-0 transition-all duration-200 flex items-center justify-center shrink-0 ${
                 message.trim() && !disabled
-                  ? "bg-cyan-500 text-white hover:bg-cyan-400 active:scale-95 shadow-md shadow-cyan-500/20"
+                  ? "bg-foreground text-background hover:opacity-90 active:scale-95 shadow-xs"
                   : "bg-muted/60 text-muted-foreground/40 cursor-not-allowed scale-95"
               }`}
               title="Send message"
