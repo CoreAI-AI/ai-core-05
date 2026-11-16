@@ -207,8 +207,8 @@ export const ChatInput = memo(({
         className="hidden"
       />
 
-      {/* Claude Signature Floating Box Container */}
-      <div className="relative bg-card/90 dark:bg-[#1E1E1C]/90 border border-border/70 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-md transition-all duration-200 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/20 p-2 sm:p-2.5">
+      {/* Option 1: Elevation Lift + Soft Primary Glow Aura */}
+      <div className="group relative bg-card/95 dark:bg-[#1C1F26]/95 backdrop-blur-md border border-border/80 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm hover:shadow-lg hover:shadow-primary/5 hover:border-primary/40 hover:-translate-y-0.5 focus-within:-translate-y-0.5 focus-within:border-primary/70 focus-within:ring-2 focus-within:ring-primary/25 focus-within:shadow-xl focus-within:shadow-primary/10 transition-all duration-300 ease-out p-2 sm:p-2.5">
         
         {/* Top Textarea Area */}
         <Textarea
@@ -300,7 +300,7 @@ export const ChatInput = memo(({
             </DropdownMenu>
           </div>
 
-          {/* Right Actions: Mic + Claude Squircle Send Button */}
+          {/* Right Actions: Mic + Send Button */}
           <div className="flex items-center gap-1.5">
             <Button
               type="button"
@@ -320,14 +320,14 @@ export const ChatInput = memo(({
               )}
             </Button>
 
-            {/* Claude-style Rounded Squircle Send Button */}
+            {/* Rounded Squircle Send Button */}
             <Button
               type="button"
               onClick={() => handleSubmit()}
               disabled={!message.trim() || disabled}
-              className={`h-8 w-8 rounded-xl p-0 transition-all flex items-center justify-center shrink-0 ${
+              className={`h-8 w-8 rounded-xl p-0 transition-all duration-200 flex items-center justify-center shrink-0 ${
                 message.trim() && !disabled
-                  ? "bg-foreground text-background hover:opacity-90 shadow-xs scale-100"
+                  ? "bg-foreground text-background hover:scale-105 active:scale-95 shadow-md"
                   : "bg-muted/60 text-muted-foreground/40 cursor-not-allowed scale-95"
               }`}
               title="Send message"
