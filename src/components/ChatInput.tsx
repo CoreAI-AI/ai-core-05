@@ -59,6 +59,20 @@ const availableModes: { id: ModeType; label: string; icon: any; color: string }[
   { id: 'poor', label: 'Poor Mode (Savings)', icon: PiggyBank, color: 'text-teal-400' },
 ];
 
+// 10 Typewriter Placeholder Prompts
+const placeholderPrompts: string[] = [
+  "How can CoreAI help you today?",
+  "Ask anything or solve a complex problem...",
+  "Write clean code in React, Python or C++...",
+  "Summarize an article, PDF or long document...",
+  "Draft a professional email, blog or essay...",
+  "Plan your daily routine, workout or budget...",
+  "Explain quantum physics in simple terms...",
+  "Brainstorm unique ideas for your next project...",
+  "Suggest healthy recipes with what you have...",
+  "Translate or learn any language with ease..."
+];
+
 export const ChatInput = memo(({
   onSendMessage,
   disabled,
@@ -71,10 +85,16 @@ export const ChatInput = memo(({
   const [message, setMessage] = useState("");
   const [currentMode, setCurrentMode] = useState<ModeType>("normal");
 
+  // Typewriter Animation States
+  const [placeholderText, setPlaceholderText] = useState("");
+  const [promptIndex, setPromptIndex] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
 
+  // Auto focus input
   useEffect(() => {
     const timer = setTimeout(() => {
       textareaRef.current?.focus();
@@ -82,6 +102,7 @@ export const ChatInput = memo(({
     return () => clearTimeout(timer);
   }, []);
 
+  // Handle message editing
   useEffect(() => {
     if (editingMessage) {
       setMessage(editingMessage.content);
@@ -89,6 +110,42 @@ export const ChatInput = memo(({
     }
   }, [editingMessage]);
 
+  // Dynamic Typewriter Effect for Placeholder
+  useEffect(() => {
+    if (message.length > 0) return; // Pause typewriter when user is typing
+
+    const currentPhrase = placeholderPrompts[promptIndex % placeholderPrompts.length];
+    let timer: NodeJS.Timeout;
+
+    if (!isDeleting) {
+      if (placeholderText.length < currentPhrase.length) {
+        // Typing characters
+        timer = setTimeout(() => {
+          setPlaceholderText(currentPhrase.slice(0, placeholderText.length + 1));
+        }, 55);
+      } else {
+        // Pause when full phrase is typed
+        timer = setTimeout(() => {
+          setIsDeleting(true);
+        }, 2200);
+      }
+    } else {
+      if (placeholderText.length > 0) {
+        // Backspacing / Deleting characters
+        timer = setTimeout(() => {
+          setPlaceholderText(currentPhrase.slice(0, placeholderText.length - 1));
+        }, 28);
+      } else {
+        // Switch to next phrase
+        setIsDeleting(false);
+        setPromptIndex((prev) => (prev + 1) % placeholderPrompts.length);
+      }
+    }
+
+    return () => clearTimeout(timer);
+  }, [placeholderText, isDeleting, promptIndex, message.length]);
+
+  // Auto-resize textarea height
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -204,19 +261,19 @@ export const ChatInput = memo(({
         className="hidden"
       />
 
-      {/* Option 3: Tactile Cushion Elastic Scale + Clean Offset Ring */}
+      {/* Tactile Cushion Elastic Scale + Clean Offset Ring */}
       <div className="relative bg-card/95 dark:bg-[#1A1A18]/95 backdrop-blur-md border border-border/70 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm hover:scale-[1.008] hover:border-foreground/25 hover:shadow-md focus-within:scale-[1.008] focus-within:border-foreground/40 focus-within:ring-2 focus-within:ring-foreground/20 focus-within:ring-offset-2 focus-within:ring-offset-background focus-within:shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] p-2 sm:p-2.5">
         
-        {/* Top Textarea Area */}
+        {/* Top Textarea with Animated Typewriter Placeholder */}
         <Textarea
           ref={textareaRef}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="How can CoreAI help you today?"
+          placeholder={placeholderText ? `${placeholderText}|` : "Ask CoreAI..."}
           disabled={disabled}
           rows={1}
-          className="w-full min-h-[44px] max-h-[160px] resize-none border-0 bg-transparent px-2 pt-1 pb-2 text-sm sm:text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none"
+          className="w-full min-h-[44px] max-h-[160px] resize-none border-0 bg-transparent px-2 pt-1 pb-2 text-sm sm:text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none transition-all duration-75"
         />
 
         {/* Bottom Ergonomic Action Bar */}
@@ -258,6 +315,7 @@ export const ChatInput = memo(({
                 <Button
                   type="button"
                   variant="ghost"
+                  size="sm"
                   className="h-7 px-2.5 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent hover:border-border/40 transition-all"
                   title="Change CoreAI Mode"
                 >
