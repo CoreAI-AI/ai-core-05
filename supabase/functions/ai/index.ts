@@ -287,7 +287,7 @@ ${DOST_RULES}`;
         }
       }
 
-      // Stream generated image without intermediate text glitches
+      // Stream generated image cleanly
       const stream = new ReadableStream({
         start(controller) {
           const encoder = new TextEncoder();
