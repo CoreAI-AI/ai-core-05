@@ -1,119 +1,228 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useChats, Message } from "@/hooks/useChats";
 import { ChatSidebar } from "@/components/ChatSidebar";
-import { ChatInput, ModeType } from "@/components/ChatInput";
-import { QuickActionCards } from "@/components/QuickActionCards";
-import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
-import { ChatSearch } from "@/components/ChatSearch";
+import { ChatInput } from "@/components/ChatInput";
+import { Auth } from "@/components/Auth";
 import { Settings } from "@/components/Settings";
+import { QuickActionCards } from "@/components/QuickActionCards";
+import { ScrollToBottom } from "@/components/ScrollToBottom";
+import { PageSkeleton } from "@/components/SkeletonLoader";
+import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
+import { SmartChatTabs } from "@/components/SmartChatTabs";
+import { PinnedMessages } from "@/components/PinnedMessages";
+import { QuickActionButtons } from "@/components/QuickActionButtons";
+import { SubscriptionPopup } from "@/components/SubscriptionPopup";
+import { ManageSubscriptionDialog } from "@/components/ManageSubscriptionDialog";
 import { useSubscription } from "@/hooks/useSubscription";
+import premiumLogo from "@/assets/coreai-premium-logo.png";
 import { useDailyLimit } from "@/hooks/useDailyLimit";
 import { useUsageLimits } from "@/hooks/useUsageLimits";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { UnlockPopup } from "@/components/UnlockPopup";
+import { MemoryControl } from "@/components/MemoryControl";
+import { ChatSearch } from "@/components/ChatSearch";
+import { ResponseLengthControl } from "@/components/ResponseLengthControl";
+import { useAuth } from "@/hooks/useAuth";
+import { useChats, Chat } from "@/hooks/useChats";
+import { useSettings } from "@/hooks/useSettings";
+import { useOfflineDraft } from "@/hooks/useOfflineDraft";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { X, PanelLeft, Search, SquarePen, Palette } from "lucide-react";
 import { toast } from "sonner";
-import { X, PanelLeft, Search, Plus, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { tryLocalReply } from "@/lib/smallTalk";
-import { buildCompanionContext as getCompanionMemoryContext } from "@/lib/companionMemory";
-import { cn } from "@/lib/utils";
-import coreaiLogo from "@/assets/coreai-logo.png";
-
-interface AttachedFileItem {
-  id: string;
-  file: File;
-  preview: string | null;
-  isImage: boolean;
-}
-
-// Strict Dedicated Task Enforcement for each of the 11 Modes
-const MODE_INSTRUCTIONS: Record<string, string> = {
-  'deep-search': 'STRICT MODE: Deep Search Mode. You ONLY conduct deep research, multi-perspective breakdown, structured logical sections, bullet points, and critical analytical insights.',
-  'code': 'STRICT MODE: Code Assistant Mode. You ONLY provide clean, production-ready, well-formatted code blocks with syntax highlighting and direct technical explanations. No unrelated fluff.',
-  'study': 'STRICT MODE: Study Notes Mode. You ONLY generate structured academic notes, key takeaways, mnemonics, real-world examples, and self-test questions.',
-  'homework': 'STRICT MODE: Homework Helper Mode. You ONLY solve academic questions step-by-step with formulas, calculations, highlighted final answers, and a Concept Recap.',
-  'photo': 'STRICT MODE: Image Studio Mode. You MUST focus entirely on image generation and visual rendering requests.',
-  'creative': 'STRICT MODE: Creative Writing Mode. You ONLY write imaginative stories, poetry, scripts, essays, or marketing copy with emotional depth and vivid flow.',
-  'analyze': 'STRICT MODE: Analyze & Summarize Mode. You ONLY critically analyze data and text, extract key metrics, underlying patterns, pros/cons, and concise actionable conclusions.',
-  'recipe': 'STRICT MODE: Recipe & Cooking Mode. You ONLY provide: 1) Dish name & intro, 2) Ingredients with exact quantities (metric + Indian units), 3) Numbered cooking steps, 4) Prep time & servings, 5) Chef pro tips.',
-  'rich': 'STRICT MODE: Rich Mode (Wealth & Investor Mindset). You ONLY advise from the perspective of an elite investor and entrepreneur. Focus strictly on assets, cash flow, ROI, scalable businesses, and wealth creation.',
-  'poor': 'STRICT MODE: Poor Mode (Savings & Frugality). You ONLY advise on maximum frugality, expense reduction, budget survival, zero-waste DIY, and cost-cutting hacks.'
-};
-
-const detectSubscriptionIntent = (text: string) => {
-  const lower = text.toLowerCase();
-  const keywords = [
-    "premium", "pricing", "plans", "subscription", "upgrade",
-    "pro plan", "team plan", "plus plan", "buy coreai", "cost of coreai",
-    "how much does coreai cost", "is coreai free"
-  ];
-  return keywords.some(k => lower.includes(k));
-};
-
-const isImageGenerationPrompt = (text: string) => {
-  const lower = text.toLowerCase().trim();
-  const directKeywords = [
-    'generate image', 'create image', 'make an image', 'make image', 'draw', 'generate a photo',
-    'create a photo', 'generate picture', 'create picture', 'photo banao', 'photo bana do',
-    'photo bana de', 'image banao', 'image bana do', 'tasveer banao', 'tasvir banao', 'chitra banao',
-    'tasveer bana do', 'iska image banao', 'iski photo banao', 'iski image banao', 'iska photo banao',
-    'ispe image banao', 'is story ka image banao', 'chitra banaiye', 'photo generate karo', 'image generate karo',
-    'draw a', 'paint a', 'sketch a', 'render a'
-  ];
-  if (directKeywords.some(k => lower.includes(k))) return true;
-
-  const mediaWords = ['image', 'photo', 'picture', 'tasveer', 'tasvir', 'chitra', 'wallpaper', 'illustration', 'sketch', 'drawing', 'फोटो', 'चित्र', 'तस्वीर'];
-  const actionWords = ['banao', 'bana do', 'bana de', 'banaye', 'banayein', 'generate', 'create', 'draw', 'paint', 'sketch', 'nikalo', 'karo', 'बनाओ', 'बनाइए', 'बनाना'];
-
-  return mediaWords.some(m => lower.includes(m)) && actionWords.some(a => lower.includes(a));
-};
+import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { usePullToRefresh } from "@/hooks/usePullToRefresh";
+import { PullToRefreshIndicator } from "@/components/PullToRefreshIndicator";
+import { haptics } from "@/lib/haptics";
+import { ReadAloudHeaderPlayer } from "@/components/ReadAloudHeaderPlayer";
+import { tryLocalReply, detectSubscriptionIntent } from "@/lib/smallTalk";
+import { getCached, setCached, isCacheable } from "@/lib/aiCache";
+import { buildCompanionContext, followUpGreeting } from "@/lib/companionMemory";
 
 const Index = () => {
-  const { user } = useAuth();
-  const { chats, currentChat, messages, createChat, selectChat, deleteChat, addMessage, updateMessage } = useChats(user?.id);
-  const [selectedModel] = useState("google/gemini-2.5-flash");
-  const { isPremium } = useSubscription();
+  const navigate = useNavigate();
+  const { user, loading: authLoading, showAuth, signOut, setShowAuth } = useAuth();
+  const { settings } = useSettings(user?.id);
+  const {
+    chats,
+    currentChat,
+    messages,
+    createChat,
+    addMessage,
+    updateMessage,
+    updateMessageLocal,
+    deleteMessage,
+    startNewChat,
+    selectChat,
+    deleteChat
+  } = useChats(user?.id);
+  const { isOnline } = useOfflineDraft();
+  
+  const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
+  const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
+  const [showManageSubscription, setShowManageSubscription] = useState(false);
+  const { isPremium, activatePremium } = useSubscription();
   const { recordUsage } = useDailyLimit(user?.id, isPremium);
   const usageLimits = useUsageLimits(user?.id, isPremium);
+  const [unlockPopup, setUnlockPopup] = useState<{ open: boolean; reason?: 'daily' | 'mode'; modeLabel?: string }>({ open: false });
   const [isLoading, setIsLoading] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  
-  // Up to 8 attached files / images
-  const [attachedFiles, setAttachedFiles] = useState<AttachedFileItem[]>([]);
-  const [chatMode, setChatMode] = useState<ModeType>('normal');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1024);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework'>('normal');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 768);
+  const [showQuickActions, setShowQuickActions] = useState(true);
+  const [hasNewMessage, setHasNewMessage] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [, setIsUserTyping] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [editingMessage, setEditingMessage] = useState<{ id: string; content: string; index: number } | null>(null);
+  const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
+  const [isUserTyping, setIsUserTyping] = useState(false);
+  
+  const [openTabs, setOpenTabs] = useState<Chat[]>([]);
+  const [showSearch, setShowSearch] = useState(false);
+  const [responseLength, setResponseLength] = useState<'short' | 'normal' | 'detailed'>('normal');
+  
+  const [editingMessage, setEditingMessage] = useState<{
+    id: string;
+    content: string;
+    index: number;
+  } | null>(null);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const userScrolledUpRef = useRef(false);
 
-  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior, block: 'end' });
+  // Pull to refresh
+  const { containerRef: pullRef, pulling, refreshing, pullProgress } = usePullToRefresh({
+    onRefresh: async () => {
+      haptics.medium();
+      if (currentChat) {
+        selectChat(currentChat);
+      }
+    },
+    enabled: messages.length > 0,
+  });
+
+  // Next-day follow-up
+  useEffect(() => {
+    const g = followUpGreeting();
+    if (g && !sessionStorage.getItem("coreai_followup_shown")) {
+      sessionStorage.setItem("coreai_followup_shown", "1");
+      setTimeout(() => toast(g, { duration: 9000 }), 1500);
+    }
+  }, []);
+
+  // Robust Auto-Scroll
+  useEffect(() => {
+    const container = scrollAreaRef.current;
+    if (!container) return;
+
+    if (!userScrolledUpRef.current) {
+      requestAnimationFrame(() => {
+        if (container) {
+          container.scrollTop = container.scrollHeight;
+        }
+      });
+    }
+  }, [messages, isAITyping, isLoading]);
+
+  const handleContainerScroll = useCallback(() => {
+    const container = scrollAreaRef.current;
+    if (!container) return;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const distance = scrollHeight - scrollTop - clientHeight;
+    const isUp = distance > 120;
+    userScrolledUpRef.current = isUp;
+    setHasNewMessage(isUp);
+  }, []);
+
+  const forceScrollToBottom = useCallback(() => {
+    userScrolledUpRef.current = false;
+    setHasNewMessage(false);
+    const container = scrollAreaRef.current;
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
     }
   }, []);
 
   useEffect(() => {
-    if (!userScrolledUpRef.current) {
-      scrollToBottom('smooth');
-    }
-  }, [messages.length, isAITyping, isGeneratingImage, scrollToBottom]);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setShowSearch(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
-  const compressImage = (file: File, maxWidth = 1024, quality = 0.8): Promise<string> => {
+  useEffect(() => {
+    if (currentChat && !openTabs.find(t => t.id === currentChat.id)) {
+      setOpenTabs(prev => [...prev, currentChat].slice(-5));
+    }
+  }, [currentChat]);
+
+  const handleCloseTab = (chatId: string) => {
+    setOpenTabs(prev => prev.filter(t => t.id !== chatId));
+    if (currentChat?.id === chatId) {
+      const remaining = openTabs.filter(t => t.id !== chatId);
+      if (remaining.length > 0) {
+        selectChat(remaining[remaining.length - 1]);
+      } else {
+        startNewChat();
+      }
+    }
+  };
+
+  const scrollToMessage = (messageId: string) => {
+    const element = document.getElementById(`message-${messageId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('ring-2', 'ring-primary', 'transition-all');
+      setTimeout(() => element.classList.remove('ring-2', 'ring-primary'), 2000);
+    }
+  };
+
+  const handleQuickAction = async (action: string) => {
+    if (!currentChat || messages.length === 0) return;
+    const lastAIMessage = [...messages].reverse().find(m => !m.is_user);
+    if (!lastAIMessage) return;
+    
+    const actionPrompts: Record<string, string> = {
+      rewrite: `Please rewrite this more clearly:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
+      summarize: `Please summarize the key points of this response in bullet points:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
+      translate: `Please translate this to Hindi:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
+      improve: `Please improve and expand on this response with more details and examples:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
+    };
+
+    if (action === 'regenerate') {
+      const aiMsgIndex = messages.findIndex(m => m.id === lastAIMessage.id);
+      if (aiMsgIndex >= 0) {
+        handleRegenerateResponse(lastAIMessage.id, aiMsgIndex);
+      }
+    } else if (actionPrompts[action]) {
+      handleSendMessage(actionPrompts[action]);
+    }
+  };
+
+  if (authLoading) return <PageSkeleton />;
+  if (showAuth || !user) return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+
+  const compressImage = (file: File, maxDim = 1280, quality = 0.75): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
           let { width, height } = img;
-          if (width > maxWidth) {
-            height = (height * maxWidth) / width;
-            width = maxWidth;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
           }
           const canvas = document.createElement('canvas');
           canvas.width = width;
@@ -131,64 +240,203 @@ const Index = () => {
     });
   };
 
-  const handleFilesSelect = async (files: File[]) => {
-    if (attachedFiles.length + files.length > 8) {
-      toast.error("Maximum 8 images/files can be attached at once.");
-      return;
+  const handleFileSelect = async (file: File) => {
+    setSelectedFile(file);
+    if (file.type.startsWith('image/')) {
+      try {
+        const compressed = await compressImage(file);
+        setFilePreview(compressed);
+        toast.success('Image ready');
+      } catch (err) {
+        const reader = new FileReader();
+        reader.onloadend = () => setFilePreview(reader.result as string);
+        reader.readAsDataURL(file);
+      }
+    } else {
+      setFilePreview(null);
+      toast.success(`Attached ${file.name}`);
+    }
+  };
+
+  const handleEditMessage = (messageId: string, content: string, index: number) => {
+    setEditingMessage({ id: messageId, content, index });
+  };
+
+  const handleSendEditedMessage = async (content: string) => {
+    if (!user || !editingMessage || !currentChat) return;
+    const editIndex = editingMessage.index;
+    const messagesToDelete = messages.slice(editIndex + 1);
+
+    for (const msg of messagesToDelete) {
+      await deleteMessage(msg.id);
     }
 
-    const newItems: AttachedFileItem[] = [];
-    for (const file of files) {
-      if (attachedFiles.length + newItems.length >= 8) break;
-      const isImg = file.type.startsWith('image/');
-      let preview: string | null = null;
-      if (isImg) {
-        try {
-          preview = await compressImage(file);
-        } catch {
-          preview = await new Promise<string>((res) => {
-            const r = new FileReader();
-            r.onloadend = () => res(r.result as string);
-            r.readAsDataURL(file);
-          });
+    await updateMessage(editingMessage.id, content);
+    setEditingMessage(null);
+
+    setIsLoading(true);
+    setIsAITyping(true);
+    try {
+      const aiMessage = await addMessage(currentChat.id, "", false);
+      if (!aiMessage) return;
+
+      const { data: session } = await supabase.auth.getSession();
+      const authToken = session?.session?.access_token;
+
+      const updatedMessages = messages.slice(0, editIndex + 1).map(msg => msg.id === editingMessage.id ? { ...msg, content } : msg);
+      const conversationHistory = updatedMessages.slice(-12).map(msg => ({
+        role: msg.is_user ? 'user' : 'assistant',
+        content: msg.id === editingMessage.id ? content : msg.content,
+        ...(msg.images && msg.images.length > 0 ? { images: msg.images } : {})
+      }));
+      const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+        },
+        body: JSON.stringify({
+          message: content,
+          model: modelToUse,
+          mode: chatMode,
+          companion: buildCompanionContext(content),
+          conversationHistory
+        })
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      if (!reader) throw new Error("No response body");
+
+      let accumulatedContent = "";
+      let receivedImages: any[] = [];
+      let buffer = "";
+      setIsAITyping(false);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.trim() || !line.startsWith('data: ')) continue;
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.content) {
+              accumulatedContent += parsed.content;
+              updateMessageLocal(aiMessage.id, accumulatedContent);
+            }
+            if (parsed.images?.length > 0) {
+              receivedImages = parsed.images;
+              updateMessageLocal(aiMessage.id, accumulatedContent, parsed.images);
+            }
+          } catch {}
         }
       }
-      newItems.push({
-        id: `${file.name}-${Date.now()}-${Math.random()}`,
-        file,
-        preview,
-        isImage: isImg
-      });
+      await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
+    } catch (error) {
+      console.error('Error regenerating AI response:', error);
+      toast.error("Failed to regenerate response");
+    } finally {
+      setIsLoading(false);
+      setIsAITyping(false);
     }
-
-    setAttachedFiles(prev => [...prev, ...newItems].slice(0, 8));
-    toast.success(`${newItems.length} file(s) attached (max 8)`);
   };
 
-  const removeAttachedFile = (id: string) => {
-    setAttachedFiles(prev => prev.filter(f => f.id !== id));
-  };
+  const handleRegenerateResponse = async (aiMessageId: string, aiMessageIndex: number) => {
+    if (!user || !currentChat || isLoading) return;
+    const userMessageIndex = aiMessageIndex - 1;
+    if (userMessageIndex < 0) return;
+    const userMessage = messages[userMessageIndex];
 
-  const buildCompanionContext = (incomingMessage: string) => {
-    const parts: string[] = [];
+    setIsLoading(true);
+    setIsAITyping(true);
     try {
-      const memoryContext = getCompanionMemoryContext(incomingMessage);
-      if (memoryContext) parts.push(memoryContext);
-    } catch {
-      // safe fallback
+      await updateMessage(aiMessageId, "");
+      const { data: session } = await supabase.auth.getSession();
+      const authToken = session?.session?.access_token;
+
+      const conversationHistory = messages.slice(0, aiMessageIndex).slice(-12).map(msg => ({
+        role: msg.is_user ? 'user' : 'assistant',
+        content: msg.content,
+        ...(msg.images && msg.images.length > 0 ? { images: msg.images } : {})
+      }));
+      const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+        },
+        body: JSON.stringify({
+          message: userMessage.content,
+          model: modelToUse,
+          mode: chatMode,
+          companion: buildCompanionContext(userMessage.content),
+          conversationHistory
+        })
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      if (!reader) throw new Error("No response body");
+
+      let accumulatedContent = "";
+      let receivedImages: any[] = [];
+      let buffer = "";
+      setIsAITyping(false);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.trim() || !line.startsWith('data: ')) continue;
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.content) {
+              accumulatedContent += parsed.content;
+              updateMessageLocal(aiMessageId, accumulatedContent);
+            }
+            if (parsed.images?.length > 0) {
+              receivedImages = parsed.images;
+              updateMessageLocal(aiMessageId, accumulatedContent, parsed.images);
+            }
+          } catch {}
+        }
+      }
+      await updateMessage(aiMessageId, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
+      toast.success("Response regenerated");
+    } catch (error) {
+      console.error('Error regenerating AI response:', error);
+      toast.error("Failed to regenerate response");
+    } finally {
+      setIsLoading(false);
+      setIsAITyping(false);
     }
-    if (chatMode !== 'normal' && MODE_INSTRUCTIONS[chatMode]) {
-      parts.push(`MODE INSTRUCTION: ${MODE_INSTRUCTIONS[chatMode]}`);
-    }
-    return parts.join(" | ");
   };
 
   const handleSendMessage = async (content: string) => {
-    if (!content.trim() && attachedFiles.length === 0) return;
+    if (editingMessage) {
+      await handleSendEditedMessage(content);
+      return;
+    }
+    if (!user) return;
 
     const gate = usageLimits.checkCanSend(chatMode);
     if (!gate.allowed) {
-      toast.error("Daily free quota reached (20/20). Resets tomorrow!");
+      const modeLabels: Record<string, string> = { chat: 'Chat', study: 'Study', image: 'Image', code: 'Code' };
+      setUnlockPopup({
+        open: true,
+        reason: gate.reason || 'daily',
+        modeLabel: modeLabels[chatMode] || chatMode
+      });
       return;
     }
 
@@ -199,25 +447,42 @@ const Index = () => {
       if (!chatToUse) return;
     }
 
-    const messageImages = attachedFiles
-      .filter(f => f.isImage && f.preview)
-      .map(f => ({ url: f.preview as string, type: f.file.type, name: f.file.name }));
+    const messageImages = selectedFile && filePreview ? [{
+      url: filePreview,
+      type: selectedFile.type
+    }] : undefined;
 
-    const userMessage = await addMessage(chatToUse.id, content, true, messageImages.length > 0 ? messageImages : undefined);
+    const userMessage = await addMessage(chatToUse.id, content, true, messageImages);
     if (!userMessage) return;
 
-    const attachedFilesCopy = [...attachedFiles];
-    setAttachedFiles([]); // Clear composer attachments
-
     userScrolledUpRef.current = false;
-    scrollToBottom('auto');
+    forceScrollToBottom();
 
     if (detectSubscriptionIntent(content)) {
-      await addMessage(chatToUse.id, `CoreAI is 100% free with 20 chats every day. Lifetime zero cost for you! ⚡`, false);
+      if (isPremium) {
+        let savedPlanName = "Premium";
+        try {
+          const raw = localStorage.getItem("coreai_active_plan");
+          if (raw) savedPlanName = JSON.parse(raw).name || "Premium";
+        } catch {}
+        await addMessage(
+          chatToUse.id,
+          `👑 You already have the **CoreAI ${savedPlanName} plan**.\n\nYour plan includes:\n\n• Unlimited chats and image generation\n• Priority response speed\n• Ad-free Premium access`,
+          false
+        );
+        setTimeout(() => setShowSubscriptionPopup(true), 400);
+      } else {
+        await addMessage(
+          chatToUse.id,
+          `CoreAI offers **Plus**, **Pro**, and **Team** plans for high-speed, unlimited access. I’ve opened the plans page for you below.`,
+          false
+        );
+        setTimeout(() => setShowSubscriptionPopup(true), 400);
+      }
       return;
     }
 
-    if (attachedFilesCopy.length === 0 && chatMode === 'normal') {
+    if (!selectedFile && chatMode === 'normal') {
       const local = tryLocalReply(content);
       if (local) {
         await addMessage(chatToUse.id, local, false);
@@ -225,329 +490,571 @@ const Index = () => {
       }
     }
 
+    if (!selectedFile && isCacheable(content, chatMode)) {
+      const cached = getCached(content, chatMode, selectedModel);
+      if (cached) {
+        await addMessage(chatToUse.id, cached, false);
+        return;
+      }
+    }
+
     recordUsage(chatMode);
     usageLimits.recordSend(chatMode);
+
     setIsLoading(true);
     setIsAITyping(true);
 
     try {
       const aiMessage = await addMessage(chatToUse.id, "", false);
       if (!aiMessage) return;
-
       const { data: session } = await supabase.auth.getSession();
       const authToken = session?.session?.access_token;
-      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
       let fileTextToSend: string | undefined;
       let fileNameToSend: string | undefined;
-      const firstDoc = attachedFilesCopy.find(f => !f.isImage);
-      if (firstDoc) {
+      if (selectedFile && !selectedFile.type.startsWith('image/')) {
         try {
-          fileTextToSend = (await firstDoc.file.text()).slice(0, 12000);
-          fileNameToSend = firstDoc.file.name;
-        } catch {}
-      }
-
-      const isImgGen = chatMode === 'photo' || isImageGenerationPrompt(content);
-      let promptToSend = content;
-
-      if (isImgGen) {
-        setIsGeneratingImage(true);
-        const isReferential = /\b(iska|iski|isko|is|inme|ye|yeh|this|that|it|same|story)\b/i.test(content);
-        if (isReferential) {
-          const lastAiMsg = [...messages].reverse().find(m => !m.is_user && m.content);
-          if (lastAiMsg) {
-            promptToSend = `Create a high quality visual image representing this: ${lastAiMsg.content.slice(0, 300)}. Request: ${content}`;
-          }
+          const txt = await selectedFile.text();
+          fileTextToSend = txt.slice(0, 12000);
+          fileNameToSend = selectedFile.name;
+        } catch (e) {
+          console.warn('Failed to read file as text:', e);
         }
       }
 
       const recentMessages = messages.slice(-12);
-      const conversationHistory = recentMessages.map(msg => ({
-        role: msg.is_user ? 'user' : 'assistant',
-        content: msg.content,
-        ...(msg.images?.length ? { images: msg.images } : {})
-      }));
+      const conversationHistory = recentMessages.map(msg => {
+        const historyItem: any = {
+          role: msg.is_user ? 'user' : 'assistant',
+          content: msg.content
+        };
+        if (msg.images && msg.images.length > 0) {
+          historyItem.images = msg.images;
+        }
+        return historyItem;
+      });
 
-      const modelToUse = isImgGen ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
-      const modeToUse = isImgGen ? 'photo' : chatMode;
+      const lower = content.toLowerCase();
+      const genKeywords = [
+        'generate image', 'create image', 'make an image', 'make image', 'draw', 'generate a photo', 'create a photo',
+        'photo banao', 'photo bana do', 'photo bana de', 'image banao', 'tasveer banao', 'tasvir banao', 'chitra banao',
+        'फोटो', 'चित्र', 'तस्वीर', 'बनाओ', 'बनाइए', 'बनाना'
+      ];
+      const hasMediaWord = ['image','photo','picture','tasveer','tasvir','chitra','फोटो','चित्र','तस्वीर'].some(w => lower.includes(w));
+      const hasMakeWord = ['generate','create','make','banao','bana do','bana de','banaye','बनाओ','बनाइए','बनाना'].some(w => lower.includes(w));
+      const wantsImageGeneration = chatMode === 'photo' || (genKeywords.some(k => lower.includes(k)) || (hasMediaWord && hasMakeWord));
+      
+      if (wantsImageGeneration) {
+        setIsGeneratingImage(true);
+        setImageGenerationPrompt(content);
+      }
 
+      const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': anonKey,
-          'Authorization': `Bearer ${authToken || anonKey}`
+          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
         },
         body: JSON.stringify({
-          message: promptToSend,
+          message: content,
           model: modelToUse,
-          mode: modeToUse,
+          mode: chatMode,
           companion: buildCompanionContext(content),
-          image: messageImages[0]?.url,
-          images: messageImages.map(img => img.url),
+          image: filePreview,
           fileText: fileTextToSend,
           fileName: fileNameToSend,
           conversationHistory
         })
       });
-
       if (!response.ok) {
-        if (response.status === 429) {
-          toast.error("Rate limit reached. Please wait a moment.");
-          await updateMessage(aiMessage.id, "⏳ Rate limit reached. Please try again in a moment.");
-        } else {
-          toast.error("Failed to get AI response.");
+        if (response.status === 402) {
+          toast.error("AI credits exhausted.");
+          await updateMessage(aiMessage.id, "⚠️ AI credits are currently exhausted. Responses will resume shortly.");
+          setIsLoading(false);
+          setIsAITyping(false);
+          setIsGeneratingImage(false);
+          return;
         }
-        setIsLoading(false);
-        setIsAITyping(false);
-        setIsGeneratingImage(false);
-        return;
+        if (response.status === 429) {
+          toast.error("Too many requests. Please wait a moment.");
+          await updateMessage(aiMessage.id, "⏳ Rate limit reached. Please wait a moment.");
+          setIsLoading(false);
+          setIsAITyping(false);
+          setIsGeneratingImage(false);
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-      let accumulated = "";
+      if (!reader) throw new Error("No response body");
 
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          accumulated += chunk;
-          await updateMessage(aiMessage.id, accumulated);
+      let accumulatedContent = "";
+      let receivedImages: any[] = [];
+      let buffer = "";
+      let sawDone = false;
+      setIsAITyping(false);
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) {
+          if (buffer.length > 0 && buffer.startsWith('data: ')) {
+            const data = buffer.slice(6);
+            if (data !== '[DONE]') {
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.content) {
+                  accumulatedContent += parsed.content;
+                  updateMessageLocal(aiMessage.id, accumulatedContent);
+                }
+                if (parsed.images?.length > 0) {
+                  receivedImages = parsed.images;
+                  updateMessageLocal(aiMessage.id, accumulatedContent, parsed.images);
+                }
+              } catch {}
+            }
+          }
+          break;
         }
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.trim() || !line.startsWith('data: ')) continue;
+          const data = line.slice(6);
+          if (data === '[DONE]') {
+            sawDone = true;
+            break;
+          }
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.content) {
+              accumulatedContent += parsed.content;
+              updateMessageLocal(aiMessage.id, accumulatedContent);
+            }
+            if (parsed.images?.length > 0) {
+              receivedImages = parsed.images;
+              setIsGeneratingImage(false);
+              updateMessageLocal(aiMessage.id, accumulatedContent, parsed.images);
+            }
+          } catch {}
+        }
+        if (sawDone) break;
       }
 
-    } catch (err: any) {
-      toast.error(err.message || "Failed to communicate with CoreAI");
+      if (!accumulatedContent.trim() && receivedImages.length === 0) {
+        throw new Error("No content received");
+      }
+      await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
+
+      if (!selectedFile && receivedImages.length === 0 && isCacheable(content, chatMode)) {
+        setCached(content, chatMode, selectedModel, accumulatedContent);
+      }
+
+      setSelectedFile(null);
+      setFilePreview(null);
+    } catch (error) {
+      console.error('Error calling AI:', error);
+      toast.error("Failed to get AI response. Please try again.");
     } finally {
       setIsLoading(false);
       setIsAITyping(false);
       setIsGeneratingImage(false);
+      setImageGenerationPrompt("");
     }
   };
 
-  const handleQuickAction = (actionOrPrompt: string) => {
-    switch (actionOrPrompt) {
-      case 'shopping':
-        setChatMode('normal');
-        handleSendMessage("Help me with shopping research. I want to find the best quality products, real user reviews, and top deals.");
-        break;
-      case 'search':
-        setChatMode('deep-search');
-        handleSendMessage("Perform a deep search on current breakthrough technologies and provide a structured breakdown.");
-        break;
-      case 'finance':
-        setChatMode('rich');
-        handleSendMessage("Give me a smart financial breakdown, investment ideas, and wealth-building tips.");
-        break;
-      case 'news':
-        handleSendMessage("What are the top major news headlines and world updates today?");
-        break;
-      default:
-        handleSendMessage(actionOrPrompt);
-        break;
+  const handleExportChat = async (chatId: string, format: 'text' | 'pdf') => {
+    try {
+      const chat = chats.find(c => c.id === chatId);
+      if (!chat) {
+        toast.error("Chat not found");
+        return;
+      }
+      const { data: chatMessages, error } = await supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', { ascending: true });
+      if (error) throw error;
+      if (!chatMessages || chatMessages.length === 0) {
+        toast.error("No messages to export");
+        return;
+      }
+      if (format === 'text') {
+        exportChatAsText(chat.title, chatMessages);
+        toast.success("Chat exported as text");
+      } else {
+        await exportChatAsPDF(chat.title, chatMessages);
+        toast.success("Chat exported as PDF");
+      }
+    } catch (error) {
+      console.error('Error exporting chat:', error);
+      toast.error("Failed to export chat");
     }
   };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
-
-  const handleExportChat = (chatId: string, format: 'text' | 'pdf') => {
-    const chat = chats.find(c => c.id === chatId);
-    if (!chat) return;
-    toast.success(`Exporting chat "${chat.title}" as ${format.toUpperCase()}...`);
-  };
-
-  const handleScrollToMessage = (messageId: string) => {
-    const el = document.getElementById(`msg-${messageId}`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
-
-  const activeModeLabel = chatMode === 'normal' ? 'Normal' : chatMode.charAt(0).toUpperCase() + chatMode.slice(1);
 
   return (
-    <div className="flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none select-none">
-      {/* Mobile Backdrop when Sidebar is Open */}
-      {!sidebarCollapsed && (
-        <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-30 md:hidden"
-          onClick={() => setSidebarCollapsed(true)} 
-        />
-      )}
-
-      {/* Sidebar with Fixed Responsive Width so Homepage is Never Hidden */}
-      <aside 
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 w-72 md:relative md:z-0 md:flex transition-transform duration-200 ease-in-out bg-sidebar shrink-0",
-          sidebarCollapsed ? "-translate-x-full md:hidden" : "translate-x-0"
-        )}
-      >
-        <ChatSidebar
-          chats={chats}
-          currentChat={currentChat}
-          onSelectChat={selectChat}
-          onDeleteChat={deleteChat}
-          onNewChat={() => createChat("New Chat")}
-          onSignOut={handleSignOut}
-          onOpenSettings={() => setShowSettings(true)}
-          onExportChat={handleExportChat}
-          user={user}
-          onCollapse={() => setSidebarCollapsed(true)}
-        />
-      </aside>
-
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col h-full min-w-0 bg-background relative overflow-hidden">
-        {/* Header matching image-30.png */}
-        <header className="px-3 py-2 sm:px-4 flex items-center justify-between shrink-0 gap-2 border-b border-border/30 bg-background/80 backdrop-blur-md z-10">
-          <div className="flex items-center gap-2 min-w-0">
-            {sidebarCollapsed && (
-              <button
-                onClick={() => setSidebarCollapsed(false)}
-                className="h-8 w-8 rounded-lg hover:bg-muted/70 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-                title="Open Sidebar"
-              >
-                <PanelLeft className="h-4 w-4" />
-              </button>
-            )}
-            <div className="flex items-center gap-1.5 truncate">
-              <img src={coreaiLogo} alt="CoreAI" className="h-5 w-5 rounded-full object-contain" />
-              <h1 className="text-sm font-semibold truncate text-foreground">
-                {currentChat?.title || "CoreAI"}
-              </h1>
-            </div>
-          </div>
-
-          {/* Right Header Badges & Actions matching image-30.png */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary border border-primary/20">
-              <Brain className="h-3 w-3" />
-              Memory On
-            </span>
-
-            <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[11px] font-medium bg-muted text-muted-foreground border border-border/40">
-              {activeModeLabel}
-            </span>
-
-            <button
-              onClick={() => setSearchOpen(true)}
-              className="h-8 w-8 rounded-lg hover:bg-muted/70 text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
-              title="Search Chat"
+    <div className={`flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none ${isPremium ? "premium-mode" : ""}`}>
+      {/* Sidebar Drawer */}
+      <AnimatePresence mode="wait">
+        {!sidebarCollapsed && (
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }} 
+              animate={{ opacity: 1 }} 
+              exit={{ opacity: 0 }} 
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden" 
+              onClick={() => setSidebarCollapsed(true)} 
+            />
+            <motion.div 
+              initial={{ x: -280 }}
+              animate={{ x: 0 }}
+              exit={{ x: -280 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} 
+              className="fixed md:static h-full w-[280px] z-50 md:z-auto shrink-0 bg-sidebar border-r border-sidebar-border/40 shadow-xl md:shadow-none"
             >
-              <Search className="h-4 w-4" />
-            </button>
-
-            <ThemeToggle />
-
-            <button
-              onClick={() => createChat("New Chat")}
-              className="h-8 px-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-xs font-medium text-primary flex items-center gap-1.5 transition-colors"
-              title="New Chat"
-            >
-              <Plus className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">New Chat</span>
-            </button>
-          </div>
-        </header>
-
-        {searchOpen && (
-          <ChatSearch
-            messages={messages as Message[]}
-            isOpen={searchOpen}
-            onClose={() => setSearchOpen(false)}
-            onScrollToMessage={handleScrollToMessage}
-          />
+              <ChatSidebar 
+                chats={chats} 
+                currentChat={currentChat} 
+                onSelectChat={chat => {
+                  selectChat(chat);
+                  if (typeof window !== "undefined" && window.innerWidth < 1024) setSidebarCollapsed(true);
+                }} 
+                onNewChat={() => {
+                  startNewChat();
+                  if (typeof window !== "undefined" && window.innerWidth < 1024) setSidebarCollapsed(true);
+                }} 
+                onSignOut={signOut} 
+                onOpenSettings={() => {
+                  setShowSettings(true);
+                  if (typeof window !== "undefined" && window.innerWidth < 1024) setSidebarCollapsed(true);
+                }} 
+                onDeleteChat={deleteChat} 
+                onExportChat={handleExportChat} 
+                user={user} 
+                onCollapse={() => setSidebarCollapsed(true)}
+              />
+            </motion.div>
+          </>
         )}
+      </AnimatePresence>
 
-        {/* Message Container / Homepage Cards */}
-        <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-2 sm:px-4 py-2">
-          {messages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center p-4">
-              <QuickActionCards onCardClick={handleQuickAction} onAction={handleQuickAction} />
+      {/* Main Chat Canvas Area */}
+      <div className="flex-1 flex flex-col min-w-0 chat-layout-mobile relative">
+        <div className="flex flex-col h-full relative">
+          {showSettings ? (
+            <div className="flex flex-col h-full bg-background">
+              <div className="flex items-center justify-between p-4 border-b border-border/40">
+                <h2 className="text-lg font-bold tracking-tight text-foreground">Settings</h2>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setShowSettings(false)} 
+                  className="h-8 w-8 p-0 rounded-full hover:bg-muted"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <ScrollArea className="flex-1 p-4 sm:p-6">
+                <div className="max-w-3xl mx-auto">
+                  <Settings user={user} />
+                </div>
+              </ScrollArea>
             </div>
           ) : (
-            <div className="max-w-3xl xl:max-w-4xl mx-auto w-full pb-4">
-              <VirtualizedChatMessages
-                messages={messages as Message[]}
-                isAITyping={isAITyping}
-                isGeneratingImage={isGeneratingImage}
+            <>
+              {/* Desktop Smart Tabs */}
+              <div className="hidden md:block">
+                <SmartChatTabs 
+                  openChats={openTabs} 
+                  activeChat={currentChat} 
+                  onSelectTab={selectChat} 
+                  onCloseTab={handleCloseTab} 
+                  onNewTab={startNewChat} 
+                />
+              </div>
+
+              {/* Claude-Style Minimalist Clean Header */}
+              <header className="px-3 py-2 sm:px-4 sm:py-2.5 flex justify-between items-center shrink-0 gap-2 z-20 border-b border-border/30 backdrop-blur-md bg-background/80">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {sidebarCollapsed && (
+                    <motion.button 
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setSidebarCollapsed(false)} 
+                      className="h-8 w-8 p-0 shrink-0 inline-flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                      title="Open sidebar"
+                    >
+                      <PanelLeft className="h-4 w-4" />
+                    </motion.button>
+                  )}
+                  
+                  <div className="flex items-center gap-2 min-w-0">
+                    <h1 className="text-sm font-semibold text-foreground truncate tracking-tight">
+                      {currentChat ? currentChat.title : "CoreAI"}
+                    </h1>
+                  </div>
+
+                  {isPremium && (
+                    <button
+                      onClick={() => setShowManageSubscription(true)}
+                      className="h-6 px-2 rounded-full flex items-center gap-1.5 bg-gradient-to-r from-amber-500/15 to-purple-500/15 border border-amber-500/30 hover:opacity-90 transition-all"
+                      title="CoreAI Premium"
+                    >
+                      <img src={premiumLogo} alt="Premium" width={14} height={14} className="w-3.5 h-3.5" />
+                      <span className="text-[9px] font-bold text-amber-500">PREMIUM</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Claude-Style Right Action Icons (Clean & Focused) */}
+                <div className="flex items-center gap-1 shrink-0">
+                  <div className="hidden sm:block">
+                    <MemoryControl chatId={currentChat?.id} />
+                  </div>
+                  <div className="hidden sm:block">
+                    <ResponseLengthControl value={responseLength} onChange={setResponseLength} />
+                  </div>
+
+                  {/* Search Button */}
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => {
+                      if (messages.length > 0) {
+                        setShowSearch(true);
+                      } else {
+                        setSidebarCollapsed(false);
+                      }
+                    }} 
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl transition-all" 
+                    title="Search" 
+                  >
+                    <Search className="h-4 w-4" />
+                  </Button>
+
+                  {/* Image Styles Shortcut */}
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={() => navigate("/images")} 
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl transition-all" 
+                    title="Image Styles"
+                  >
+                    <Palette className="h-4 w-4" />
+                  </Button>
+
+                  {/* New Chat Button (Claude-Style SquarePen) */}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl transition-all"
+                    title="New Chat"
+                    onClick={() => {
+                      startNewChat();
+                      setChatMode("normal");
+                    }}
+                  >
+                    <SquarePen className="h-4 w-4" />
+                  </Button>
+                </div>
+              </header>
+
+              {/* Global Read-Aloud Player */}
+              <ReadAloudHeaderPlayer />
+
+              {/* Pinned Messages */}
+              <PinnedMessages 
+                chatId={currentChat?.id}
+                onUnpin={() => {}}
+                onScrollTo={scrollToMessage}
               />
-              <div ref={messagesEndRef} />
+
+              {/* Chat Search Bar */}
+              <ChatSearch
+                messages={messages}
+                onScrollToMessage={scrollToMessage}
+                isOpen={showSearch}
+                onClose={() => setShowSearch(false)}
+              />
+
+              {/* Scrollable Messages Canvas with Auto-Scroll & Pull to Refresh */}
+              <div 
+                className={`chat-messages-container ${messages.length === 0 ? "overflow-hidden h-full flex flex-col justify-center" : ""}`} 
+                ref={(el) => {
+                  (scrollAreaRef as any).current = el;
+                  (pullRef as any).current = el;
+                }}
+                onScroll={handleContainerScroll}
+              >
+                <PullToRefreshIndicator pullProgress={pullProgress} refreshing={refreshing} pulling={pulling} />
+                
+                {messages.length > 0 && (
+                  <ScrollToBottom 
+                    scrollAreaRef={scrollAreaRef} 
+                    hasNewMessage={hasNewMessage} 
+                    onScrollToBottom={forceScrollToBottom} 
+                  />
+                )}
+                
+                <div className={`p-2 sm:p-4 ${messages.length === 0 ? "h-full flex flex-col justify-center" : "pb-6 min-h-full flex flex-col"}`}>
+                  <div className={`max-w-3xl xl:max-w-4xl mx-auto w-full flex-1 flex flex-col ${messages.length === 0 ? "justify-center" : "justify-start"}`}>
+                    {messages.length === 0 ? (
+                      <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-8">
+                        <AnimatePresence mode="wait">
+                          {showQuickActions ? (
+                            <motion.div 
+                              key="cards" 
+                              className="w-full max-w-xl px-1 sm:px-2" 
+                              initial={{ opacity: 0, y: 14 }} 
+                              animate={{ opacity: 1, y: 0 }} 
+                              exit={{ opacity: 0, scale: 0.96 }} 
+                              transition={{ duration: 0.25, ease: "easeOut" }}
+                            >
+                              <QuickActionCards onAction={handleSendMessage} onSkip={() => setShowQuickActions(false)} />
+                            </motion.div>
+                          ) : (
+                            <motion.div 
+                              key="show-btn" 
+                              initial={{ opacity: 0, scale: 0.9 }} 
+                              animate={{ opacity: 1, scale: 1 }} 
+                              exit={{ opacity: 0, scale: 0.9 }} 
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => setShowQuickActions(true)} 
+                                className="text-xs font-medium rounded-full border-border/40 hover:bg-muted/50"
+                              >
+                                Show quick actions
+                              </Button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ) : (
+                      <VirtualizedChatMessages 
+                        messages={messages}
+                        chatId={currentChat?.id}
+                        isAITyping={isAITyping}
+                        isGeneratingImage={isGeneratingImage}
+                        imagePrompt={imageGenerationPrompt}
+                        onEditMessage={handleEditMessage}
+                        onRegenerateResponse={handleRegenerateResponse}
+                      />
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* Input - Fixed at bottom with sticky positioning */}
+          {!showSettings && (
+            <div className="chat-input-fixed glass-navbar border-t-0">
+              {/* Quick Action Buttons - Desktop only */}
+              {messages.length > 0 && (
+                <div className="hidden md:flex justify-center py-2">
+                  <QuickActionButtons
+                    onRewrite={() => handleQuickAction('rewrite')}
+                    onSummarize={() => handleQuickAction('summarize')}
+                    onTranslate={() => handleQuickAction('translate')}
+                    onImprove={() => handleQuickAction('improve')}
+                    onRegenerate={() => handleQuickAction('regenerate')}
+                    disabled={isLoading}
+                    hasMessage={messages.some(m => !m.is_user)}
+                  />
+                </div>
+              )}
+              
+              {/* File Preview */}
+              {selectedFile && (
+                <div className="p-3 sm:p-4">
+                  <div className="max-w-2xl mx-auto">
+                    <div className="flex items-center gap-3 p-2.5 sm:p-3 bg-muted rounded-xl">
+                      {filePreview && <img src={filePreview} alt="Preview" className="w-14 h-14 object-cover rounded-lg" />}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs sm:text-sm font-medium truncate">{selectedFile.name}</p>
+                        <p className="text-[11px] text-muted-foreground">{(selectedFile.size / 1024).toFixed(2)} KB</p>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => {
+                        setSelectedFile(null);
+                        setFilePreview(null);
+                      }} className="h-7 w-7 p-0 rounded-full">
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="px-2 py-2 sm:py-3 sm:p-4">
+                <div className="max-w-3xl xl:max-w-4xl mx-auto w-full">
+                  {!isPremium && (
+                    <p className="text-center text-[11px] text-muted-foreground pb-1" aria-live="polite">
+                      ⚡ {usageLimits.remaining}/{usageLimits.DAILY_CHAT_LIMIT} free chats left today
+                    </p>
+                  )}
+                  <ChatInput 
+                    onSendMessage={handleSendMessage} 
+                    disabled={isLoading} 
+                    onFileSelect={handleFileSelect} 
+                    onModeChange={setChatMode} 
+                    editingMessage={editingMessage} 
+                    onCancelEdit={() => setEditingMessage(null)} 
+                    onTypingChange={setIsUserTyping} 
+                    isPremium={isPremium} 
+                    onModelChange={setSelectedModel} 
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>
-
-        {/* Multi-Image Preview Strip (Up to 8 Images) */}
-        {attachedFiles.length > 0 && (
-          <div className="px-3 py-1.5 bg-muted/40 border-t border-border/50 max-w-2xl mx-auto w-full">
-            <div className="flex items-center justify-between text-[11px] text-muted-foreground pb-1">
-              <span>Attached Images & Files ({attachedFiles.length}/8)</span>
-              <button 
-                onClick={() => setAttachedFiles([])}
-                className="hover:text-destructive transition-colors text-[10px]"
-              >
-                Clear all
-              </button>
-            </div>
-            <div className="flex items-center gap-2 overflow-x-auto py-1 scrollbar-none">
-              {attachedFiles.map((item) => (
-                <div key={item.id} className="relative group shrink-0">
-                  {item.isImage && item.preview ? (
-                    <img 
-                      src={item.preview} 
-                      alt="Thumbnail" 
-                      className="w-12 h-12 rounded-xl object-cover border border-border/80 shadow-xs" 
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-xl bg-muted border border-border/80 flex items-center justify-center text-[9px] text-muted-foreground px-1 text-center truncate">
-                      {item.file?.name ? item.file.name.slice(0, 8) : "File"}
-                    </div>
-                  )}
-                  <button
-                    onClick={() => removeAttachedFile(item.id)}
-                    className="absolute -top-1 -right-1 bg-background/90 text-foreground border border-border/70 rounded-full h-4 w-4 flex items-center justify-center shadow-xs hover:bg-destructive hover:text-white transition-colors"
-                  >
-                    <X className="h-2.5 w-2.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Bottom Floating Composer matching Screenshot */}
-        <div className="p-2 sm:p-3 bg-gradient-to-t from-background via-background/90 to-transparent">
-          <ChatInput
-            onSendMessage={handleSendMessage}
-            disabled={isLoading}
-            onFilesSelect={handleFilesSelect}
-            onModeChange={setChatMode}
-            editingMessage={editingMessage}
-            onCancelEdit={() => setEditingMessage(null)}
-            onTypingChange={setIsUserTyping}
-            isPremium={isPremium}
-            hasAttachments={attachedFiles.length > 0}
-          />
-        </div>
       </div>
+      
+      {/* Offline indicator */}
+      <AnimatePresence>
+        {!isOnline && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-72 z-50"
+          >
+            <div className="bg-destructive/90 backdrop-blur-sm text-destructive-foreground px-4 py-3 rounded-lg shadow-lg">
+              <p className="text-sm font-medium">You're offline</p>
+              <p className="text-xs opacity-80">Messages will be sent when you're back online</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Settings Modal */}
-      {showSettings && (
-        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-background border border-border rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 relative shadow-2xl">
-            <button
-              onClick={() => setShowSettings(false)}
-              className="absolute top-4 right-4 h-8 w-8 rounded-full hover:bg-muted flex items-center justify-center text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
-            <Settings user={user} />
-          </div>
-        </div>
-      )}
+      <SubscriptionPopup
+        open={showSubscriptionPopup}
+        onOpenChange={setShowSubscriptionPopup}
+        onUpgrade={() => {
+          activatePremium();
+          setShowSubscriptionPopup(false);
+          toast.success("Premium activated! 🎉");
+        }}
+      />
+      <ManageSubscriptionDialog
+        open={showManageSubscription}
+        onOpenChange={setShowManageSubscription}
+        onUpgradeClick={() => setShowSubscriptionPopup(true)}
+      />
+      <UnlockPopup
+        open={unlockPopup.open}
+        onOpenChange={(o) => setUnlockPopup(s => ({ ...s, open: o }))}
+        reason={unlockPopup.reason}
+        modeLabel={unlockPopup.modeLabel}
+        onUnlock={() => usageLimits.addBonusChats()}
+        onUpgrade={() => {
+          setUnlockPopup(s => ({ ...s, open: false }));
+          setShowSubscriptionPopup(true);
+        }}
+      />
     </div>
   );
 };
