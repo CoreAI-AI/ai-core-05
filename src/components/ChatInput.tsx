@@ -60,18 +60,17 @@ const availableModes: { id: ModeType; label: string; icon: any; color: string }[
   { id: 'poor', label: 'Poor Mode (Savings)', icon: PiggyBank, color: 'text-teal-400' },
 ];
 
-// 10 Typewriter Placeholder Prompts
-const placeholderPrompts: string[] = [
-  "How can CoreAI help you today?",
-  "Ask anything or solve a complex problem...",
-  "Write clean code in React, Python or C++...",
-  "Summarize an article, PDF or long document...",
-  "Draft a professional email, blog or essay...",
-  "Plan your daily routine, workout or budget...",
-  "Explain quantum physics in simple terms...",
-  "Brainstorm unique ideas for your next project...",
-  "Suggest healthy recipes with what you have...",
-  "Translate or learn any language with ease..."
+const typewriterPrompts = [
+  "Message CoreAI...",
+  "Ask anything or type a prompt...",
+  "Upload images to analyze or compare...",
+  "Generate code or debug an error...",
+  "Summarize articles and documents...",
+  "Brainstorm ideas for your next project...",
+  "Switch modes from the menu below...",
+  "Plan travel or healthy recipes...",
+  "Study notes and exam preparation...",
+  "Ask in Hindi, English, or any language..."
 ];
 
 export const ChatInput = memo(({
@@ -83,11 +82,11 @@ export const ChatInput = memo(({
   editingMessage,
   onCancelEdit,
   onTypingChange,
+  isPremium,
+  onModelChange,
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
-  const [currentMode, setCurrentMode] = useState<ModeType>("normal");
-
-  // Typewriter Animation States
+  const [currentMode, setCurrentMode] = useState<ModeType>('normal');
   const [placeholderText, setPlaceholderText] = useState("");
   const [promptIndex, setPromptIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -96,15 +95,13 @@ export const ChatInput = memo(({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto focus input
   useEffect(() => {
     const timer = setTimeout(() => {
       textareaRef.current?.focus();
-    }, 280);
+    }, 150);
     return () => clearTimeout(timer);
   }, []);
 
-  // Handle message editing
   useEffect(() => {
     if (editingMessage) {
       setMessage(editingMessage.content);
@@ -112,70 +109,67 @@ export const ChatInput = memo(({
     }
   }, [editingMessage]);
 
-  // Dynamic Typewriter Effect for Placeholder
   useEffect(() => {
-    if (message.length > 0) return; // Pause typewriter when user is typing
+    onTypingChange?.(message.length > 0);
+  }, [message, onTypingChange]);
 
-    const currentPhrase = placeholderPrompts[promptIndex % placeholderPrompts.length];
-    let timer: NodeJS.Timeout;
+  useEffect(() => {
+    if (message.length > 0) return;
+
+    const currentPrompt = typewriterPrompts[promptIndex];
+    let timeout: NodeJS.Timeout;
 
     if (!isDeleting) {
-      if (placeholderText.length < currentPhrase.length) {
-        timer = setTimeout(() => {
-          setPlaceholderText(currentPhrase.slice(0, placeholderText.length + 1));
+      if (placeholderText.length < currentPrompt.length) {
+        timeout = setTimeout(() => {
+          setPlaceholderText(currentPrompt.slice(0, placeholderText.length + 1));
         }, 55);
       } else {
-        timer = setTimeout(() => {
+        timeout = setTimeout(() => {
           setIsDeleting(true);
         }, 2200);
       }
     } else {
       if (placeholderText.length > 0) {
-        timer = setTimeout(() => {
-          setPlaceholderText(currentPhrase.slice(0, placeholderText.length - 1));
-        }, 28);
+        timeout = setTimeout(() => {
+          setPlaceholderText(currentPrompt.slice(0, placeholderText.length - 1));
+        }, 30);
       } else {
         setIsDeleting(false);
-        setPromptIndex((prev) => (prev + 1) % placeholderPrompts.length);
+        setPromptIndex((prev) => (prev + 1) % typewriterPrompts.length);
       }
     }
 
-    return () => clearTimeout(timer);
-  }, [placeholderText, isDeleting, promptIndex, message.length]);
+    return () => clearTimeout(timeout);
+  }, [placeholderText, isDeleting, promptIndex, message]);
 
-  // Auto-resize textarea height
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-      const scrollH = textareaRef.current.scrollHeight;
-      const nextHeight = Math.min(Math.max(scrollH, 44), 160);
-      textareaRef.current.style.height = `${nextHeight}px`;
-    }
-  }, [message]);
-
-  useEffect(() => {
-    onTypingChange?.(message.length > 0);
-  }, [message, onTypingChange]);
-
-  const { isRecording, transcribing, startRecording, stopRecording } = useVoiceRecorder();
+  const { isRecording, isProcessing: isVoiceProcessing, startRecording, stopRecording } = useVoiceRecorder({
+    onTranscriptionComplete: (text) => {
+      setMessage((prev) => (prev ? `${prev} ${text}` : text));
+      toast.success("Voice transcribed");
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
+      }
+    },
+    onError: (error) => {
+      toast.error(error);
+    },
+  });
 
   const triggerHaptic = () => {
-    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
-      navigator.vibrate(10);
+    if (typeof window !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(8);
     }
   };
 
-  const handleVoiceRecording = async () => {
-    triggerHaptic();
-    if (isRecording) {
-      stopRecording();
-    } else {
-      await startRecording();
-    }
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 180)}px`;
   };
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
+  const handleSubmit = () => {
     if (message.trim() && !disabled) {
       triggerHaptic();
       const sanitized = sanitizeInput(message.trim());
@@ -199,7 +193,7 @@ export const ChatInput = memo(({
     }
   };
 
-  // Multiple files selection handler (up to 8 images)
+  // Fixed Multiple files selection handler (up to 8 images)
   const handleMultipleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawFiles = e.target.files;
     if (!rawFiles || rawFiles.length === 0) return;
@@ -208,11 +202,11 @@ export const ChatInput = memo(({
     const validFiles: File[] = [];
 
     for (const file of fileList) {
-      const validation = validateFile(file);
-      if (!validation.valid) {
-        toast.error(`${file.name}: ${validation.error}`);
-      } else {
+      try {
+        validateFile(file);
         validFiles.push(file);
+      } catch (err: any) {
+        toast.error(`${file.name}: ${err?.message || "Invalid file"}`);
       }
     }
 
@@ -224,7 +218,6 @@ export const ChatInput = memo(({
       }
     }
 
-    // Reset input value so same files can be re-selected if removed
     e.target.value = '';
   };
 
@@ -263,7 +256,7 @@ export const ChatInput = memo(({
 
   return (
     <div className="w-full max-w-xl sm:max-w-2xl mx-auto px-2 sm:px-3">
-      {/* Hidden File Inputs — multiple enabled up to 8 */}
+      {/* Hidden File Inputs */}
       <input
         type="file"
         ref={fileInputRef}
@@ -280,34 +273,28 @@ export const ChatInput = memo(({
         className="hidden"
       />
 
-      {/* Tactile Cushion Elastic Scale + Clean Offset Ring */}
       <div className="relative bg-card/95 dark:bg-[#1A1A18]/95 backdrop-blur-md border border-border/70 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm hover:scale-[1.008] hover:border-foreground/25 hover:shadow-md focus-within:scale-[1.008] focus-within:border-foreground/40 focus-within:ring-2 focus-within:ring-foreground/20 focus-within:ring-offset-2 focus-within:ring-offset-background focus-within:shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] p-2 sm:p-2.5">
-        
-        {/* Top Textarea with Animated Typewriter Placeholder */}
         <Textarea
           ref={textareaRef}
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={handleTextareaChange}
           onKeyDown={handleKeyDown}
-          placeholder={placeholderText ? `${placeholderText}|` : "Ask CoreAI..."}
-          disabled={disabled}
+          placeholder={placeholderText || "Message CoreAI..."}
+          disabled={disabled || isRecording || isVoiceProcessing}
           rows={1}
-          className="w-full min-h-[44px] max-h-[160px] resize-none border-0 bg-transparent px-2 pt-1 pb-2 text-sm sm:text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none transition-all duration-75"
+          className="w-full min-h-[44px] max-h-[180px] px-2.5 py-1.5 text-sm sm:text-[15px] bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none placeholder:text-muted-foreground/60 leading-relaxed font-normal"
         />
 
-        {/* Bottom Ergonomic Action Bar */}
-        <div className="flex items-center justify-between gap-1 pt-1 border-t border-border/30 dark:border-white/5">
-          {/* Left Actions: Attach + Mode Selector */}
-          <div className="flex items-center gap-1">
-            {/* Attachment Menu */}
+        <div className="flex items-center justify-between pt-1 mt-1 border-t border-border/40">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 shrink-0 transition-colors"
-                  title="Attach up to 8 images or files"
+                  className="h-8 w-8 sm:h-8.5 sm:w-8.5 rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all duration-200"
+                  title="Attach photos, camera, or files"
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -319,76 +306,82 @@ export const ChatInput = memo(({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-xs py-2">
                   <Camera className="h-4 w-4 mr-2.5 text-emerald-500" />
-                  Camera (Take Photo)
+                  Take Camera Photo
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
-                  <FileIcon className="h-4 w-4 mr-2.5 text-amber-500" />
-                  File (Document / PDF)
+                  <FileIcon className="h-4 w-4 mr-2.5 text-purple-500" />
+                  Attach Document / File
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* CoreAI Mode Pill with Logo */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2.5 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent hover:border-border/40 transition-all"
-                  title="Change CoreAI Mode"
+                  className="h-7 sm:h-7.5 px-2.5 rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground text-xs font-medium flex items-center gap-1.5 transition-all duration-200"
                 >
                   {activeModeConfig.id === 'normal' ? (
-                    <img src={coreaiLogo} alt="CoreAI" className="h-3.5 w-3.5 rounded-full object-contain shrink-0" />
-                  ) : (
-                    <activeModeConfig.icon className={`h-3.5 w-3.5 ${activeModeConfig.color}`} />
-                  )}
-                  <span className="truncate max-w-[90px]">{activeModeConfig.label.split(' ')[0]}</span>
-                  <ChevronDown className="h-3 w-3 opacity-50" />
+                    <img 
+                      src={coreaiLogo} 
+                      alt="CoreAI" 
+                      className="h-3.5 w-3.5 object-contain rounded-full shrink-0" 
+                    />
+                  ) : activeModeConfig.icon ? (
+                    <activeModeConfig.icon className={`h-3.5 w-3.5 ${activeModeConfig.color} shrink-0`} />
+                  ) : null}
+                  <span className="truncate max-w-[95px] sm:max-w-[120px]">{activeModeConfig.label}</span>
+                  <ChevronDown className="h-3 w-3 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 max-h-[300px] overflow-y-auto p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
-                <div className="px-2.5 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  CoreAI Modes
-                </div>
+              <DropdownMenuContent align="start" className="w-56 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50 max-h-72 overflow-y-auto">
                 {availableModes.map((m) => (
                   <DropdownMenuItem
                     key={m.id}
                     onClick={() => handleSelectMode(m.id, m.label)}
-                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl cursor-pointer text-xs ${
-                      currentMode === m.id ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
+                    className={`rounded-xl cursor-pointer text-xs py-2 flex items-center justify-between ${
+                      currentMode === m.id ? 'bg-muted font-medium' : ''
                     }`}
                   >
                     <div className="flex items-center gap-2">
                       {m.id === 'normal' ? (
-                        <img src={coreaiLogo} alt="CoreAI" className="h-3.5 w-3.5 rounded-full object-contain shrink-0" />
+                        <img 
+                          src={coreaiLogo} 
+                          alt="CoreAI" 
+                          className="h-4 w-4 object-contain rounded-full shrink-0" 
+                        />
                       ) : (
-                        <m.icon className={`h-3.5 w-3.5 ${m.color}`} />
+                        <m.icon className={`h-4 w-4 ${m.color}`} />
                       )}
                       <span>{m.label}</span>
                     </div>
-                    {currentMode === m.id && <span className="text-[10px] text-primary font-semibold">Active</span>}
+                    {currentMode === m.id && (
+                      <span className="text-[10px] text-primary">Active</span>
+                    )}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
-          {/* Right Actions: Mic + Send Button */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              onClick={handleVoiceRecording}
-              disabled={disabled || transcribing}
-              className={`h-8 w-8 rounded-full shrink-0 transition-all ${
-                isRecording ? 'bg-destructive/20 text-destructive animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={disabled || isVoiceProcessing}
+              className={`h-8 w-8 sm:h-8.5 sm:w-8.5 rounded-full transition-all duration-200 ${
+                isRecording 
+                  ? "bg-red-500 text-white animate-pulse hover:bg-red-600" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
               }`}
-              title={isRecording ? "Stop recording" : "Voice input"}
+              title={isRecording ? "Stop voice" : "Voice input"}
             >
-              {transcribing ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+              {isVoiceProcessing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Mic className="h-4 w-4" />
               )}
@@ -396,12 +389,13 @@ export const ChatInput = memo(({
 
             <Button
               type="button"
-              onClick={() => handleSubmit()}
-              disabled={!message.trim() || disabled}
-              className={`h-8 w-8 rounded-xl p-0 transition-all duration-200 flex items-center justify-center shrink-0 ${
+              onClick={handleSubmit}
+              disabled={disabled || !message.trim()}
+              size="icon"
+              className={`h-8 w-8 sm:h-8.5 sm:w-8.5 rounded-full transition-all duration-200 shrink-0 ${
                 message.trim() && !disabled
-                  ? "bg-foreground text-background hover:opacity-90 active:scale-95 shadow-xs"
-                  : "bg-muted/60 text-muted-foreground/40 cursor-not-allowed scale-95"
+                  ? "bg-foreground text-background hover:opacity-90 shadow-xs"
+                  : "bg-muted text-muted-foreground/40 cursor-not-allowed"
               }`}
               title="Send message"
             >
@@ -409,13 +403,6 @@ export const ChatInput = memo(({
             </Button>
           </div>
         </div>
-      </div>
-
-      {/* Powered by Tagline */}
-      <div className="text-center mt-1.5">
-        <p className="text-[10px] text-muted-foreground/80 tracking-tight">
-          CoreAI can make mistakes. Verify important information.
-        </p>
       </div>
     </div>
   );
