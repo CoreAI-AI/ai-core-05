@@ -43,7 +43,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 interface QuickActionCardsProps {
-  onAction: (prompt: string) => void;
+  onAction?: (prompt: string) => void;
+  onCardClick?: (prompt: string) => void;
   onSkip?: () => void;
 }
 
@@ -64,325 +65,298 @@ const cardSets = [
       id: "deep-search",
       icon: Search,
       title: "Deep Search",
-      description: "In-depth research",
+      description: "In-depth web insights",
       badgeClasses: "bg-blue-500/12 text-blue-500 border-blue-500/20 dark:bg-blue-500/20",
       hoverBorder: "hover:border-blue-500/40 hover:shadow-blue-500/5",
-      prompt: "Perform deep research on a topic and provide comprehensive information with structured key insights and sources.",
+      prompt: "Perform a deep search on current breakthrough technologies and provide a structured, in-depth breakdown.",
     },
     {
       id: "financial",
       icon: TrendingUp,
       title: "Financial",
-      description: "Market insights",
+      description: "Smart wealth & savings",
       badgeClasses: "bg-emerald-500/12 text-emerald-500 border-emerald-500/20 dark:bg-emerald-500/20",
       hoverBorder: "hover:border-emerald-500/40 hover:shadow-emerald-500/5",
-      prompt: "Help me with financial research. Provide market analysis, current trends, and practical financial planning insights.",
+      prompt: "Provide practical financial management, savings, and investment principles for building long-term wealth.",
     },
     {
       id: "news",
       icon: Newspaper,
       title: "Today News",
-      description: "Latest updates",
+      description: "Top global headlines",
       badgeClasses: "bg-purple-500/12 text-purple-500 border-purple-500/20 dark:bg-purple-500/20",
       hoverBorder: "hover:border-purple-500/40 hover:shadow-purple-500/5",
-      prompt: "Give me today's top global news stories, important geopolitical updates, and exciting technology news.",
+      prompt: "Summarize today's top major news headlines, world affairs, and tech updates in bullet points.",
     },
   ],
-  // Set 2: Create & Build
+
+  // Set 2: Creative & Study Studio
   [
     {
-      id: "code-studio",
-      icon: Code,
-      title: "Code Studio",
-      description: "Build & debug apps",
-      badgeClasses: "bg-indigo-500/12 text-indigo-500 border-indigo-500/20 dark:bg-indigo-500/20",
-      hoverBorder: "hover:border-indigo-500/40 hover:shadow-indigo-500/5",
-      prompt: "Help me write, review, and debug clean and modern code. Let me explain what I want to build.",
-    },
-    {
-      id: "creative-writing",
-      icon: Brain,
-      title: "Creative Writing",
-      description: "Stories, blogs & essays",
-      badgeClasses: "bg-pink-500/12 text-pink-500 border-pink-500/20 dark:bg-pink-500/20",
-      hoverBorder: "hover:border-pink-500/40 hover:shadow-pink-500/5",
-      prompt: "Help me draft engaging creative content: compelling stories, articles, social posts, or essays with strong hooks.",
-    },
-    {
-      id: "study-helper",
-      icon: GraduationCap,
-      title: "Study Notes",
-      description: "Homework & exam prep",
-      badgeClasses: "bg-amber-500/12 text-amber-500 border-amber-500/20 dark:bg-amber-500/20",
-      hoverBorder: "hover:border-amber-500/40 hover:shadow-amber-500/5",
-      prompt: "Act as an expert tutor. Break down complex concepts into simple steps with exam-focused summaries and practice questions.",
-    },
-    {
-      id: "image-studio",
+      id: "photo",
       icon: ImageIcon,
       title: "Image Studio",
-      description: "AI art & 3D renders",
+      description: "Generate 4K visual art",
       badgeClasses: "bg-cyan-500/12 text-cyan-500 border-cyan-500/20 dark:bg-cyan-500/20",
       hoverBorder: "hover:border-cyan-500/40 hover:shadow-cyan-500/5",
-      prompt: "Help me generate stunning visual prompts and detailed image descriptions for logos, digital art, and illustrations.",
+      prompt: "Generate an artistic, cinematic visual image with dramatic lighting and high-definition details.",
+    },
+    {
+      id: "code",
+      icon: Code,
+      title: "Code Assistant",
+      description: "Clean code & debug",
+      badgeClasses: "bg-indigo-500/12 text-indigo-500 border-indigo-500/20 dark:bg-indigo-500/20",
+      hoverBorder: "hover:border-indigo-500/40 hover:shadow-indigo-500/5",
+      prompt: "Help me write clean, well-architected code with best practices, TypeScript types, and unit tests.",
+    },
+    {
+      id: "study",
+      icon: Brain,
+      title: "Study Notes",
+      description: "Smart tutor & notes",
+      badgeClasses: "bg-pink-500/12 text-pink-500 border-pink-500/20 dark:bg-pink-500/20",
+      hoverBorder: "hover:border-pink-500/40 hover:shadow-pink-500/5",
+      prompt: "Act as an academic tutor. Explain a complex scientific or technical concept with simple analogies and notes.",
+    },
+    {
+      id: "homework",
+      icon: GraduationCap,
+      title: "Homework Helper",
+      description: "Step-by-step answers",
+      badgeClasses: "bg-amber-500/12 text-amber-500 border-amber-500/20 dark:bg-amber-500/20",
+      hoverBorder: "hover:border-amber-500/40 hover:shadow-amber-500/5",
+      prompt: "Help me solve my homework problem step-by-step with formulas and clear concept explanation.",
     },
   ],
-  // Set 3: Life & Planning
+
+  // Set 3: Daily Life & Career
   [
     {
-      id: "travel-planner",
-      icon: Compass,
-      title: "Travel Planner",
-      description: "Trips & dream itineraries",
-      badgeClasses: "bg-sky-500/12 text-sky-500 border-sky-500/20 dark:bg-sky-500/20",
-      hoverBorder: "hover:border-sky-500/40 hover:shadow-sky-500/5",
-      prompt: "Plan a detailed day-by-day travel itinerary with budget tips, hidden gems, and local recommendations.",
-    },
-    {
-      id: "chef-recipes",
+      id: "recipe",
       icon: Utensils,
-      title: "Chef & Cooking",
-      description: "Healthy quick recipes",
+      title: "Recipe & Cooking",
+      description: "Delicious dishes & diet",
       badgeClasses: "bg-rose-500/12 text-rose-500 border-rose-500/20 dark:bg-rose-500/20",
       hoverBorder: "hover:border-rose-500/40 hover:shadow-rose-500/5",
-      prompt: "Suggest healthy, delicious, and easy recipes with cooking instructions based on ingredients I have.",
+      prompt: "Give me an authentic, healthy 30-minute recipe with ingredient measurements and chef secrets.",
     },
     {
-      id: "career-skills",
+      id: "career",
       icon: Briefcase,
-      title: "Career & Skills",
-      description: "Resume & interview prep",
+      title: "Career & Resume",
+      description: "Resume & interviews",
+      badgeClasses: "bg-sky-500/12 text-sky-500 border-sky-500/20 dark:bg-sky-500/20",
+      hoverBorder: "hover:border-sky-500/40 hover:shadow-sky-500/5",
+      prompt: "Review my career goals and help me craft a high-impact resume summary and interview preparation plan.",
+    },
+    {
+      id: "fitness",
+      icon: Dumbbell,
+      title: "Fitness & Health",
+      description: "Workouts & nutrition",
       badgeClasses: "bg-teal-500/12 text-teal-500 border-teal-500/20 dark:bg-teal-500/20",
       hoverBorder: "hover:border-teal-500/40 hover:shadow-teal-500/5",
-      prompt: "Help me with career advice: review my resume bullet points, prepare for interviews, and suggest skills to master.",
+      prompt: "Create a personalized, sustainable weekly workout routine and healthy nutrition checklist.",
     },
     {
-      id: "fitness-health",
-      icon: Dumbbell,
-      title: "Fitness & Habit",
-      description: "Workouts & daily routines",
-      badgeClasses: "bg-lime-500/12 text-lime-600 dark:text-lime-400 border-lime-500/20 dark:bg-lime-500/20",
-      hoverBorder: "hover:border-lime-500/40 hover:shadow-lime-500/5",
-      prompt: "Design a practical weekly workout and healthy habit routine tailored to my schedule and fitness goals.",
-    },
-  ],
-  // Set 4: Productivity & Logic
-  [
-    {
-      id: "math-logic",
-      icon: Calculator,
-      title: "Math & Logic",
-      description: "Step-by-step solutions",
+      id: "creative",
+      icon: Sparkles,
+      title: "Creative Story",
+      description: "Fiction, poems & scripts",
       badgeClasses: "bg-violet-500/12 text-violet-500 border-violet-500/20 dark:bg-violet-500/20",
       hoverBorder: "hover:border-violet-500/40 hover:shadow-violet-500/5",
-      prompt: "Solve math, algebra, calculus, or logic reasoning problems with clear step-by-step formulas and explanations.",
+      prompt: "Write a captivating sci-fi short story with rich imagery, philosophical suspense, and emotional depth.",
     },
+  ],
+
+  // Set 4: Academic & Communication
+  [
     {
-      id: "email-writer",
-      icon: Mail,
-      title: "Email & Letters",
-      description: "Professional correspondence",
-      badgeClasses: "bg-blue-600/12 text-blue-600 dark:text-blue-400 border-blue-600/20 dark:bg-blue-600/20",
+      id: "math",
+      icon: Calculator,
+      title: "Math Solver",
+      description: "Formulas & algebra",
+      badgeClasses: "bg-blue-600/12 text-blue-600 border-blue-600/20 dark:bg-blue-400/20",
       hoverBorder: "hover:border-blue-600/40 hover:shadow-blue-600/5",
-      prompt: "Draft a polite, professional, and impactful email or formal letter for my workplace or business communication.",
+      prompt: "Explain and solve this mathematical equation step-by-step with underlying principles and formulas.",
     },
     {
-      id: "language-translate",
+      id: "email",
+      icon: Mail,
+      title: "Email Writer",
+      description: "Polite & professional",
+      badgeClasses: "bg-indigo-600/12 text-indigo-600 border-indigo-600/20 dark:bg-indigo-400/20",
+      hoverBorder: "hover:border-indigo-600/40 hover:shadow-indigo-600/5",
+      prompt: "Draft a polite, concise, and persuasive business email with a clear call to action.",
+    },
+    {
+      id: "languages",
       icon: Languages,
-      title: "Translate & Learn",
-      description: "Fluent multi-language",
-      badgeClasses: "bg-emerald-600/12 text-emerald-600 dark:text-emerald-400 border-emerald-600/20 dark:bg-emerald-600/20",
+      title: "Translator",
+      description: "Multi-language bridge",
+      badgeClasses: "bg-emerald-600/12 text-emerald-600 border-emerald-600/20 dark:bg-emerald-400/20",
       hoverBorder: "hover:border-emerald-600/40 hover:shadow-emerald-600/5",
-      prompt: "Translate accurately between Hindi, English, and other global languages while preserving natural idioms and cultural tone.",
+      prompt: "Translate and localize text accurately into Hindi, English, and other languages with natural idioms.",
     },
     {
-      id: "resume-builder",
+      id: "reviewer",
       icon: FileCheck,
-      title: "Resume Builder",
-      description: "ATS-friendly CV points",
-      badgeClasses: "bg-amber-600/12 text-amber-600 dark:text-amber-400 border-amber-600/20 dark:bg-amber-600/20",
+      title: "Essay Reviewer",
+      description: "Proofread & tone polish",
+      badgeClasses: "bg-amber-600/12 text-amber-600 border-amber-600/20 dark:bg-amber-400/20",
       hoverBorder: "hover:border-amber-600/40 hover:shadow-amber-600/5",
-      prompt: "Format and polish my resume with high-impact action verbs, quantifiable achievements, and modern ATS keywords.",
+      prompt: "Proofread and polish this text. Improve flow, vocabulary, grammar, and persuasive tone.",
     },
   ],
-  // Set 5: Creativity & Growth
+
+  // Set 5: Business & Innovation
   [
     {
-      id: "startup-pitch",
+      id: "startup",
       icon: Rocket,
-      title: "Startup & Pitch",
-      description: "Business models & MVPs",
-      badgeClasses: "bg-rose-600/12 text-rose-600 dark:text-rose-400 border-rose-600/20 dark:bg-rose-600/20",
-      hoverBorder: "hover:border-rose-600/40 hover:shadow-rose-600/5",
-      prompt: "Help me brainstorm a startup business model, target audience persona, value proposition, and an elevator pitch.",
-    },
-    {
-      id: "legal-simplify",
-      icon: Scale,
-      title: "Legal & Contracts",
-      description: "Plain English summary",
-      badgeClasses: "bg-cyan-600/12 text-cyan-600 dark:text-cyan-400 border-cyan-600/20 dark:bg-cyan-600/20",
-      hoverBorder: "hover:border-cyan-600/40 hover:shadow-cyan-600/5",
-      prompt: "Review contract terms or terms of service and explain key clauses, obligations, and potential risks in simple terms.",
-    },
-    {
-      id: "music-lyrics",
-      icon: Music,
-      title: "Music & Lyrics",
-      description: "Rhymes, beats & poetry",
-      badgeClasses: "bg-fuchsia-500/12 text-fuchsia-500 border-fuchsia-500/20 dark:bg-fuchsia-500/20",
-      hoverBorder: "hover:border-fuchsia-500/40 hover:shadow-fuchsia-500/5",
-      prompt: "Help me write catchy song lyrics, poetic stanzas, rap verses, or chord progressions for a musical idea.",
-    },
-    {
-      id: "viral-social",
-      icon: Sparkles,
-      title: "Viral Creator",
-      description: "Hooks, reels & threads",
-      badgeClasses: "bg-yellow-500/12 text-yellow-600 dark:text-yellow-400 border-yellow-500/20 dark:bg-yellow-500/20",
-      hoverBorder: "hover:border-yellow-500/40 hover:shadow-yellow-500/5",
-      prompt: "Write 5 viral hooks, YouTube Shorts scripts, or Twitter/LinkedIn threads with strong engagement angles.",
-    },
-  ],
-  // Set 6: Knowledge & Mindset
-  [
-    {
-      id: "science-cosmos",
-      icon: Atom,
-      title: "Science & Cosmos",
-      description: "Physics, space & biology",
-      badgeClasses: "bg-blue-400/12 text-blue-500 border-blue-400/20 dark:bg-blue-400/20",
-      hoverBorder: "hover:border-blue-400/40 hover:shadow-blue-400/5",
-      prompt: "Explain cutting-edge science, astrophysics mysteries, or quantum concepts in an exciting, intuitive way.",
-    },
-    {
-      id: "gaming-lore",
-      icon: Gamepad2,
-      title: "Gaming & Lore",
-      description: "Worldbuilding & quests",
+      title: "Startup Pitch",
+      description: "Ideas & pitch decks",
       badgeClasses: "bg-red-500/12 text-red-500 border-red-500/20 dark:bg-red-500/20",
       hoverBorder: "hover:border-red-500/40 hover:shadow-red-500/5",
-      prompt: "Create rich game world lore, character backstories, RPG quest dialogues, or game mechanic ideas.",
+      prompt: "Structure a high-converting startup pitch deck with problem, solution, market size, and business model.",
     },
     {
-      id: "life-clarity",
+      id: "legal",
+      icon: Scale,
+      title: "Legal & Rights",
+      description: "Contracts & guidelines",
+      badgeClasses: "bg-slate-500/12 text-slate-500 border-slate-500/20 dark:bg-slate-500/20",
+      hoverBorder: "hover:border-slate-500/40 hover:shadow-slate-500/5",
+      prompt: "Explain standard legal contract terms, NDA basics, and intellectual property rights in plain language.",
+    },
+    {
+      id: "music",
+      icon: Music,
+      title: "Music & Lyrics",
+      description: "Songs, beats & rhymes",
+      badgeClasses: "bg-fuchsia-500/12 text-fuchsia-500 border-fuchsia-500/20 dark:bg-fuchsia-500/20",
+      hoverBorder: "hover:border-fuchsia-500/40 hover:shadow-fuchsia-500/5",
+      prompt: "Write catchy, poetic song lyrics with verses, chorus, bridge, and a rhythmic beat suggestion.",
+    },
+    {
+      id: "social",
+      icon: Compass,
+      title: "Social Media",
+      description: "Viral hooks & captions",
+      badgeClasses: "bg-cyan-600/12 text-cyan-600 border-cyan-600/20 dark:bg-cyan-400/20",
+      hoverBorder: "hover:border-cyan-600/40 hover:shadow-cyan-600/5",
+      prompt: "Create 5 viral social media post hooks and captions designed for high engagement and shares.",
+    },
+  ],
+
+  // Set 6: Science, Logic & Wellbeing
+  [
+    {
+      id: "science",
+      icon: Atom,
+      title: "Science Explainer",
+      description: "Physics, bio & cosmos",
+      badgeClasses: "bg-blue-500/12 text-blue-500 border-blue-500/20 dark:bg-blue-500/20",
+      hoverBorder: "hover:border-blue-500/40 hover:shadow-blue-500/5",
+      prompt: "Explain a fascinating astrophysics or quantum physics principle in an easy-to-understand breakdown.",
+    },
+    {
+      id: "gaming",
+      icon: Gamepad2,
+      title: "Gaming & Lore",
+      description: "Guides, tips & stories",
+      badgeClasses: "bg-purple-600/12 text-purple-600 border-purple-600/20 dark:bg-purple-400/20",
+      hoverBorder: "hover:border-purple-600/40 hover:shadow-purple-600/5",
+      prompt: "Give me strategic gameplay tips, character builds, and lore analysis for modern open-world games.",
+    },
+    {
+      id: "wellness",
       icon: Heart,
-      title: "Life & Clarity",
-      description: "Calm mindfulness & focus",
-      badgeClasses: "bg-pink-400/12 text-pink-500 border-pink-400/20 dark:bg-pink-400/20",
-      hoverBorder: "hover:border-pink-400/40 hover:shadow-pink-400/5",
-      prompt: "Share calm mindfulness reflections, stress-relief guidance, and thoughtful perspective to regain focus today.",
+      title: "Mind Wellness",
+      description: "Stress relief & focus",
+      badgeClasses: "bg-rose-600/12 text-rose-600 border-rose-600/20 dark:bg-rose-400/20",
+      hoverBorder: "hover:border-rose-600/40 hover:shadow-rose-600/5",
+      prompt: "Guide me through a calming 5-minute mindfulness breathing exercise and positive mindset shift.",
     },
     {
-      id: "data-insights",
+      id: "analytics",
       icon: BarChart3,
-      title: "Data Insights",
-      description: "KPIs & pattern analysis",
-      badgeClasses: "bg-teal-600/12 text-teal-600 dark:text-teal-400 border-teal-600/20 dark:bg-teal-600/20",
-      hoverBorder: "hover:border-teal-600/40 hover:shadow-teal-600/5",
-      prompt: "Help me analyze metrics, structure tabular data, and extract actionable insights and growth trends.",
+      title: "Data Analytics",
+      description: "Metrics & trend charts",
+      badgeClasses: "bg-emerald-600/12 text-emerald-600 border-emerald-600/20 dark:bg-emerald-400/20",
+      hoverBorder: "hover:border-emerald-600/40 hover:shadow-emerald-600/5",
+      prompt: "Explain how to interpret key business metrics, KPIs, and data visualizations to make smart decisions.",
     },
   ],
 ];
 
-// Top Action Pills Row 1 & Row 2
-const pillRow1 = [
+// Top 4 Action Pills
+const topActionPills = [
   {
     id: "create-image",
-    icon: ImageIcon,
     title: "Create image",
-    placeholder: "Describe the image you want to generate...",
+    icon: ImageIcon,
     options: [
-      "Generate a modern logo for my brand",
-      "Create a 3D futuristic illustration",
-      "Design a social media poster",
-      "Cinematic digital art portrait",
+      "Photorealistic portrait in golden hour lighting",
+      "Futuristic cyberpunk city with neon reflections",
+      "Minimalist vector logo for a modern tech startup",
+      "Peaceful Himalayan mountain landscape at sunrise",
     ],
+    placeholder: "Describe the image you want to generate...",
   },
   {
     id: "get-advice",
-    icon: MessageCircle,
     title: "Get advice",
-    placeholder: "What do you need advice on...",
+    icon: MessageCircle,
     options: [
-      "Career growth and skill advice",
-      "Daily time management tips",
-      "Startup and solo founder guidance",
-      "Effective communication strategies",
+      "How to build high focus and beat procrastination",
+      "Career growth strategies for tech and design",
+      "Smart budgeting and emergency fund rules",
+      "Healthy daily routine for high physical energy",
     ],
+    placeholder: "What topic do you need advice on?",
   },
-];
-
-const pillRow2 = [
   {
-    id: "summarize",
-    icon: FileText,
+    id: "summarize-text",
     title: "Summarize text",
-    placeholder: "Paste or describe text to summarize...",
+    icon: FileText,
     options: [
-      "Summarize long article in 5 bullet points",
-      "Create quick meeting notes",
-      "Explain complex research simply",
-      "Extract key actionable takeaways",
+      "Summarize in 5 key executive bullet points",
+      "Extract actionable next steps and decisions",
+      "Explain this like I am 12 years old",
+      "Highlight pros, cons, and potential risks",
     ],
+    placeholder: "Paste or describe the text to summarize...",
   },
-];
-
-// Dropdown More Actions
-const moreActionItems = [
   {
-    id: "code-helper",
+    id: "code-assistant",
+    title: "Code assistant",
     icon: Code,
-    title: "Code Helper",
-    placeholder: "What code do you want to write or debug...",
     options: [
-      "Debug my React / JavaScript code",
-      "Write a Python automation script",
-      "Explain algorithm time complexity",
-      "Build a modern Tailwind CSS card component",
+      "Write a clean React + TypeScript component",
+      "Debug an API error or performance issue",
+      "Write an optimized SQL query with indexes",
+      "Explain this code snippet step-by-step",
     ],
-  },
-  {
-    id: "brainstorm",
-    icon: Brain,
-    title: "Brainstorm",
-    placeholder: "What do you want to brainstorm...",
-    options: [
-      "5 viral video content ideas",
-      "Creative business names",
-      "Unique mobile app concepts",
-      "Marketing campaign strategies",
-    ],
-  },
-  {
-    id: "explore-ideas",
-    icon: Compass,
-    title: "Explore ideas",
-    placeholder: "Topic to explore...",
-    options: [
-      "Explain Quantum Computing in plain Hindi/English",
-      "Future of Artificial Intelligence in 2030",
-      "Space exploration milestones",
-      "Learn a new skill in 30 days",
-    ],
+    placeholder: "What programming problem are you solving?",
   },
 ];
 
-// 10 Distinct Animated Greetings
 const animatedGreetings = [
   "How can I help you today?",
-  "What would you like to explore?",
-  "Ask me anything...",
-  "What should we create today?",
-  "Need help with code, study, or ideas?",
-  "Brainstorm your next big project",
-  "Summarize, analyze, or research",
+  "What would you like to create?",
+  "Ask me anything or explore modes",
+  "Ready to research, code, or write",
+  "Transform ideas into reality",
+  "Fast, intelligent answers at ₹0 cost",
+  "Brainstorm, analyze, or summarize",
   "Generate creative images with AI",
   "Solve complex problems in seconds",
   "Let's learn something new today",
 ];
 
-export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
+export const QuickActionCards = ({ onAction, onCardClick, onSkip }: QuickActionCardsProps) => {
   const [greetingIndex, setGreetingIndex] = useState(0);
   const [activeSetIndex, setActiveSetIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -393,6 +367,11 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
     placeholder?: string;
   } | null>(null);
   const [customInput, setCustomInput] = useState("");
+
+  const triggerAction = (prompt: string) => {
+    if (onCardClick) onCardClick(prompt);
+    if (onAction) onAction(prompt);
+  };
 
   // Rotate greeting heading
   useEffect(() => {
@@ -417,14 +396,14 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
   };
 
   const handleOptionClick = (option: string) => {
-    onAction(option);
+    triggerAction(option);
     setSelectedAction(null);
     setCustomInput("");
   };
 
   const handleCustomSubmit = () => {
     if (customInput.trim()) {
-      onAction(`${selectedAction?.title}: ${customInput.trim()}`);
+      triggerAction(`${selectedAction?.title}: ${customInput.trim()}`);
       setSelectedAction(null);
       setCustomInput("");
     }
@@ -437,68 +416,124 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
   const currentCards = cardSets[activeSetIndex];
 
   return (
-    <div className="w-full max-w-lg sm:max-w-xl mx-auto px-2 sm:px-4 flex flex-col items-center justify-center select-none">
-      {/* 10 Animated Greetings */}
-      <div className="text-center mb-3 sm:mb-4 min-h-[50px] sm:min-h-[56px] flex items-center justify-center px-1">
+    <div className="w-full max-w-xl sm:max-w-2xl mx-auto flex flex-col items-center justify-center">
+      {/* Animated Rotating Headline */}
+      <div className="text-center mb-4 sm:mb-6 min-h-[44px] flex items-center justify-center">
         <AnimatePresence mode="wait">
-          <motion.h1
+          <motion.h2
             key={greetingIndex}
-            initial={{ opacity: 0, y: 8, filter: "blur(2px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -8, filter: "blur(2px)" }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight text-foreground leading-snug"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight text-foreground select-none"
           >
             {animatedGreetings[greetingIndex]}
-          </motion.h1>
+          </motion.h2>
         </AnimatePresence>
       </div>
 
-      {/* Pill Modal Dialog */}
+      {/* Top Action Pills */}
+      <div className="w-full flex items-center justify-center gap-1.5 sm:gap-2 mb-4 sm:mb-5 flex-wrap">
+        {topActionPills.map((action) => {
+          const Icon = action.icon;
+          return (
+            <button
+              key={action.id}
+              type="button"
+              onClick={() => handleActionClick(action)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border border-border/70 bg-card/70 hover:bg-muted/80 text-foreground transition-all duration-200 hover:border-foreground/25 active:scale-95 shadow-xs"
+            >
+              <Icon className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>{action.title}</span>
+            </button>
+          );
+        })}
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium border border-border/70 bg-card/70 hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all duration-200 active:scale-95 shadow-xs"
+              title="More options"
+            >
+              <MoreHorizontal className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">More</span>
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 p-1 rounded-xl bg-popover border border-border/70 shadow-lg z-50">
+            <DropdownMenuItem onClick={() => triggerAction("Brainstorm 10 creative startup ideas with high potential")} className="rounded-lg text-xs py-2 cursor-pointer">
+              <Brain className="h-3.5 w-3.5 mr-2 text-pink-500" />
+              Brainstorm Ideas
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => triggerAction("Provide a structured guide on how to learn anything fast")} className="rounded-lg text-xs py-2 cursor-pointer">
+              <Compass className="h-3.5 w-3.5 mr-2 text-blue-500" />
+              Learning Methods
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => triggerAction("Summarize key concepts of modern machine learning")} className="rounded-lg text-xs py-2 cursor-pointer">
+              <Code className="h-3.5 w-3.5 mr-2 text-purple-500" />
+              AI Concepts
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      {/* Pill Modal / Dropdown Dialog */}
       <AnimatePresence>
         {selectedAction && (
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
-            className="w-full mb-3 p-3 bg-card border border-border/80 rounded-2xl shadow-lg"
+            transition={{ duration: 0.18 }}
+            className="w-full mb-4 p-3.5 rounded-2xl bg-card border border-border shadow-md"
           >
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="font-medium text-foreground text-xs sm:text-sm">{selectedAction.title}</h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 rounded-full hover:bg-muted"
+            <div className="flex items-center justify-between pb-2 mb-2 border-b border-border/50">
+              <span className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-1.5">
+                <selectedAction.icon className="h-4 w-4 text-primary" />
+                {selectedAction.title}
+              </span>
+              <button
+                type="button"
                 onClick={() => setSelectedAction(null)}
+                className="p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
                 <X className="h-3.5 w-3.5" />
-              </Button>
+              </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 mb-2">
-              {selectedAction.options.map((option, idx) => (
-                <Button
-                  key={idx}
-                  variant="outline"
-                  className="justify-start text-left h-auto py-1.5 px-2.5 text-xs rounded-xl border-border/60 hover:bg-muted/80 whitespace-normal"
-                  onClick={() => handleOptionClick(option)}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-2.5">
+              {selectedAction.options.map((opt, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => handleOptionClick(opt)}
+                  className="text-left text-xs p-2 rounded-xl bg-muted/50 hover:bg-muted text-foreground/90 transition-colors border border-border/40 hover:border-foreground/20 leading-relaxed"
                 >
-                  {option}
-                </Button>
+                  {opt}
+                </button>
               ))}
             </div>
-            <div className="pt-2 border-t border-border/60 flex gap-2">
+
+            <div className="flex items-center gap-1.5">
               <Input
                 value={customInput}
                 onChange={(e) => setCustomInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleCustomSubmit()}
-                placeholder={selectedAction.placeholder || "Type your prompt..."}
-                className="flex-1 h-8 text-xs rounded-xl"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCustomSubmit();
+                  }
+                }}
+                placeholder={selectedAction.placeholder || "Type your request..."}
+                className="h-8 text-xs rounded-xl bg-background"
               />
               <Button
-                size="icon"
-                className="h-8 w-8 rounded-xl shrink-0 bg-primary text-primary-foreground hover:opacity-90"
+                type="button"
+                size="sm"
                 onClick={handleCustomSubmit}
                 disabled={!customInput.trim()}
+                className="h-8 px-2.5 rounded-xl shrink-0 text-xs"
               >
                 <Send className="h-3.5 w-3.5" />
               </Button>
@@ -507,116 +542,46 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
         )}
       </AnimatePresence>
 
-      {/* Action Pills */}
-      {!selectedAction && (
-        <motion.div 
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.25 }}
-          className="flex flex-col items-center gap-1.5 sm:gap-2 mb-3 sm:mb-4"
-        >
-          {/* Row 1: Create image, Get advice */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {pillRow1.map((action, idx) => (
-              <motion.div
-                key={action.id}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.05 }}
-              >
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-2 px-3.5 py-1 h-8 sm:h-8.5 rounded-full border-border/60 bg-card hover:bg-muted/70 hover:border-foreground/20 text-foreground text-xs font-medium shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
-                  onClick={() => handleActionClick(action)}
-                >
-                  <action.icon className="h-3.5 w-3.5 text-muted-foreground/80 shrink-0" />
-                  <span>{action.title}</span>
-                </Button>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Row 2: Summarize text, More */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {pillRow2.map((action) => (
-              <Button
-                key={action.id}
-                variant="outline"
-                className="flex items-center gap-2 px-3.5 py-1 h-8 sm:h-8.5 rounded-full border-border/60 bg-card hover:bg-muted/70 hover:border-foreground/20 text-foreground text-xs font-medium shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
-                onClick={() => handleActionClick(action)}
-              >
-                <action.icon className="h-3.5 w-3.5 text-muted-foreground/80 shrink-0" />
-                <span>{action.title}</span>
-              </Button>
-            ))}
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="flex items-center gap-1.5 px-3 py-1 h-8 sm:h-8.5 rounded-full border-border/60 bg-card hover:bg-muted/70 hover:border-foreground/20 text-foreground text-xs font-medium shadow-xs hover:-translate-y-0.5 active:scale-95 transition-all duration-200"
-                >
-                  <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground/80 shrink-0" />
-                  <span>More</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="center" className="w-48 p-1.5 bg-popover border border-border/80 rounded-2xl shadow-xl z-50">
-                {moreActionItems.map((action) => (
-                  <DropdownMenuItem
-                    key={action.id}
-                    className="flex items-center gap-2 px-3 py-2 cursor-pointer rounded-xl text-xs hover:bg-muted font-medium"
-                    onClick={() => handleActionClick(action)}
-                  >
-                    <action.icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                    <span>{action.title}</span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </motion.div>
-      )}
-
-      {/* 24 Feature Cards (6 Sets of 4 Auto-Rotating every 1.5 seconds) */}
+      {/* 24 Dynamic Feature Cards (6 Sets of 4 Rotating every 1.5s) */}
       <div 
-        className="w-full relative"
+        className="w-full"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
       >
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSetIndex}
-            initial={{ opacity: 0, y: 8, scale: 0.985 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.985 }}
-            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full grid grid-cols-2 gap-2 sm:gap-2.5"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.28, ease: "easeOut" }}
+            className="grid grid-cols-2 gap-2 sm:gap-2.5 w-full"
           >
-            {currentCards.map((card, index) => (
+            {currentCards.map((card) => (
               <motion.div
                 key={card.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03, duration: 0.18 }}
+                whileHover={{ y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                transition={{ duration: 0.15 }}
+                className="h-full"
               >
                 <Card
-                  onClick={() => onAction(card.prompt)}
-                  className={`p-2.5 sm:p-3 bg-card hover:bg-muted/30 border border-border/70 ${card.hoverBorder} rounded-2xl sm:rounded-3xl transition-all duration-200 cursor-pointer hover:-translate-y-0.5 active:scale-[0.98] shadow-xs group`}
+                  onClick={() => triggerAction(card.prompt)}
+                  className={`p-2.5 sm:p-3 h-full cursor-pointer bg-card/75 dark:bg-[#15171C]/80 backdrop-blur-sm border border-border/60 rounded-xl transition-all duration-200 text-left flex flex-col justify-between ${card.hoverBorder} shadow-2xs hover:shadow-sm`}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border ${card.badgeClasses} group-hover:scale-105 transition-transform duration-200`}>
-                      <card.icon className="w-4 h-4" />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-foreground text-xs sm:text-[13px] tracking-tight truncate">
-                        {card.title}
-                      </h3>
-                      <p className="text-[10px] sm:text-[11px] text-muted-foreground/80 truncate leading-tight font-normal">
-                        {card.description}
-                      </p>
-                    </div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className={`inline-flex items-center justify-center p-1.5 rounded-lg border text-xs shrink-0 ${card.badgeClasses}`}>
+                      <card.icon className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="text-xs sm:text-sm font-semibold text-foreground tracking-tight truncate">
+                      {card.title}
+                    </span>
                   </div>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-1 leading-snug">
+                    {card.description}
+                  </p>
                 </Card>
               </motion.div>
             ))}
@@ -630,7 +595,7 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
               key={idx}
               type="button"
               onClick={() => setActiveSetIndex(idx)}
-              className={`h-1.5 rounded-full transition-all duration-250 ${
+              className={`h-1.5 rounded-full transition-all duration-200 ${
                 activeSetIndex === idx 
                   ? "w-4 bg-foreground/60" 
                   : "w-1.5 bg-muted-foreground/25 hover:bg-muted-foreground/50"
@@ -652,4 +617,5 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
   );
 };
 
+export { QuickActionCards };
 export default QuickActionCards;
