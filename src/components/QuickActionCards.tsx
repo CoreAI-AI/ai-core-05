@@ -11,14 +11,26 @@ import {
   MoreHorizontal, 
   Code, 
   Brain, 
-  Compass,
+  Compass, 
   X, 
-  Send,
-  GraduationCap,
-  Utensils,
-  Briefcase,
-  Dumbbell,
-  RefreshCw
+  Send, 
+  GraduationCap, 
+  Utensils, 
+  Briefcase, 
+  Dumbbell, 
+  RefreshCw,
+  Calculator,
+  Mail,
+  Languages,
+  FileCheck,
+  Rocket,
+  Scale,
+  Music,
+  Sparkles,
+  Atom,
+  Gamepad2,
+  Heart,
+  BarChart3
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,7 +47,7 @@ interface QuickActionCardsProps {
   onSkip?: () => void;
 }
 
-// 3 Dynamic Card Sets (Total 12 Distinct CoreAI Cards)
+// 6 Dynamic Card Sets (Total 24 Distinct CoreAI Modes & Action Cards)
 const cardSets = [
   // Set 1: Explore & News
   [
@@ -152,6 +164,123 @@ const cardSets = [
       badgeClasses: "bg-lime-500/12 text-lime-600 dark:text-lime-400 border-lime-500/20 dark:bg-lime-500/20",
       hoverBorder: "hover:border-lime-500/40 hover:shadow-lime-500/5",
       prompt: "Design a practical weekly workout and healthy habit routine tailored to my schedule and fitness goals.",
+    },
+  ],
+  // Set 4: Productivity & Logic
+  [
+    {
+      id: "math-logic",
+      icon: Calculator,
+      title: "Math & Logic",
+      description: "Step-by-step solutions",
+      badgeClasses: "bg-violet-500/12 text-violet-500 border-violet-500/20 dark:bg-violet-500/20",
+      hoverBorder: "hover:border-violet-500/40 hover:shadow-violet-500/5",
+      prompt: "Solve math, algebra, calculus, or logic reasoning problems with clear step-by-step formulas and explanations.",
+    },
+    {
+      id: "email-writer",
+      icon: Mail,
+      title: "Email & Letters",
+      description: "Professional correspondence",
+      badgeClasses: "bg-blue-600/12 text-blue-600 dark:text-blue-400 border-blue-600/20 dark:bg-blue-600/20",
+      hoverBorder: "hover:border-blue-600/40 hover:shadow-blue-600/5",
+      prompt: "Draft a polite, professional, and impactful email or formal letter for my workplace or business communication.",
+    },
+    {
+      id: "language-translate",
+      icon: Languages,
+      title: "Translate & Learn",
+      description: "Fluent multi-language",
+      badgeClasses: "bg-emerald-600/12 text-emerald-600 dark:text-emerald-400 border-emerald-600/20 dark:bg-emerald-600/20",
+      hoverBorder: "hover:border-emerald-600/40 hover:shadow-emerald-600/5",
+      prompt: "Translate accurately between Hindi, English, and other global languages while preserving natural idioms and cultural tone.",
+    },
+    {
+      id: "resume-builder",
+      icon: FileCheck,
+      title: "Resume Builder",
+      description: "ATS-friendly CV points",
+      badgeClasses: "bg-amber-600/12 text-amber-600 dark:text-amber-400 border-amber-600/20 dark:bg-amber-600/20",
+      hoverBorder: "hover:border-amber-600/40 hover:shadow-amber-600/5",
+      prompt: "Format and polish my resume with high-impact action verbs, quantifiable achievements, and modern ATS keywords.",
+    },
+  ],
+  // Set 5: Creativity & Growth
+  [
+    {
+      id: "startup-pitch",
+      icon: Rocket,
+      title: "Startup & Pitch",
+      description: "Business models & MVPs",
+      badgeClasses: "bg-rose-600/12 text-rose-600 dark:text-rose-400 border-rose-600/20 dark:bg-rose-600/20",
+      hoverBorder: "hover:border-rose-600/40 hover:shadow-rose-600/5",
+      prompt: "Help me brainstorm a startup business model, target audience persona, value proposition, and an elevator pitch.",
+    },
+    {
+      id: "legal-simplify",
+      icon: Scale,
+      title: "Legal & Contracts",
+      description: "Plain English summary",
+      badgeClasses: "bg-cyan-600/12 text-cyan-600 dark:text-cyan-400 border-cyan-600/20 dark:bg-cyan-600/20",
+      hoverBorder: "hover:border-cyan-600/40 hover:shadow-cyan-600/5",
+      prompt: "Review contract terms or terms of service and explain key clauses, obligations, and potential risks in simple terms.",
+    },
+    {
+      id: "music-lyrics",
+      icon: Music,
+      title: "Music & Lyrics",
+      description: "Rhymes, beats & poetry",
+      badgeClasses: "bg-fuchsia-500/12 text-fuchsia-500 border-fuchsia-500/20 dark:bg-fuchsia-500/20",
+      hoverBorder: "hover:border-fuchsia-500/40 hover:shadow-fuchsia-500/5",
+      prompt: "Help me write catchy song lyrics, poetic stanzas, rap verses, or chord progressions for a musical idea.",
+    },
+    {
+      id: "viral-social",
+      icon: Sparkles,
+      title: "Viral Creator",
+      description: "Hooks, reels & threads",
+      badgeClasses: "bg-yellow-500/12 text-yellow-600 dark:text-yellow-400 border-yellow-500/20 dark:bg-yellow-500/20",
+      hoverBorder: "hover:border-yellow-500/40 hover:shadow-yellow-500/5",
+      prompt: "Write 5 viral hooks, YouTube Shorts scripts, or Twitter/LinkedIn threads with strong engagement angles.",
+    },
+  ],
+  // Set 6: Knowledge & Mindset
+  [
+    {
+      id: "science-cosmos",
+      icon: Atom,
+      title: "Science & Cosmos",
+      description: "Physics, space & biology",
+      badgeClasses: "bg-blue-400/12 text-blue-500 border-blue-400/20 dark:bg-blue-400/20",
+      hoverBorder: "hover:border-blue-400/40 hover:shadow-blue-400/5",
+      prompt: "Explain cutting-edge science, astrophysics mysteries, or quantum concepts in an exciting, intuitive way.",
+    },
+    {
+      id: "gaming-lore",
+      icon: Gamepad2,
+      title: "Gaming & Lore",
+      description: "Worldbuilding & quests",
+      badgeClasses: "bg-red-500/12 text-red-500 border-red-500/20 dark:bg-red-500/20",
+      hoverBorder: "hover:border-red-500/40 hover:shadow-red-500/5",
+      prompt: "Create rich game world lore, character backstories, RPG quest dialogues, or game mechanic ideas.",
+    },
+    {
+      id: "life-clarity",
+      icon: Heart,
+      title: "Life & Clarity",
+      description: "Calm mindfulness & focus",
+      badgeClasses: "bg-pink-400/12 text-pink-500 border-pink-400/20 dark:bg-pink-400/20",
+      hoverBorder: "hover:border-pink-400/40 hover:shadow-pink-400/5",
+      prompt: "Share calm mindfulness reflections, stress-relief guidance, and thoughtful perspective to regain focus today.",
+    },
+    {
+      id: "data-insights",
+      icon: BarChart3,
+      title: "Data Insights",
+      description: "KPIs & pattern analysis",
+      badgeClasses: "bg-teal-600/12 text-teal-600 dark:text-teal-400 border-teal-600/20 dark:bg-teal-600/20",
+      hoverBorder: "hover:border-teal-600/40 hover:shadow-teal-600/5",
+      prompt: "Help me analyze metrics, structure tabular data, and extract actionable insights and growth trends.",
     },
   ],
 ];
@@ -273,12 +402,12 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Rotate card sets every 5.5s (pauses on hover)
+  // Rotate 24 card sets every 1.5 seconds (1500ms) with hover pause
   useEffect(() => {
     if (isPaused) return;
     const timer = setInterval(() => {
       setActiveSetIndex((prev) => (prev + 1) % cardSets.length);
-    }, 5500);
+    }, 1500);
     return () => clearInterval(timer);
   }, [isPaused]);
 
@@ -448,7 +577,7 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
         </motion.div>
       )}
 
-      {/* 4 Feature Cards (Auto-Rotating Sets of 4 with Staggered Transitions) */}
+      {/* 24 Feature Cards (6 Sets of 4 Auto-Rotating every 1.5 seconds) */}
       <div 
         className="w-full relative"
         onMouseEnter={() => setIsPaused(true)}
@@ -457,30 +586,28 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
         <AnimatePresence mode="wait">
           <motion.div
             key={activeSetIndex}
-            initial={{ opacity: 0, y: 10, scale: 0.985 }}
+            initial={{ opacity: 0, y: 8, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.985 }}
-            transition={{ duration: 0.28, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, y: -8, scale: 0.985 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="w-full grid grid-cols-2 gap-2 sm:gap-2.5"
           >
             {currentCards.map((card, index) => (
               <motion.div
                 key={card.id}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.04, duration: 0.2 }}
+                transition={{ delay: index * 0.03, duration: 0.18 }}
               >
                 <Card
                   onClick={() => onAction(card.prompt)}
                   className={`p-2.5 sm:p-3 bg-card hover:bg-muted/30 border border-border/70 ${card.hoverBorder} rounded-2xl sm:rounded-3xl transition-all duration-200 cursor-pointer hover:-translate-y-0.5 active:scale-[0.98] shadow-xs group`}
                 >
                   <div className="flex items-center gap-2.5">
-                    {/* Rounded Squircle Badge */}
                     <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 border ${card.badgeClasses} group-hover:scale-105 transition-transform duration-200`}>
                       <card.icon className="w-4 h-4" />
                     </div>
 
-                    {/* Title & Subtitle */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-foreground text-xs sm:text-[13px] tracking-tight truncate">
                         {card.title}
@@ -496,14 +623,14 @@ export const QuickActionCards = ({ onAction }: QuickActionCardsProps) => {
           </motion.div>
         </AnimatePresence>
 
-        {/* Carousel Dots + Shuffle Button */}
-        <div className="flex items-center justify-center gap-1.5 mt-2.5">
+        {/* 6 Dots Indicator + Shuffle Control */}
+        <div className="flex items-center justify-center gap-1 mt-2.5">
           {cardSets.map((_, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => setActiveSetIndex(idx)}
-              className={`h-1.5 rounded-full transition-all duration-300 ${
+              className={`h-1.5 rounded-full transition-all duration-250 ${
                 activeSetIndex === idx 
                   ? "w-4 bg-foreground/60" 
                   : "w-1.5 bg-muted-foreground/25 hover:bg-muted-foreground/50"
