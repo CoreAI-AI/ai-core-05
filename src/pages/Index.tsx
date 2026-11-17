@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useChats } from "@/hooks/useChats";
+import { useChats, Message } from "@/hooks/useChats";
 import { ChatSidebar } from "@/components/ChatSidebar";
 import { ChatInput, ModeType } from "@/components/ChatInput";
 import { QuickActionCards } from "@/components/QuickActionCards";
@@ -10,11 +10,14 @@ import { Settings } from "@/components/Settings";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useDailyLimit } from "@/hooks/useDailyLimit";
 import { useUsageLimits } from "@/hooks/useUsageLimits";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { toast } from "sonner";
-import { X, PanelLeft, Search, Plus } from "lucide-react";
+import { X, PanelLeft, Search, Plus, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { tryLocalReply } from "@/lib/smallTalk";
 import { buildCompanionContext as getCompanionMemoryContext } from "@/lib/companionMemory";
+import { cn } from "@/lib/utils";
+import coreaiLogo from "@/assets/coreai-logo.png";
 
 interface AttachedFileItem {
   id: string;
@@ -67,12 +70,11 @@ const isImageGenerationPrompt = (text: string) => {
 
 const Index = () => {
   const { user } = useAuth();
-  const { chats, currentChat, messages, createChat, selectChat, deleteChat, addMessage, updateMessage, updateMessageLocal } = useChats(user?.id);
-  const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
+  const { chats, currentChat, messages, createChat, selectChat, deleteChat, addMessage, updateMessage } = useChats(user?.id);
+  const [selectedModel] = useState("google/gemini-2.5-flash");
   const { isPremium } = useSubscription();
   const { recordUsage } = useDailyLimit(user?.id, isPremium);
   const usageLimits = useUsageLimits(user?.id, isPremium);
-  const [, setUnlockPopup] = useState<{ open: boolean; reason?: 'daily' | 'mode'; modeLabel?: string }>({ open: false });
   const [isLoading, setIsLoading] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -80,7 +82,7 @@ const Index = () => {
   // Up to 8 attached files / images
   const [attachedFiles, setAttachedFiles] = useState<AttachedFileItem[]>([]);
   const [chatMode, setChatMode] = useState<ModeType>('normal');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 768);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 1024);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [, setIsUserTyping] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -186,8 +188,7 @@ const Index = () => {
 
     const gate = usageLimits.checkCanSend(chatMode);
     if (!gate.allowed) {
-      const modeLabels: Record<string, string> = { chat: 'Chat', study: 'Study', photo: 'Image', code: 'Code' };
-      setUnlockPopup({ open: true, reason: gate.reason, modeLabel: modeLabels[chatMode] || chatMode });
+      toast.error("Daily free quota reached (20/20). Resets tomorrow!");
       return;
     }
 
@@ -205,6 +206,9 @@ const Index = () => {
     const userMessage = await addMessage(chatToUse.id, content, true, messageImages.length > 0 ? messageImages : undefined);
     if (!userMessage) return;
 
+    const attachedFilesCopy = [...attachedFiles];
+    setAttachedFiles([]); // Clear composer attachments
+
     userScrolledUpRef.current = false;
     scrollToBottom('auto');
 
@@ -213,7 +217,7 @@ const Index = () => {
       return;
     }
 
-    if (attachedFiles.length === 0 && chatMode === 'normal') {
+    if (attachedFilesCopy.length === 0 && chatMode === 'normal') {
       const local = tryLocalReply(content);
       if (local) {
         await addMessage(chatToUse.id, local, false);
@@ -236,7 +240,7 @@ const Index = () => {
 
       let fileTextToSend: string | undefined;
       let fileNameToSend: string | undefined;
-      const firstDoc = attachedFiles.find(f => !f.isImage);
+      const firstDoc = attachedFilesCopy.find(f => !f.isImage);
       if (firstDoc) {
         try {
           fileTextToSend = (await firstDoc.file.text()).slice(0, 12000);
@@ -303,53 +307,20 @@ const Index = () => {
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-      if (!reader) throw new Error("No response body");
+      let accumulated = "";
 
-      let accumulatedContent = "";
-      let receivedImages: any[] = [];
-      let buffer = "";
-      setIsAITyping(false);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (!line.trim() || !line.startsWith('data: ')) continue;
-          const data = line.slice(6);
-          if (data === '[DONE]') break;
-
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.images && Array.isArray(parsed.images)) {
-              receivedImages.push(...parsed.images);
-            }
-            if (parsed.content) {
-              accumulatedContent += parsed.content;
-              if (!isImgGen) {
-                updateMessageLocal(aiMessage.id, accumulatedContent);
-              }
-            }
-          } catch {}
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          accumulated += chunk;
+          await updateMessage(aiMessage.id, accumulated);
         }
       }
 
-      if (isImgGen) {
-        const finalTxt = accumulatedContent.trim() || (receivedImages.length > 0 ? "✨ Here is your generated image:" : "I could not generate the image. Please try a different prompt.");
-        await updateMessage(aiMessage.id, finalTxt, receivedImages.length > 0 ? receivedImages : undefined);
-        setIsGeneratingImage(false);
-      } else {
-        await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
-      }
-
-      setAttachedFiles([]);
-    } catch (error) {
-      console.error('Error calling AI:', error);
-      toast.error("Failed to get AI response. Please try again.");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to communicate with CoreAI");
     } finally {
       setIsLoading(false);
       setIsAITyping(false);
@@ -360,13 +331,14 @@ const Index = () => {
   const handleQuickAction = (actionOrPrompt: string) => {
     switch (actionOrPrompt) {
       case 'shopping':
-        handleSendMessage("Help me find the best products, reviews, and deals for what I want to buy.");
+        setChatMode('normal');
+        handleSendMessage("Help me with shopping research. I want to find the best quality products, real user reviews, and top deals.");
         break;
-      case 'deep-search':
+      case 'search':
         setChatMode('deep-search');
-        handleSendMessage("Perform a comprehensive deep search on the latest advancements in AI and technology.");
+        handleSendMessage("Perform a deep search on current breakthrough technologies and provide a structured breakdown.");
         break;
-      case 'financial':
+      case 'finance':
         setChatMode('rich');
         handleSendMessage("Give me a smart financial breakdown, investment ideas, and wealth-building tips.");
         break;
@@ -379,24 +351,58 @@ const Index = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
+
+  const handleExportChat = (chatId: string, format: 'text' | 'pdf') => {
+    const chat = chats.find(c => c.id === chatId);
+    if (!chat) return;
+    toast.success(`Exporting chat "${chat.title}" as ${format.toUpperCase()}...`);
+  };
+
+  const handleScrollToMessage = (messageId: string) => {
+    const el = document.getElementById(`msg-${messageId}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  const activeModeLabel = chatMode === 'normal' ? 'Normal' : chatMode.charAt(0).toUpperCase() + chatMode.slice(1);
+
   return (
     <div className="flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none select-none">
-      {/* Sidebar */}
-      <ChatSidebar
-        chats={chats}
-        currentChat={currentChat}
-        onSelectChat={selectChat}
-        onDeleteChat={deleteChat}
-        onNewChat={() => createChat("New Chat")}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(prev => !prev)}
-        onOpenSettings={() => setShowSettings(true)}
-      />
+      {/* Mobile Backdrop when Sidebar is Open */}
+      {!sidebarCollapsed && (
+        <div 
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-30 md:hidden"
+          onClick={() => setSidebarCollapsed(true)} 
+        />
+      )}
+
+      {/* Sidebar with Fixed Responsive Width so Homepage is Never Hidden */}
+      <aside 
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 w-72 md:relative md:z-0 md:flex transition-transform duration-200 ease-in-out bg-sidebar shrink-0",
+          sidebarCollapsed ? "-translate-x-full md:hidden" : "translate-x-0"
+        )}
+      >
+        <ChatSidebar
+          chats={chats}
+          currentChat={currentChat}
+          onSelectChat={selectChat}
+          onDeleteChat={deleteChat}
+          onNewChat={() => createChat("New Chat")}
+          onSignOut={handleSignOut}
+          onOpenSettings={() => setShowSettings(true)}
+          onExportChat={handleExportChat}
+          user={user}
+          onCollapse={() => setSidebarCollapsed(true)}
+        />
+      </aside>
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 bg-background relative overflow-hidden">
-        {/* Header */}
-        <header className="px-3 py-2.5 sm:px-4 flex items-center justify-between shrink-0 gap-2 border-b border-border/30 bg-background/80 backdrop-blur-md z-10">
+        {/* Header matching image-30.png */}
+        <header className="px-3 py-2 sm:px-4 flex items-center justify-between shrink-0 gap-2 border-b border-border/30 bg-background/80 backdrop-blur-md z-10">
           <div className="flex items-center gap-2 min-w-0">
             {sidebarCollapsed && (
               <button
@@ -407,19 +413,35 @@ const Index = () => {
                 <PanelLeft className="h-4 w-4" />
               </button>
             )}
-            <h1 className="text-sm font-semibold truncate text-foreground">
-              {currentChat?.title || "CoreAI"}
-            </h1>
+            <div className="flex items-center gap-1.5 truncate">
+              <img src={coreaiLogo} alt="CoreAI" className="h-5 w-5 rounded-full object-contain" />
+              <h1 className="text-sm font-semibold truncate text-foreground">
+                {currentChat?.title || "CoreAI"}
+              </h1>
+            </div>
           </div>
-          <div className="flex items-center gap-1.5">
+
+          {/* Right Header Badges & Actions matching image-30.png */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary border border-primary/20">
+              <Brain className="h-3 w-3" />
+              Memory On
+            </span>
+
+            <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[11px] font-medium bg-muted text-muted-foreground border border-border/40">
+              {activeModeLabel}
+            </span>
+
             <button
               onClick={() => setSearchOpen(true)}
-              className="h-8 px-2.5 rounded-lg hover:bg-muted/70 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
+              className="h-8 w-8 rounded-lg hover:bg-muted/70 text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors"
               title="Search Chat"
             >
-              <Search className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Search</span>
+              <Search className="h-4 w-4" />
             </button>
+
+            <ThemeToggle />
+
             <button
               onClick={() => createChat("New Chat")}
               className="h-8 px-2.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-xs font-medium text-primary flex items-center gap-1.5 transition-colors"
@@ -433,13 +455,14 @@ const Index = () => {
 
         {searchOpen && (
           <ChatSearch
-            messages={messages}
+            messages={messages as Message[]}
             isOpen={searchOpen}
             onClose={() => setSearchOpen(false)}
+            onScrollToMessage={handleScrollToMessage}
           />
         )}
 
-        {/* Message Container */}
+        {/* Message Container / Homepage Cards */}
         <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-2 sm:px-4 py-2">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center p-4">
@@ -448,7 +471,8 @@ const Index = () => {
           ) : (
             <div className="max-w-3xl xl:max-w-4xl mx-auto w-full pb-4">
               <VirtualizedChatMessages
-                messages={messages}
+                messages={messages as Message[]}
+                isAITyping={isAITyping}
                 isGeneratingImage={isGeneratingImage}
               />
               <div ref={messagesEndRef} />
@@ -479,7 +503,7 @@ const Index = () => {
                     />
                   ) : (
                     <div className="w-12 h-12 rounded-xl bg-muted border border-border/80 flex items-center justify-center text-[9px] text-muted-foreground px-1 text-center truncate">
-                      {item.file.name.slice(0, 8)}
+                      {item.file?.name ? item.file.name.slice(0, 8) : "File"}
                     </div>
                   )}
                   <button
@@ -494,7 +518,7 @@ const Index = () => {
           </div>
         )}
 
-        {/* Bottom Floating Composer */}
+        {/* Bottom Floating Composer matching Screenshot */}
         <div className="p-2 sm:p-3 bg-gradient-to-t from-background via-background/90 to-transparent">
           <ChatInput
             onSendMessage={handleSendMessage}
@@ -505,7 +529,7 @@ const Index = () => {
             onCancelEdit={() => setEditingMessage(null)}
             onTypingChange={setIsUserTyping}
             isPremium={isPremium}
-            onModelChange={setSelectedModel}
+            hasAttachments={attachedFiles.length > 0}
           />
         </div>
       </div>
