@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useChats } from "@/hooks/useChats";
 import { ChatSidebar } from "@/components/ChatSidebar";
-import { ChatInput } from "@/components/ChatInput";
+import { ChatInput, ModeType } from "@/components/ChatInput";
 import { QuickActionCards } from "@/components/QuickActionCards";
 import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
 import { ChatSearch } from "@/components/ChatSearch";
@@ -23,17 +23,18 @@ interface AttachedFileItem {
   isImage: boolean;
 }
 
+// Strict Dedicated Task Enforcement for each of the 11 Modes
 const MODE_INSTRUCTIONS: Record<string, string> = {
-  'deep-search': 'You are in Deep Search Mode. Provide deep, comprehensive research with multi-perspective analysis, logical breakdown, structured sections, bullet points, and high-level critical insights.',
-  'code': 'You are in Code Assistant Mode. Provide clean, efficient, production-ready, well-formatted code blocks with syntax highlighting. Explain key reasoning concisely and note performance or security tips.',
-  'study': 'You are in Study Notes Mode. Act as a world-class academic tutor. Break down complex topics into clear notes, key takeaways, mnemonics, real-world examples, and practice questions.',
-  'homework': 'You are in Homework Helper Mode. Solve questions step-by-step with formulas, calculations, highlighted final answers, and a Concept Recap so the student truly understands.',
-  'photo': 'You are in Image Studio Mode. You MUST generate high-quality visual images. Pay attention to artistic style, composition, lighting, and details.',
-  'creative': 'You are in Creative Writing Mode. Write imaginative, engaging stories, poetry, scripts, or marketing copy with emotional depth, vivid metaphors, and captivating narrative flow.',
-  'analyze': 'You are in Analyze & Summarize Mode. Critically analyze data and text, extract key takeaways, metrics, underlying patterns, pros/cons, and actionable conclusions.',
-  'recipe': 'You are in Recipe & Cooking Mode. Provide: 1) Dish name & short intro, 2) Ingredients list with exact quantities, 3) Step-by-step numbered cooking method, 4) Prep time & servings, 5) Chef pro tips.',
-  'rich': 'You are in Rich Mode (Wealth Mindset). Think like a billionaire investor and entrepreneur. Focus on assets, cash flow, ROI, scalable businesses, high-value opportunities, and prosperity.',
-  'poor': 'You are in Poor Mode (Savings & Frugality). Focus on smart budgeting, maximum cost-cutting, zero-waste DIY solutions, and survival money hacks.'
+  'deep-search': 'STRICT MODE: Deep Search Mode. You ONLY conduct deep research, multi-perspective breakdown, structured logical sections, bullet points, and critical analytical insights.',
+  'code': 'STRICT MODE: Code Assistant Mode. You ONLY provide clean, production-ready, well-formatted code blocks with syntax highlighting and direct technical explanations. No unrelated fluff.',
+  'study': 'STRICT MODE: Study Notes Mode. You ONLY generate structured academic notes, key takeaways, mnemonics, real-world examples, and self-test questions.',
+  'homework': 'STRICT MODE: Homework Helper Mode. You ONLY solve academic questions step-by-step with formulas, calculations, highlighted final answers, and a Concept Recap.',
+  'photo': 'STRICT MODE: Image Studio Mode. You MUST focus entirely on image generation and visual rendering requests.',
+  'creative': 'STRICT MODE: Creative Writing Mode. You ONLY write imaginative stories, poetry, scripts, essays, or marketing copy with emotional depth and vivid flow.',
+  'analyze': 'STRICT MODE: Analyze & Summarize Mode. You ONLY critically analyze data and text, extract key metrics, underlying patterns, pros/cons, and concise actionable conclusions.',
+  'recipe': 'STRICT MODE: Recipe & Cooking Mode. You ONLY provide: 1) Dish name & intro, 2) Ingredients with exact quantities (metric + Indian units), 3) Numbered cooking steps, 4) Prep time & servings, 5) Chef pro tips.',
+  'rich': 'STRICT MODE: Rich Mode (Wealth & Investor Mindset). You ONLY advise from the perspective of an elite investor and entrepreneur. Focus strictly on assets, cash flow, ROI, scalable businesses, and wealth creation.',
+  'poor': 'STRICT MODE: Poor Mode (Savings & Frugality). You ONLY advise on maximum frugality, expense reduction, budget survival, zero-waste DIY, and cost-cutting hacks.'
 };
 
 const detectSubscriptionIntent = (text: string) => {
@@ -46,7 +47,6 @@ const detectSubscriptionIntent = (text: string) => {
   return keywords.some(k => lower.includes(k));
 };
 
-// In-chat image generation trigger words (Hindi + English)
 const isImageGenerationPrompt = (text: string) => {
   const lower = text.toLowerCase().trim();
   const directKeywords = [
@@ -79,7 +79,7 @@ const Index = () => {
   
   // Up to 8 attached files / images
   const [attachedFiles, setAttachedFiles] = useState<AttachedFileItem[]>([]);
-  const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework'>('normal');
+  const [chatMode, setChatMode] = useState<ModeType>('normal');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 768);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
   const [, setIsUserTyping] = useState(false);
@@ -374,7 +374,6 @@ const Index = () => {
         handleSendMessage("What are the top major news headlines and world updates today?");
         break;
       default:
-        // Automatically send prompt from any of the 24 cards
         handleSendMessage(actionOrPrompt);
         break;
     }
@@ -396,7 +395,7 @@ const Index = () => {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col h-full min-w-0 bg-background relative overflow-hidden">
-        {/* Sleek Header */}
+        {/* Header */}
         <header className="px-3 py-2.5 sm:px-4 flex items-center justify-between shrink-0 gap-2 border-b border-border/30 bg-background/80 backdrop-blur-md z-10">
           <div className="flex items-center gap-2 min-w-0">
             {sidebarCollapsed && (
