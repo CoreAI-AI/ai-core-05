@@ -1,40 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Input validation
-const validateInput = (message: string, fileText?: string, fileName?: string) => {
-  if (!message || typeof message !== 'string') {
-    throw new Error("Invalid message");
+function sanitizeText(input: unknown): string {
+  if (typeof input !== "string") return "";
+  return input.slice(0, 12000).trim();
+}
+
+function validateInput(message: string, fileText?: string, fileName?: string): void {
+  if (message.length > 12000) {
+    throw new Error("Message exceeds 12000 characters limit");
   }
-  if (message.length > 50000) {
-    throw new Error("Message too long");
+  if (fileText && fileText.length > 12000) {
+    throw new Error("Attached file content exceeds limit");
   }
-  if (fileText !== undefined) {
-    if (typeof fileText !== 'string') {
-      throw new Error("Invalid file text");
-    }
-    if (fileText.length > 100000) {
-      throw new Error("File text too long");
-    }
+  if (fileName && fileName.length > 255) {
+    throw new Error("File name too long");
   }
-  if (fileName !== undefined) {
-    if (typeof fileName !== 'string') {
-      throw new Error("Invalid file name");
-    }
-    if (fileName.length > 255) {
-      throw new Error("File name too long");
-    }
-    if (fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
-      throw new Error("Invalid file name");
-    }
-  }
-};
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -42,40 +30,20 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const rawBody = await req.json().catch(() => ({}));
+    const message = sanitizeText(rawBody.message);
+    const fileText = rawBody.fileText ? sanitizeText(rawBody.fileText) : undefined;
+    const fileName = rawBody.fileName ? sanitizeText(rawBody.fileName) : undefined;
+    const image = rawBody.image;
+    const images = rawBody.images;
+    const companionCtx = rawBody.companion ? sanitizeText(rawBody.companion) : "";
+    const conversationHistory = rawBody.conversationHistory;
 
-    // Get user from auth header if available; never block guest/public users (₹0 public launch)
-    const authHeader = req.headers.get('Authorization');
-    let userId: string | null = null;
-    
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      try {
-        const token = authHeader.replace('Bearer ', '');
-        const { data: { user } } = await supabase.auth.getUser(token);
-        userId = user?.id || null;
-      } catch (_e) {
-        userId = null;
-      }
-    }
-
-    const { 
-      message, 
+    const {
       model = "google/gemini-2.5-flash",
       mode = "normal",
-      image,
-      images = [],
-      fileText,
-      fileName,
-      conversationHistory = [],
-      companion
-    } = await req.json();
+    } = rawBody;
 
-    const companionCtx = typeof companion === "string" ? companion.replace(/[\u0000-\u001f]/g, " ").slice(0, 1200) : "";
-    const DOST_RULES = `\n\n=== DOST MODE (ALWAYS APPLY, every mode) ===\nTalk like a trusted, caring best friend, not a robot. 1) EMOTIONAL MIRRORING: first acknowledge feelings, then help. Happy/excited -> celebrate warmly ("Bhai kya baat hai! Party kab de raha hai? 🎉"). Sad/stressed -> calm, gentle, supportive ("Tu akela nahi hai. Saans le, paani pi, bata kya hua."). Urgent code/maths -> skip small talk, give the exact accurate solution directly. 2) TIME AWARENESS: use the user local time naturally only when it fits, e.g. very late night -> "Itni raat ko jag raha hai? Sab theek?", morning -> "Good morning! Chai hui?", Sunday -> relaxed tone. Do not repeat the time greeting every message. 3) SAFE SPACE: never judge, shame or lecture; if user shares a mistake or something personal, reassure that they can say anything here. 4) PRIVACY: if user worries about privacy, reassure that chat history is saved only on their own device. 5) MEMORY: use the remembered name/facts naturally; if a PENDING FOLLOW-UP is given, start by asking how it went. 6) NEVER say "As an AI language model", "Certainly, here is", "I am programmed to", or similar robotic phrases. Be warm, natural, in the user's language (Hindi/Hinglish/English). Still keep founder facts and accuracy intact. Never give harmful advice; for self-harm signs, respond with deep care and suggest talking to a trusted person or helpline (India: 14416 Tele-MANAS).\n${companionCtx ? "CONTEXT: " + companionCtx : ""}\n=== END DOST MODE ===\n`;
-
-    // Validate inputs
     try {
       validateInput(message, fileText, fileName);
     } catch (validationError) {
@@ -169,36 +137,36 @@ serve(async (req) => {
 
     const wantsImageGeneration = (mode === 'photo' || genKeywords.some(k => lower.includes(k)) || (hasMediaWord && hasMakeWord)) && allInputImages.length === 0;
 
-    // 11 MODES SYSTEM PROMPTS
+    // 11 DEDICATED SPECIALIZED MODES SYSTEM PROMPTS (Strict Task Enforcement)
     const MODE_PROMPTS: Record<string, string> = {
-      'normal': "You are CoreAI in Normal Mode. Deliver crisp, warm, and helpful answers across all general inquiries.",
-      'deep-search': "You are an elite AI research analyst in Deep Search Mode. Provide deep, comprehensive research with multi-perspective analysis, logical breakdown, and high-level critical insights. Go beyond surface-level information.",
-      'code': "You are a software architect in Code Assistant Mode. Provide clean, production-ready, well-formatted code blocks with proper syntax highlighting, edge-case handling, and performance tips.",
-      'study': "You are a world-class tutor in Study Notes Mode. Break down complex topics into clear notes, mnemonics, simple real-world analogies, and self-check questions.",
-      'homework': "You are an expert tutor in Homework Helper Mode. Solve questions step-by-step with formulas, step-by-step calculations, highlighted final answers, and a Concept Recap so the student learns.",
-      'photo': "You are an expert AI image generator in Image Studio Mode. When users ask for images, generate high-quality visuals.",
-      'creative': "You are a master storyteller in Creative Writing Mode. Write imaginative, engaging stories, poetry, scripts, or marketing copy with vivid vocabulary.",
-      'analyze': "You are a senior data analyst in Analyze & Summarize Mode. Critically analyze data and text, extract key takeaways, patterns, metrics, and actionable conclusions.",
-      'recipe': "You are a master chef in Recipe & Cooking Mode. Provide: 1) Dish name & intro, 2) Ingredients with exact quantities (metric + Indian units), 3) Clear step-by-step cooking steps, 4) Cooking time & servings, 5) Pro chef tips.",
-      'rich': "You are a Rich Mindset Coach. Focus on assets, scalability, ROI, high-value opportunities, passive income, and wealth creation.\n\nAfter answering, end with:\n**💬 Continue the conversation:**\n• Reply chat - Ask a follow-up question\n• 👑 Rich Mind - More wealth wisdom",
-      'poor': "You are a Frugal Living and Survival Money Expert. Focus on smart budgeting, maximum cost-cutting, zero-waste DIY solutions, and survival money hacks.\n\nAfter answering, end with:\n**💬 Continue the conversation:**\n• Reply chat - Ask a follow-up question\n• 💰 Poor Mind - More saving tips"
+      'normal': "You are CoreAI in Normal Mode. Deliver warm, smart, and helpful answers across all general inquiries.",
+      'deep-search': "You are in STRICT Deep Search Mode. You ONLY conduct deep research, multi-perspective breakdown, structured logical sections, bullet points, and critical analytical insights. Go beyond surface-level answers.",
+      'code': "You are in STRICT Code Assistant Mode. You ONLY provide clean, production-ready, well-formatted code blocks with syntax highlighting, edge-case handling, and performance tips. Do not write unrelated conversational filler.",
+      'study': "You are in STRICT Study Notes Mode. You ONLY act as an academic tutor. Break down topics into structured revision notes, mnemonics, simple analogies, and self-check questions.",
+      'homework': "You are in STRICT Homework Helper Mode. You ONLY solve academic homework problems step-by-step with formulas, calculations, highlighted final answers, and a Concept Recap so the student learns.",
+      'photo': "You are in STRICT Image Studio Mode. You MUST focus entirely on image creation and visual generation prompts.",
+      'creative': "You are in STRICT Creative Writing Mode. You ONLY write imaginative stories, poetry, scripts, essays, or marketing copy with vivid vocabulary and captivating narrative flow.",
+      'analyze': "You are in STRICT Analyze & Summarize Mode. You ONLY critically analyze data and text, extract key metrics, patterns, SWOT/pros-cons, and actionable conclusions.",
+      'recipe': "You are in STRICT Recipe & Cooking Mode. You ONLY provide: 1) Dish name & intro, 2) Ingredients with exact quantities (metric + Indian units), 3) Clear step-by-step cooking steps, 4) Cooking time & servings, 5) Pro chef tips.",
+      'rich': "You are in STRICT Rich Mode (Wealth Mindset). You ONLY advise from the perspective of an elite investor and entrepreneur. Focus strictly on assets, scalability, ROI, high-value opportunities, passive income, and wealth creation.\n\nAfter answering, end with:\n**💬 Continue the conversation:**\n• Reply chat - Ask a follow-up question\n• 👑 Rich Mind - More wealth wisdom",
+      'poor': "You are in STRICT Poor Mode (Savings & Frugality). You ONLY advise on maximum frugality, expense reduction, budget survival, zero-waste DIY, and survival money hacks.\n\nAfter answering, end with:\n**💬 Continue the conversation:**\n• Reply chat - Ask a follow-up question\n• 💰 Poor Mind - More saving tips"
     };
 
     const activeModePrompt = MODE_PROMPTS[mode] || MODE_PROMPTS['normal'];
 
-    // Construct System Prompt
+    const DOST_RULES = `\n\n=== DOST MODE (ALWAYS APPLY, every mode) ===\nTalk like a trusted, caring best friend, not a robot. 1) EMOTIONAL MIRRORING: first acknowledge feelings, then help. 2) TIME AWARENESS: use user local time naturally when fitting. 3) SAFE SPACE: never judge or lecture. 4) PRIVACY: chat history is on their device. 5) NEVER say "As an AI language model", "Certainly, here is", or robotic phrases. Be natural in Hindi/Hinglish/English.\n${companionCtx ? "CONTEXT: " + companionCtx : ""}\n=== END DOST MODE ===\n`;
+
     const systemPrompt = `You are CoreAI, an AI assistant app built by Prem Prasad (Founder & CEO).
 FOUNDER FACTS: Prem Prasad — Founder & CEO of CoreAI; born 4 August 2010; from Kolkata, West Bengal; Indian; Father Ajay Prasad; Mother Lakhi Devi; Brothers Dipak Prasad & Manish Prasad; Dada ji Shri Krishun Prasad; Dadi ji Shrimati Gulabi Devi; Instagram https://www.instagram.com/_coreaii; CoreAI mission: "Building the next frontier of artificial intelligence, engineered to outperform ChatGPT."
 Your name is CoreAI. The official website is https://coreaii.vercel.app/ (give only this link when asked).
 Never say you are Google, Gemini, OpenAI, ChatGPT, or mention the backend model provider. You ARE CoreAI.
 Always answer directly, match the user's language (Hindi/Hinglish/English), and be clear and practical.
 
-=== ACTIVE MODE: ${mode.toUpperCase()} ===
+=== ACTIVE DEDICATED MODE: ${mode.toUpperCase()} ===
 ${activeModePrompt}
 === END ACTIVE MODE ===
 ${DOST_RULES}`;
 
-    // User message content (supporting text + up to 8 images + attached file)
     const userParts: any[] = [{ type: "text", text: message }];
 
     if (fileText) {
@@ -214,11 +182,10 @@ ${DOST_RULES}`;
 
     const messagesArray: any[] = [{ role: "system", content: systemPrompt }];
 
-    // Add recent conversation history (last 10 turns)
     if (Array.isArray(conversationHistory) && conversationHistory.length > 0) {
       const recentHistory = conversationHistory.slice(-10);
       for (const histMsg of recentHistory) {
-        if (histMsg.content) {
+        if (histMsg && histMsg.content) {
           messagesArray.push({
             role: histMsg.role === 'assistant' ? 'assistant' : 'user',
             content: histMsg.content
@@ -227,160 +194,113 @@ ${DOST_RULES}`;
       }
     }
 
-    messagesArray.push({
-      role: "user",
-      content: userParts.length === 1 ? message : userParts
-    });
+    messagesArray.push({ role: "user", content: userParts });
 
-    // 1. IMAGE GENERATION ROUTE
-    if (wantsImageGeneration) {
-      const apiKey = Deno.env.get("LOVABLE_API_KEY");
-      if (!apiKey) {
-        return new Response(JSON.stringify({ error: "Image generation service unavailable" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
 
-      const imgRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
-          messages: messagesArray,
-          modalities: ["image", "text"],
-        }),
-      });
-
-      if (!imgRes.ok) {
-        const errText = await imgRes.text();
-        console.error("Image generation failed:", imgRes.status, errText);
-        return new Response(JSON.stringify({ error: "Failed to generate image" }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      const json = await imgRes.json();
-      const choice = json.choices?.[0] || {};
-      const messageObj = choice.message || {};
-      const contentText = messageObj.content || "";
-      const imagesList = messageObj.images || [];
-
-      // Save to Supabase if authenticated
-      if (userId && imagesList.length > 0) {
-        for (const imgItem of imagesList) {
-          if (imgItem?.image_url?.url) {
-            try {
-              await supabase.from('generated_images').insert({
-                user_id: userId,
-                image_url: imgItem.image_url.url,
-                prompt: message
-              });
-            } catch (_e) {
-              // Ignore save error
-            }
-          }
-        }
-      }
-
-      // Stream generated image cleanly
-      const stream = new ReadableStream({
-        start(controller) {
-          const encoder = new TextEncoder();
-          if (imagesList.length > 0) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: contentText, images: imagesList })}\n\n`));
-          } else if (contentText) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content: contentText })}\n\n`));
-          }
-          controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
-          controller.close();
-        }
-      });
-
-      return new Response(stream, {
-        headers: {
-          ...corsHeaders,
-          "Content-Type": "text/event-stream",
-          "Cache-Control": "no-cache",
-        },
-      });
-    }
-
-    // 2. TEXT CHAT → 100% Free Groq First (Llama 3.3 70B, ₹0 Cost)
-    const groqKey = Deno.env.get("GROQ_API_KEY");
-    let response: Response | null = null;
-
-    if (groqKey && allInputImages.length === 0) {
+    // IMAGE GENERATION
+    if (wantsImageGeneration && LOVABLE_API_KEY) {
       try {
-        const groqMessages = messagesArray.map((m: any) => ({
-          role: m.role,
-          content: typeof m.content === "string" 
-            ? m.content 
-            : Array.isArray(m.content) 
-              ? m.content.filter((p: any) => p.type === 'text').map((p: any) => p.text).join('\n') 
-              : String(m.content || "")
-        }));
-
-        const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        const imageRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${groqKey}`,
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image",
+            messages: [
+              {
+                role: "user",
+                content: `Generate a high quality visual image prompt based on this: ${message}`
+              }
+            ],
+            modalities: ["image", "text"]
+          }),
+        });
+
+        if (imageRes.ok) {
+          const imgData = await imageRes.json();
+          const firstChoice = imgData.choices?.[0];
+          const generatedImg = firstChoice?.message?.images?.[0]?.image_url?.url;
+          const textReply = firstChoice?.message?.content || "";
+
+          if (generatedImg) {
+            const out = {
+              content: textReply,
+              images: [{ url: generatedImg, type: "image/png", name: "generated-image.png" }]
+            };
+            return new Response(`data: ${JSON.stringify(out)}\n\ndata: [DONE]\n\n`, {
+              headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Image generation error:", err);
+      }
+    }
+
+    // TEXT & VISION CHAT: Prefer Groq for pure text, fallback to Gemini Gateway
+    let streamResponse: Response | null = null;
+
+    if (GROQ_API_KEY && allInputImages.length === 0 && !fileText) {
+      try {
+        const groqMessages = messagesArray.map(m => ({
+          role: m.role,
+          content: typeof m.content === 'string' ? m.content : (Array.isArray(m.content) ? m.content[0]?.text || '' : '')
+        }));
+
+        streamResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${GROQ_API_KEY}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             model: "llama-3.3-70b-versatile",
             messages: groqMessages,
-            temperature: 0.7,
-            max_tokens: 2048,
             stream: true,
+            temperature: 0.7,
+            max_tokens: 3000
           }),
         });
 
-        if (groqRes.ok && groqRes.body) {
-          response = groqRes;
-        } else {
-          // Fallback to smaller fast free model on Groq
-          const groqFallback = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        if (!streamResponse.ok) {
+          streamResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${groqKey}`,
+              Authorization: `Bearer ${GROQ_API_KEY}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
               model: "llama-3.1-8b-instant",
               messages: groqMessages,
-              temperature: 0.7,
-              max_tokens: 2048,
               stream: true,
+              temperature: 0.7,
+              max_tokens: 3000
             }),
           });
-          if (groqFallback.ok && groqFallback.body) {
-            response = groqFallback;
-          }
         }
-      } catch (_e) {
-        console.warn("Groq error, falling back to Lovable Gateway");
+      } catch (err) {
+        console.warn("Groq fetch error, falling back to Lovable Gateway:", err);
+        streamResponse = null;
       }
     }
 
-    // 3. Fallback to Lovable Gateway
-    if (!response) {
-      const apiKey = Deno.env.get("LOVABLE_API_KEY");
-      if (!apiKey) {
-        return new Response(JSON.stringify({ error: "AI service unavailable" }), {
+    // Fallback or Vision routing (Gemini 2.5 Flash)
+    if (!streamResponse || !streamResponse.ok) {
+      if (!LOVABLE_API_KEY) {
+        return new Response(JSON.stringify({ error: "No AI service key configured." }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      streamResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -389,76 +309,65 @@ ${DOST_RULES}`;
           stream: true,
         }),
       });
-    }
 
-    if (!response.ok) {
-      const status = response.status;
-      if (status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please wait a moment." }), {
-          status: 429,
+      if (!streamResponse.ok) {
+        const errText = await streamResponse.text();
+        return new Response(JSON.stringify({ error: `AI Gateway error: ${errText}` }), {
+          status: streamResponse.status,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      return new Response(JSON.stringify({ error: "Failed to get AI response" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
     }
 
-    // 4. Stream response to client
+    // Pass through SSE stream
+    const reader = streamResponse.body?.getReader();
+    const decoder = new TextDecoder();
+    const encoder = new TextEncoder();
+
     const stream = new ReadableStream({
       async start(controller) {
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-
         if (!reader) {
           controller.close();
           return;
         }
 
+        let buffer = "";
         try {
-          let buffer = "";
-
           while (true) {
             const { done, value } = await reader.read();
-            if (done) {
-              controller.close();
-              break;
-            }
+            if (done) break;
 
             buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
+            const lines = buffer.split("\n");
             buffer = lines.pop() || "";
 
             for (const line of lines) {
               const trimmed = line.trim();
-              if (!trimmed) continue;
-
-              if (trimmed.startsWith('data: ')) {
-                const data = trimmed.slice(6);
-                if (data === '[DONE]') {
-                  controller.enqueue(new TextEncoder().encode(`data: [DONE]\n\n`));
-                  controller.close();
-                  return;
-                }
-
-                try {
-                  const parsed = JSON.parse(data);
-                  const delta = parsed.choices?.[0]?.delta || {};
-                  const content = delta?.content;
-                  if (content) {
-                    controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ content })}\n\n`));
-                  }
-                } catch (_e) {
-                  // Ignore partial JSON
-                }
+              if (!trimmed || !trimmed.startsWith("data: ")) continue;
+              const data = trimmed.slice(6);
+              if (data === "[DONE]") {
+                controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+                continue;
               }
+
+              try {
+                const parsed = JSON.parse(data);
+                const deltaContent = parsed.choices?.[0]?.delta?.content || "";
+                if (deltaContent) {
+                  controller.enqueue(
+                    encoder.encode(`data: ${JSON.stringify({ content: deltaContent })}\n\n`)
+                  );
+                }
+              } catch {}
             }
           }
-        } catch (error) {
-          controller.error(error);
+        } catch (e) {
+          console.error("Stream forward error:", e);
+        } finally {
+          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+          controller.close();
         }
-      },
+      }
     });
 
     return new Response(stream, {
@@ -471,8 +380,8 @@ ${DOST_RULES}`;
     });
 
   } catch (error) {
-    console.error("AI handler error:", error);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    const errorMsg = error instanceof Error ? error.message : "Internal Server Error";
+    return new Response(JSON.stringify({ error: errorMsg }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
