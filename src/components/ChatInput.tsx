@@ -18,7 +18,8 @@ import {
   BookOpen,
   Utensils,
   TrendingUp,
-  PiggyBank
+  PiggyBank,
+  Check
 } from "lucide-react";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
@@ -27,7 +28,7 @@ import { chatMessageSchema, validateFile, sanitizeInput } from "@/lib/validation
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import coreaiLogo from "@/assets/coreai-logo.png";
 
-type ModeType = 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework';
+export type ModeType = 'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -46,30 +47,95 @@ interface ChatInputProps {
   onModelChange?: (model: string) => void;
 }
 
-const availableModes: { id: ModeType; label: string; icon: any; color: string }[] = [
-  { id: 'normal', label: 'Auto (Normal)', icon: null, color: 'text-primary' },
-  { id: 'deep-search', label: 'Deep Search', icon: Search, color: 'text-blue-500' },
-  { id: 'code', label: 'Code Assistant', icon: Code, color: 'text-purple-500' },
-  { id: 'study', label: 'Study Notes', icon: BookOpen, color: 'text-emerald-500' },
-  { id: 'homework', label: 'Homework Helper', icon: GraduationCap, color: 'text-amber-500' },
-  { id: 'photo', label: 'Image Studio', icon: ImageIcon, color: 'text-cyan-500' },
-  { id: 'creative', label: 'Creative Writing', icon: Brain, color: 'text-pink-500' },
-  { id: 'analyze', label: 'Analyze & Summarize', icon: FileText, color: 'text-indigo-500' },
-  { id: 'recipe', label: 'Recipe & Cooking', icon: Utensils, color: 'text-orange-500' },
-  { id: 'rich', label: 'Rich Mode (Wealth)', icon: TrendingUp, color: 'text-emerald-400' },
-  { id: 'poor', label: 'Poor Mode (Savings)', icon: PiggyBank, color: 'text-teal-400' },
+// 11 Modes with Full Intros & Dedicated Task Descriptions
+const availableModes: { id: ModeType; label: string; intro: string; icon: any; color: string }[] = [
+  { 
+    id: 'normal', 
+    label: 'Auto (Normal)', 
+    intro: 'हर सवाल के लिए स्मार्ट व दोस्ताना AI — सामान्य बातचीत व सभी विषयों में मदद।', 
+    icon: null, 
+    color: 'text-primary' 
+  },
+  { 
+    id: 'deep-search', 
+    label: 'Deep Search', 
+    intro: 'गहन रिसर्च, मल्टी-एंगल एनालिसिस व व्यवस्थित बुलेट पॉइंट्स रिपोर्ट।', 
+    icon: Search, 
+    color: 'text-blue-500' 
+  },
+  { 
+    id: 'code', 
+    label: 'Code Assistant', 
+    intro: 'प्रोडक्शन-रेडी कोड, डिबगिंग, आर्किटेक्चर व क्लीन सिंटैक्स समाधान।', 
+    icon: Code, 
+    color: 'text-purple-500' 
+  },
+  { 
+    id: 'study', 
+    label: 'Study Notes', 
+    intro: 'एकेडमिक समरी, फ्लैशकार्ड नोट्स, निमोनिक्स व रिवीज़न पॉइंट्स।', 
+    icon: BookOpen, 
+    color: 'text-emerald-500' 
+  },
+  { 
+    id: 'homework', 
+    label: 'Homework Helper', 
+    intro: 'मैथ व साइंस के प्रश्नों का स्टेप-बाय-स्टेप हल + फॉर्मूला व कॉन्सेप्ट रीकैप।', 
+    icon: GraduationCap, 
+    color: 'text-amber-500' 
+  },
+  { 
+    id: 'photo', 
+    label: 'Image Studio', 
+    intro: 'कस्टम एआई इमेजेस व आर्टिस्टिक विजुअल्स तुरंत तैयार करने का मोड।', 
+    icon: ImageIcon, 
+    color: 'text-cyan-500' 
+  },
+  { 
+    id: 'creative', 
+    label: 'Creative Writing', 
+    intro: 'मनोरंजक कहानियाँ, कविताएँ, वीडियो स्क्रिप्ट्स, शायरी व विज्ञापन कॉपी।', 
+    icon: Brain, 
+    color: 'text-pink-500' 
+  },
+  { 
+    id: 'analyze', 
+    label: 'Analyze & Summarize', 
+    intro: 'डेटा, रिपोर्ट्स व बड़े टेक्स्ट का मुख्य निचोड़, मेट्रिक्स व कमियां।', 
+    icon: FileText, 
+    color: 'text-indigo-500' 
+  },
+  { 
+    id: 'recipe', 
+    label: 'Recipe & Cooking', 
+    intro: 'सटीक सामग्री माप, स्टेप-बाय-स्टेप कुकिंग विधि और शेफ सीक्रेट टिप्स।', 
+    icon: Utensils, 
+    color: 'text-orange-500' 
+  },
+  { 
+    id: 'rich', 
+    label: 'Rich Mode (Wealth)', 
+    intro: 'अरबपति निवेशक माइंडसेट — एसेट्स, कैश-फ्लो, ROI व वेल्थ क्रिएशन रणनीति।', 
+    icon: TrendingUp, 
+    color: 'text-emerald-400' 
+  },
+  { 
+    id: 'poor', 
+    label: 'Poor Mode (Savings)', 
+    intro: 'स्मार्ट बजटिंग, जीरो-वेस्ट सर्वाइवल हैक्स व अधिकतम पैसे बचाने की तरकीबें।', 
+    icon: PiggyBank, 
+    color: 'text-teal-400' 
+  },
 ];
 
 const typewriterPrompts = [
   "Message CoreAI...",
   "Ask anything or type a prompt...",
-  "Upload images to analyze or compare...",
+  "Upload up to 8 images to analyze...",
   "Generate code or debug an error...",
   "Summarize articles and documents...",
   "Brainstorm ideas for your next project...",
   "Switch modes from the menu below...",
-  "Plan travel or healthy recipes...",
-  "Study notes and exam preparation...",
   "Ask in Hindi, English, or any language..."
 ];
 
@@ -81,108 +147,94 @@ export const ChatInput = memo(({
   onModeChange,
   editingMessage,
   onCancelEdit,
-  onTypingChange,
-  isPremium,
-  onModelChange,
+  onTypingChange
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [currentMode, setCurrentMode] = useState<ModeType>('normal');
-  const [placeholderText, setPlaceholderText] = useState("");
-  const [promptIndex, setPromptIndex] = useState(0);
+  const [placeholderIndex, setPlaceholderIndex] = useState(0);
+  const [displayedPlaceholder, setDisplayedPlaceholder] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const anyFileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      textareaRef.current?.focus();
-    }, 150);
-    return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (editingMessage) {
-      setMessage(editingMessage.content);
-      textareaRef.current?.focus();
-    }
-  }, [editingMessage]);
-
-  useEffect(() => {
-    onTypingChange?.(message.length > 0);
-  }, [message, onTypingChange]);
-
-  useEffect(() => {
-    if (message.length > 0) return;
-
-    const currentPrompt = typewriterPrompts[promptIndex];
-    let timeout: NodeJS.Timeout;
-
-    if (!isDeleting) {
-      if (placeholderText.length < currentPrompt.length) {
-        timeout = setTimeout(() => {
-          setPlaceholderText(currentPrompt.slice(0, placeholderText.length + 1));
-        }, 55);
-      } else {
-        timeout = setTimeout(() => {
-          setIsDeleting(true);
-        }, 2200);
-      }
-    } else {
-      if (placeholderText.length > 0) {
-        timeout = setTimeout(() => {
-          setPlaceholderText(currentPrompt.slice(0, placeholderText.length - 1));
-        }, 30);
-      } else {
-        setIsDeleting(false);
-        setPromptIndex((prev) => (prev + 1) % typewriterPrompts.length);
-      }
-    }
-
-    return () => clearTimeout(timeout);
-  }, [placeholderText, isDeleting, promptIndex, message]);
+  const docInputRef = useRef<HTMLInputElement>(null);
 
   const { isRecording, isProcessing: isVoiceProcessing, startRecording, stopRecording } = useVoiceRecorder({
     onTranscriptionComplete: (text) => {
       setMessage((prev) => (prev ? `${prev} ${text}` : text));
-      toast.success("Voice transcribed");
-      if (textareaRef.current) {
-        textareaRef.current.style.height = "auto";
-        textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
-      }
-    },
-    onError: (error) => {
-      toast.error(error);
+      adjustHeight();
+      textareaRef.current?.focus();
     },
   });
 
-  const triggerHaptic = () => {
-    if (typeof window !== "undefined" && "vibrate" in navigator) {
-      navigator.vibrate(8);
+  // Typewriter effect
+  useEffect(() => {
+    if (isFocused || message) return;
+    const currentFullText = typewriterPrompts[placeholderIndex];
+    let timer: NodeJS.Timeout;
+
+    if (!isDeleting) {
+      if (displayedPlaceholder.length < currentFullText.length) {
+        timer = setTimeout(() => {
+          setDisplayedPlaceholder(currentFullText.slice(0, displayedPlaceholder.length + 1));
+        }, 40);
+      } else {
+        timer = setTimeout(() => setIsDeleting(true), 2400);
+      }
+    } else {
+      if (displayedPlaceholder.length > 0) {
+        timer = setTimeout(() => {
+          setDisplayedPlaceholder(displayedPlaceholder.slice(0, -1));
+        }, 20);
+      } else {
+        setIsDeleting(false);
+        setPlaceholderIndex((prev) => (prev + 1) % typewriterPrompts.length);
+      }
     }
+
+    return () => clearTimeout(timer);
+  }, [displayedPlaceholder, isDeleting, placeholderIndex, isFocused, message]);
+
+  useEffect(() => {
+    if (editingMessage) {
+      setMessage(editingMessage.content);
+      adjustHeight();
+      textareaRef.current?.focus();
+    }
+  }, [editingMessage]);
+
+  const adjustHeight = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    const nextHeight = Math.min(textarea.scrollHeight, 180);
+    textarea.style.height = `${Math.max(nextHeight, 44)}px`;
   };
 
-  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
-    e.target.style.height = "auto";
-    e.target.style.height = `${Math.min(e.target.scrollHeight, 180)}px`;
+    adjustHeight();
+    onTypingChange?.(e.target.value.length > 0);
   };
 
-  const handleSubmit = () => {
-    if (message.trim() && !disabled) {
-      triggerHaptic();
-      const sanitized = sanitizeInput(message.trim());
-      const validation = chatMessageSchema.safeParse({ content: sanitized });
-      if (!validation.success) {
-        toast.error("Please enter a valid message");
-        return;
-      }
-      onSendMessage(sanitized);
-      setMessage("");
-      if (textareaRef.current) {
-        textareaRef.current.style.height = "auto";
-      }
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    const clean = sanitizeInput(message).trim();
+    if (!clean || disabled) return;
+
+    try {
+      chatMessageSchema.parse({ message: clean });
+    } catch {
+      toast.error("Message is too long or contains invalid characters");
+      return;
+    }
+
+    onSendMessage(clean);
+    setMessage("");
+    onTypingChange?.(false);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '44px';
     }
   };
 
@@ -193,20 +245,20 @@ export const ChatInput = memo(({
     }
   };
 
-  // Fixed Multiple files selection handler (up to 8 images)
+  // Multiple files selection (up to 8 images)
   const handleMultipleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawFiles = e.target.files;
-    if (!rawFiles || rawFiles.length === 0) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-    const fileList = Array.from(rawFiles);
     const validFiles: File[] = [];
+    const fileList = Array.from(files);
 
     for (const file of fileList) {
       try {
         validateFile(file);
         validFiles.push(file);
       } catch (err: any) {
-        toast.error(`${file.name}: ${err?.message || "Invalid file"}`);
+        toast.error(`"${file.name}": ${err.message || 'Validation failed'}`);
       }
     }
 
@@ -221,7 +273,7 @@ export const ChatInput = memo(({
     e.target.value = '';
   };
 
-  const handleTakePhoto = async () => {
+  const handleCameraCapture = async () => {
     try {
       const image = await CapCamera.getPhoto({
         quality: 90,
@@ -233,23 +285,29 @@ export const ChatInput = memo(({
       if (image.webPath) {
         const response = await fetch(image.webPath);
         const blob = await response.blob();
-        const file = new File([blob], `photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
-        if (onFilesSelect) {
-          onFilesSelect([file]);
-        } else if (onFileSelect) {
-          onFileSelect(file);
+        const file = new File([blob], `camera-${Date.now()}.jpg`, { type: 'image/jpeg' });
+        
+        try {
+          validateFile(file);
+          if (onFilesSelect) {
+            onFilesSelect([file]);
+          } else if (onFileSelect) {
+            onFileSelect(file);
+          }
+          toast.success("Photo captured!");
+        } catch (err: any) {
+          toast.error(err.message || "Invalid camera photo");
         }
-        toast.success("Photo attached");
       }
     } catch (error) {
-      toast.error("Could not capture photo");
+      toast.error("Camera capture cancelled");
     }
   };
 
   const handleSelectMode = (modeId: ModeType, modeLabel: string) => {
     setCurrentMode(modeId);
     onModeChange?.(modeId);
-    toast.info(`Mode set to ${modeLabel}`);
+    toast.info(`Active Mode: ${modeLabel}`);
   };
 
   const activeModeConfig = availableModes.find((m) => m.id === currentMode) || availableModes[0];
@@ -267,61 +325,100 @@ export const ChatInput = memo(({
       />
       <input
         type="file"
-        ref={anyFileInputRef}
+        ref={docInputRef}
         onChange={handleMultipleFilesChange}
-        accept=".pdf,.doc,.docx,.txt"
+        accept=".pdf,.txt,.doc,.docx"
         className="hidden"
       />
 
-      <div className="relative bg-card/95 dark:bg-[#1A1A18]/95 backdrop-blur-md border border-border/70 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm hover:scale-[1.008] hover:border-foreground/25 hover:shadow-md focus-within:scale-[1.008] focus-within:border-foreground/40 focus-within:ring-2 focus-within:ring-foreground/20 focus-within:ring-offset-2 focus-within:ring-offset-background focus-within:shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] p-2 sm:p-2.5">
-        <Textarea
-          ref={textareaRef}
-          value={message}
-          onChange={handleTextareaChange}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholderText || "Message CoreAI..."}
-          disabled={disabled || isRecording || isVoiceProcessing}
-          rows={1}
-          className="w-full min-h-[44px] max-h-[180px] px-2.5 py-1.5 text-sm sm:text-[15px] bg-transparent border-0 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none placeholder:text-muted-foreground/60 leading-relaxed font-normal"
-        />
+      {/* Editing Message Banner */}
+      {editingMessage && (
+        <div className="flex items-center justify-between mb-2 px-3 py-1.5 bg-muted/60 backdrop-blur-md rounded-xl text-xs border border-border/40">
+          <span className="text-muted-foreground truncate">Editing message...</span>
+          <button
+            type="button"
+            onClick={onCancelEdit}
+            className="text-muted-foreground hover:text-foreground ml-2 font-medium"
+          >
+            Cancel
+          </button>
+        </div>
+      )}
 
-        <div className="flex items-center justify-between pt-1 mt-1 border-t border-border/40">
-          <div className="flex items-center gap-1 sm:gap-1.5">
+      {/* Floating Modern Pill Container */}
+      <div 
+        className={`relative rounded-3xl bg-background/95 backdrop-blur-xl border transition-all duration-200 shadow-lg ${
+          isFocused 
+            ? "border-primary/50 shadow-primary/5 ring-2 ring-primary/10" 
+            : "border-border/60 hover:border-border/90 shadow-black/5"
+        }`}
+      >
+        {/* Main Textarea */}
+        <div className="pt-2 px-3 sm:px-4">
+          <Textarea
+            ref={textareaRef}
+            value={message}
+            onChange={handleMessageChange}
+            onKeyDown={handleKeyDown}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            placeholder={isFocused ? "Ask CoreAI anything..." : (displayedPlaceholder || "Message CoreAI...")}
+            disabled={disabled}
+            rows={1}
+            className="w-full resize-none border-0 bg-transparent p-0 text-sm sm:text-base placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:outline-none min-h-[44px] max-h-[180px] leading-relaxed"
+          />
+        </div>
+
+        {/* Bottom Toolbar: Attachments, Modes & Actions */}
+        <div className="flex items-center justify-between px-2.5 pb-2 pt-1 gap-1">
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+            {/* Attachment Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 sm:h-8.5 sm:w-8.5 rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-all duration-200"
-                  title="Attach photos, camera, or files"
+                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors"
+                  title="Attach images, camera or files"
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-52 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
-                <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
-                  <ImageIcon className="h-4 w-4 mr-2.5 text-cyan-500" />
-                  Photos (Up to 8 Images)
+              <DropdownMenuContent align="start" className="w-48 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
+                <DropdownMenuItem
+                  onClick={() => fileInputRef.current?.click()}
+                  className="rounded-xl cursor-pointer text-xs py-2 flex items-center gap-2"
+                >
+                  <ImageIcon className="h-4 w-4 text-blue-500" />
+                  <span>Upload Images (Max 8)</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-xs py-2">
-                  <Camera className="h-4 w-4 mr-2.5 text-emerald-500" />
-                  Take Camera Photo
+                <DropdownMenuItem
+                  onClick={handleCameraCapture}
+                  className="rounded-xl cursor-pointer text-xs py-2 flex items-center gap-2"
+                >
+                  <Camera className="h-4 w-4 text-emerald-500" />
+                  <span>Open Camera</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
-                  <FileIcon className="h-4 w-4 mr-2.5 text-purple-500" />
-                  Attach Document / File
+                <DropdownMenuItem
+                  onClick={() => docInputRef.current?.click()}
+                  className="rounded-xl cursor-pointer text-xs py-2 flex items-center gap-2"
+                >
+                  <FileIcon className="h-4 w-4 text-amber-500" />
+                  <span>Attach Document</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Mode Selector Pill with Complete Intro & Descriptions */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-7 sm:h-7.5 px-2.5 rounded-full hover:bg-muted/80 text-muted-foreground hover:text-foreground text-xs font-medium flex items-center gap-1.5 transition-all duration-200"
+                  className="h-7 px-2.5 text-xs rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center gap-1.5 border border-border/40 transition-colors"
+                  title="Switch Specialized Mode"
                 >
                   {activeModeConfig.id === 'normal' ? (
                     <img 
@@ -332,40 +429,54 @@ export const ChatInput = memo(({
                   ) : activeModeConfig.icon ? (
                     <activeModeConfig.icon className={`h-3.5 w-3.5 ${activeModeConfig.color} shrink-0`} />
                   ) : null}
-                  <span className="truncate max-w-[95px] sm:max-w-[120px]">{activeModeConfig.label}</span>
+                  <span className="truncate max-w-[95px] sm:max-w-[120px] font-medium">{activeModeConfig.label}</span>
                   <ChevronDown className="h-3 w-3 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50 max-h-72 overflow-y-auto">
+
+              <DropdownMenuContent align="start" className="w-72 sm:w-80 p-2 rounded-2xl bg-popover/95 backdrop-blur-md border border-border/70 shadow-2xl z-50 max-h-80 overflow-y-auto">
+                <div className="px-2 py-1 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  CoreAI Specialized Modes (11)
+                </div>
                 {availableModes.map((m) => (
                   <DropdownMenuItem
                     key={m.id}
                     onClick={() => handleSelectMode(m.id, m.label)}
-                    className={`rounded-xl cursor-pointer text-xs py-2 flex items-center justify-between ${
-                      currentMode === m.id ? 'bg-muted font-medium' : ''
+                    className={`rounded-xl cursor-pointer py-2.5 px-2.5 flex items-start gap-2.5 transition-colors mb-0.5 ${
+                      currentMode === m.id ? 'bg-primary/10 border border-primary/20' : 'hover:bg-muted/70'
                     }`}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="mt-0.5 shrink-0">
                       {m.id === 'normal' ? (
                         <img 
                           src={coreaiLogo} 
                           alt="CoreAI" 
-                          className="h-4 w-4 object-contain rounded-full shrink-0" 
+                          className="h-4 w-4 object-contain rounded-full" 
                         />
                       ) : (
                         <m.icon className={`h-4 w-4 ${m.color}`} />
                       )}
-                      <span>{m.label}</span>
                     </div>
-                    {currentMode === m.id && (
-                      <span className="text-[10px] text-primary">Active</span>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <span className="text-xs font-semibold text-foreground truncate">{m.label}</span>
+                        {currentMode === m.id && (
+                          <span className="text-[10px] font-semibold text-primary shrink-0 bg-primary/15 px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                            <Check className="h-2.5 w-2.5" /> Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground leading-snug line-clamp-2 mt-0.5">
+                        {m.intro}
+                      </p>
+                    </div>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
+          {/* Right Controls: Mic & Send */}
           <div className="flex items-center gap-1 sm:gap-1.5">
             <Button
               type="button"
@@ -373,12 +484,12 @@ export const ChatInput = memo(({
               size="icon"
               onClick={isRecording ? stopRecording : startRecording}
               disabled={disabled || isVoiceProcessing}
-              className={`h-8 w-8 sm:h-8.5 sm:w-8.5 rounded-full transition-all duration-200 ${
+              className={`h-8 w-8 rounded-full transition-colors ${
                 isRecording 
-                  ? "bg-red-500 text-white animate-pulse hover:bg-red-600" 
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                  ? "bg-destructive/15 text-destructive hover:bg-destructive/25 animate-pulse" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/70"
               }`}
-              title={isRecording ? "Stop voice" : "Voice input"}
+              title={isRecording ? "Stop voice recording" : "Voice input"}
             >
               {isVoiceProcessing ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -389,17 +500,17 @@ export const ChatInput = memo(({
 
             <Button
               type="button"
-              onClick={handleSubmit}
-              disabled={disabled || !message.trim()}
+              onClick={() => handleSubmit()}
+              disabled={!message.trim() || disabled}
               size="icon"
-              className={`h-8 w-8 sm:h-8.5 sm:w-8.5 rounded-full transition-all duration-200 shrink-0 ${
+              className={`h-8 w-8 rounded-full transition-all duration-200 ${
                 message.trim() && !disabled
-                  ? "bg-foreground text-background hover:opacity-90 shadow-xs"
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
                   : "bg-muted text-muted-foreground/40 cursor-not-allowed"
               }`}
               title="Send message"
             >
-              <ArrowUp className="h-4 w-4 stroke-[2.5]" />
+              <ArrowUp className="h-4 w-4" />
             </Button>
           </div>
         </div>
