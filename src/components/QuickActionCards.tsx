@@ -617,5 +617,4 @@ export const QuickActionCards = ({ onAction, onCardClick, onSkip }: QuickActionC
   );
 };
 
-export { QuickActionCards };
 export default QuickActionCards;
