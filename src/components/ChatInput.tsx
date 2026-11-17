@@ -45,6 +45,7 @@ interface ChatInputProps {
   onTypingChange?: (isTyping: boolean) => void;
   isPremium?: boolean;
   onModelChange?: (model: string) => void;
+  hasAttachments?: boolean;
 }
 
 // 11 Modes with Full Intros & Dedicated Task Descriptions
@@ -124,18 +125,16 @@ const availableModes: { id: ModeType; label: string; intro: string; icon: any; c
     label: 'Poor Mode (Savings)', 
     intro: 'स्मार्ट बजटिंग, जीरो-वेस्ट सर्वाइवल हैक्स व अधिकतम पैसे बचाने की तरकीबें।', 
     icon: PiggyBank, 
-    color: 'text-teal-400' 
+    color: 'text-amber-500' 
   },
 ];
 
 const typewriterPrompts = [
-  "Message CoreAI...",
-  "Ask anything or type a prompt...",
+  "Ask anything or search...",
   "Upload up to 8 images to analyze...",
   "Generate code or debug an error...",
   "Summarize articles and documents...",
   "Brainstorm ideas for your next project...",
-  "Switch modes from the menu below...",
   "Ask in Hindi, English, or any language..."
 ];
 
@@ -147,7 +146,8 @@ export const ChatInput = memo(({
   onModeChange,
   editingMessage,
   onCancelEdit,
-  onTypingChange
+  onTypingChange,
+  hasAttachments = false
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [currentMode, setCurrentMode] = useState<ModeType>('normal');
@@ -160,13 +160,29 @@ export const ChatInput = memo(({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const docInputRef = useRef<HTMLInputElement>(null);
 
-  const { isRecording, isProcessing: isVoiceProcessing, startRecording, stopRecording } = useVoiceRecorder({
-    onTranscriptionComplete: (text) => {
-      setMessage((prev) => (prev ? `${prev} ${text}` : text));
-      adjustHeight();
-      textareaRef.current?.focus();
-    },
-  });
+  const {
+    isRecording,
+    transcribing: isVoiceProcessing,
+    startRecording,
+    stopRecording,
+    transcribe,
+    reset: resetVoice
+  } = useVoiceRecorder();
+
+  const handleVoiceToggle = async () => {
+    if (isRecording) {
+      stopRecording();
+      const text = await transcribe();
+      if (text) {
+        setMessage((prev) => (prev ? `${prev} ${text}` : text));
+        adjustHeight();
+        textareaRef.current?.focus();
+      }
+      resetVoice();
+    } else {
+      await startRecording();
+    }
+  };
 
   // Typewriter effect
   useEffect(() => {
@@ -221,16 +237,19 @@ export const ChatInput = memo(({
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     const clean = sanitizeInput(message).trim();
-    if (!clean || disabled) return;
+    if (!clean && !hasAttachments) return;
+    if (disabled) return;
 
-    try {
-      chatMessageSchema.parse({ message: clean });
-    } catch {
-      toast.error("Message is too long or contains invalid characters");
-      return;
+    if (clean) {
+      try {
+        chatMessageSchema.parse({ content: clean });
+      } catch {
+        toast.error("Message is too long or contains invalid characters");
+        return;
+      }
     }
 
-    onSendMessage(clean);
+    onSendMessage(clean || "Analyze the attached image(s)");
     setMessage("");
     onTypingChange?.(false);
     if (textareaRef.current) {
@@ -299,7 +318,7 @@ export const ChatInput = memo(({
           toast.error(err.message || "Invalid camera photo");
         }
       }
-    } catch (error) {
+    } catch {
       toast.error("Camera capture cancelled");
     }
   };
@@ -345,12 +364,12 @@ export const ChatInput = memo(({
         </div>
       )}
 
-      {/* Floating Modern Pill Container */}
+      {/* Floating Modern Pill Container matching Screenshot */}
       <div 
-        className={`relative rounded-3xl bg-background/95 backdrop-blur-xl border transition-all duration-200 shadow-lg ${
+        className={`relative rounded-3xl bg-background/95 backdrop-blur-xl border transition-all duration-200 shadow-md ${
           isFocused 
             ? "border-primary/50 shadow-primary/5 ring-2 ring-primary/10" 
-            : "border-border/60 hover:border-border/90 shadow-black/5"
+            : "border-border/70 hover:border-border/90"
         }`}
       >
         {/* Main Textarea */}
@@ -362,7 +381,7 @@ export const ChatInput = memo(({
             onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder={isFocused ? "Ask CoreAI anything..." : (displayedPlaceholder || "Message CoreAI...")}
+            placeholder={isFocused ? "Ask anything or search..." : (displayedPlaceholder || "Ask anything or search...")}
             disabled={disabled}
             rows={1}
             className="w-full resize-none border-0 bg-transparent p-0 text-sm sm:text-base placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:outline-none min-h-[44px] max-h-[180px] leading-relaxed"
@@ -385,7 +404,7 @@ export const ChatInput = memo(({
                   <Plus className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
+              <DropdownMenuContent align="start" className="w-52 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
                 <DropdownMenuItem
                   onClick={() => fileInputRef.current?.click()}
                   className="rounded-xl cursor-pointer text-xs py-2 flex items-center gap-2"
@@ -482,7 +501,7 @@ export const ChatInput = memo(({
               type="button"
               variant="ghost"
               size="icon"
-              onClick={isRecording ? stopRecording : startRecording}
+              onClick={handleVoiceToggle}
               disabled={disabled || isVoiceProcessing}
               className={`h-8 w-8 rounded-full transition-colors ${
                 isRecording 
@@ -501,10 +520,10 @@ export const ChatInput = memo(({
             <Button
               type="button"
               onClick={() => handleSubmit()}
-              disabled={!message.trim() || disabled}
+              disabled={(!message.trim() && !hasAttachments) || disabled}
               size="icon"
               className={`h-8 w-8 rounded-full transition-all duration-200 ${
-                message.trim() && !disabled
+                (message.trim() || hasAttachments) && !disabled
                   ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
                   : "bg-muted text-muted-foreground/40 cursor-not-allowed"
               }`}
@@ -514,6 +533,12 @@ export const ChatInput = memo(({
             </Button>
           </div>
         </div>
+      </div>
+
+      <div className="text-center mt-2">
+        <p className="text-[11px] text-muted-foreground/60 select-none">
+          CoreAI can make mistakes. Verify important information.
+        </p>
       </div>
     </div>
   );
