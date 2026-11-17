@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { X, PanelLeft, Search, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { tryLocalReply } from "@/lib/smallTalk";
-import { getPendingFollowUp, clearPendingFollowUp, getCompanionMemory, setCompanionName, detectUserName } from "@/lib/companionMemory";
+import { buildCompanionContext as getCompanionMemoryContext } from "@/lib/companionMemory";
 
 interface AttachedFileItem {
   id: string;
@@ -168,18 +168,12 @@ const Index = () => {
   };
 
   const buildCompanionContext = (incomingMessage: string) => {
-    const memory = getCompanionMemory();
     const parts: string[] = [];
-    const detected = detectUserName(incomingMessage);
-    if (detected && detected !== memory.userName) {
-      setCompanionName(detected);
-      memory.userName = detected;
-    }
-    if (memory.userName) parts.push(`User name: ${memory.userName}`);
-    const followUp = getPendingFollowUp();
-    if (followUp) {
-      parts.push(`PENDING FOLLOW-UP: User mentioned "${followUp.topic}" on ${new Date(followUp.date).toLocaleDateString()}. Ask warmly how it went.`);
-      clearPendingFollowUp();
+    try {
+      const memoryContext = getCompanionMemoryContext(incomingMessage);
+      if (memoryContext) parts.push(memoryContext);
+    } catch {
+      // safe fallback
     }
     if (chatMode !== 'normal' && MODE_INSTRUCTIONS[chatMode]) {
       parts.push(`MODE INSTRUCTION: ${MODE_INSTRUCTIONS[chatMode]}`);
@@ -363,8 +357,8 @@ const Index = () => {
     }
   };
 
-  const handleQuickAction = (action: string) => {
-    switch (action) {
+  const handleQuickAction = (actionOrPrompt: string) => {
+    switch (actionOrPrompt) {
       case 'shopping':
         handleSendMessage("Help me find the best products, reviews, and deals for what I want to buy.");
         break;
@@ -380,6 +374,8 @@ const Index = () => {
         handleSendMessage("What are the top major news headlines and world updates today?");
         break;
       default:
+        // Automatically send prompt from any of the 24 cards
+        handleSendMessage(actionOrPrompt);
         break;
     }
   };
@@ -448,7 +444,7 @@ const Index = () => {
         <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-2 sm:px-4 py-2">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center p-4">
-              <QuickActionCards onCardClick={handleQuickAction} />
+              <QuickActionCards onCardClick={handleQuickAction} onAction={handleQuickAction} />
             </div>
           ) : (
             <div className="max-w-3xl xl:max-w-4xl mx-auto w-full pb-4">
