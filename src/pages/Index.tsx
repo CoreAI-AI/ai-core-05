@@ -4,6 +4,7 @@ import { ChatInput } from "@/components/ChatInput";
 import { Auth } from "@/components/Auth";
 import { Settings } from "@/components/Settings";
 import { QuickActionCards } from "@/components/QuickActionCards";
+import { ModeSwitchCard, ModeType } from "@/components/ModeSwitchCard";
 import { ScrollToBottom } from "@/components/ScrollToBottom";
 import { PageSkeleton } from "@/components/SkeletonLoader";
 import { VirtualizedChatMessages } from "@/components/VirtualizedChatMessages";
@@ -40,59 +41,163 @@ import { tryLocalReply, detectSubscriptionIntent } from "@/lib/smallTalk";
 import { getCached, setCached, isCacheable } from "@/lib/aiCache";
 import { buildCompanionContext, followUpGreeting } from "@/lib/companionMemory";
 
+// Smart Mode Intent Detector
+const detectSpecializedMode = (text: string): ModeType | null => {
+  const lower = text.toLowerCase().trim();
+
+  // 1. Image Studio / Photo
+  const imageWords = ["image", "photo", "picture", "tasveer", "tasvir", "chitra", "फोटो", "चित्र", "तस्वीर", "dp", "wallpaper"];
+  const makeWords = ["generate", "create", "make", "banao", "bana do", "bana de", "banaye", "banado", "draw", "बनाओ", "बनाइए", "बनाना"];
+  const directImagePhrases = ["photo banao", "image banao", "tasveer banao", "photo draw", "image generate", "draw a", "create an image", "generate an image", "picture generate"];
+  if (
+    directImagePhrases.some(p => lower.includes(p)) ||
+    (imageWords.some(w => lower.includes(w)) && makeWords.some(w => lower.includes(w)))
+  ) {
+    return "photo";
+  }
+
+  // 2. Code Assistant
+  const codeKeywords = [
+    "code", "program", "function", "python", "javascript", "typescript", "react",
+    "html", "css", "c++", "java", "sql", "api", "debug", "syntax", "algorithm",
+    "bug fix", "github", "regex", "कंप्यूटर कोड", "प्रोग्राम"
+  ];
+  if (codeKeywords.some(w => lower.includes(w))) {
+    return "code";
+  }
+
+  // 3. Homework Helper
+  const homeworkKeywords = [
+    "homework", "solve this question", "solve this problem", "maths problem",
+    "math question", "physics numerical", "chemistry equation", "equation solve",
+    "गृहकार्य", "सवाल हल करो", "होमवर्क"
+  ];
+  if (homeworkKeywords.some(w => lower.includes(w))) {
+    return "homework";
+  }
+
+  // 4. Recipe & Cooking
+  const recipeKeywords = [
+    "recipe", "kaise banaye", "kaise banate hain", "ingredients", "cooking",
+    "dish", "रेसिपी", "बनाना सिखाओ", "पकाना", "व्यंजन"
+  ];
+  if (recipeKeywords.some(w => lower.includes(w))) {
+    return "recipe";
+  }
+
+  // 5. Deep Search
+  const searchKeywords = [
+    "deep research", "deep search", "in-depth analysis", "detailed report",
+    "fact check", "गहन रिसर्च", "विस्तृत रिपोर्ट"
+  ];
+  if (searchKeywords.some(w => lower.includes(w))) {
+    return "deep-search";
+  }
+
+  // 6. Study Notes
+  const studyKeywords = [
+    "study notes", "revision notes", "exam prep", "exam preparation",
+    "syllabus", "chapter summary", "पढ़ाई के नोट्स", "परीक्षा तैयारी"
+  ];
+  if (studyKeywords.some(w => lower.includes(w))) {
+    return "study";
+  }
+
+  // 7. Creative Writing
+  const creativeKeywords = [
+    "story likho", "write a story", "poem likho", "write a poem", "shayari",
+    "script likho", "write an essay", "कहानी लिखो", "कविता लिखो", "निबंध लिखो"
+  ];
+  if (creativeKeywords.some(w => lower.includes(w))) {
+    return "creative";
+  }
+
+  // 8. Analyze & Summarize
+  const analyzeKeywords = [
+    "summarize this", "summary of", "analyze data", "key takeaways",
+    "समरी बताओ", "संक्षेप में"
+  ];
+  if (analyzeKeywords.some(w => lower.includes(w))) {
+    return "analyze";
+  }
+
+  // 9. Rich Mode
+  const richKeywords = [
+    "become rich", "wealth creation", "business idea", "investment strategy",
+    "passive income", "अमीर कैसे बने", "वेल्थ"
+  ];
+  if (richKeywords.some(w => lower.includes(w))) {
+    return "rich";
+  }
+
+  // 10. Poor Mode
+  const poorKeywords = [
+    "save money", "budget plan", "cut expenses", "frugal living",
+    "पैसे कैसे बचाएं", "बचत योजना"
+  ];
+  if (poorKeywords.some(w => lower.includes(w))) {
+    return "poor";
+  }
+
+  return null;
+};
+
 const Index = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, showAuth, signOut, setShowAuth } = useAuth();
   const { settings } = useSettings(user?.id);
-  const {
-    chats,
-    currentChat,
-    messages,
-    createChat,
-    addMessage,
-    updateMessage,
+  const { 
+    chats, 
+    currentChat, 
+    messages, 
+    createChat, 
+    addMessage, 
+    updateMessage, 
     updateMessageLocal,
     deleteMessage,
-    startNewChat,
-    selectChat,
-    deleteChat
+    startNewChat, 
+    selectChat, 
+    deleteChat 
   } = useChats(user?.id);
   const { isOnline } = useOfflineDraft();
   
-  const [selectedModel, setSelectedModel] = useState("google/gemini-2.5-flash");
+  const [selectedModel, setSelectedModel] = useState<string>("google/gemini-2.5-flash");
   const [showSubscriptionPopup, setShowSubscriptionPopup] = useState(false);
   const [showManageSubscription, setShowManageSubscription] = useState(false);
   const { isPremium, activatePremium } = useSubscription();
   const { recordUsage } = useDailyLimit(user?.id, isPremium);
   const usageLimits = useUsageLimits(user?.id, isPremium);
-  const [unlockPopup, setUnlockPopup] = useState<{ open: boolean; reason?: 'daily' | 'mode'; modeLabel?: string }>({ open: false });
+  const [unlockPopup, setUnlockPopup] = useState<{ open: boolean; reason?: 'daily' | 'tier'; modeLabel?: string }>({ open: false });
   const [isLoading, setIsLoading] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
-  const [chatMode, setChatMode] = useState<'normal' | 'deep-search' | 'study' | 'photo' | 'code' | 'creative' | 'analyze' | 'rich' | 'poor' | 'recipe' | 'homework'>('normal');
+  const [chatMode, setChatMode] = useState<ModeType>('normal');
+  const [pendingSwitch, setPendingSwitch] = useState<{
+    targetMode: ModeType;
+    prompt: string;
+    chatId?: string;
+  } | null>(null);
+
+  // Reset pending mode switch when chat changes
+  useEffect(() => {
+    setPendingSwitch(null);
+  }, [currentChat?.id]);
+
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => window.innerWidth < 768);
   const [showQuickActions, setShowQuickActions] = useState(true);
   const [hasNewMessage, setHasNewMessage] = useState(false);
   const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [imageGenerationPrompt, setImageGenerationPrompt] = useState<string>("");
+  const [imageGenerationPrompt, setImageGenerationPrompt] = useState("");
   const [isUserTyping, setIsUserTyping] = useState(false);
-  
   const [openTabs, setOpenTabs] = useState<Chat[]>([]);
   const [showSearch, setShowSearch] = useState(false);
-  const [responseLength, setResponseLength] = useState<'short' | 'normal' | 'detailed'>('normal');
-  
-  const [editingMessage, setEditingMessage] = useState<{
-    id: string;
-    content: string;
-    index: number;
-  } | null>(null);
-
+  const [responseLength, setResponseLength] = useState<'concise' | 'normal' | 'detailed'>('normal');
+  const [editingMessage, setEditingMessage] = useState<{ id: string; content: string; index: number } | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const userScrolledUpRef = useRef(false);
 
-  // Pull to refresh
   const { containerRef: pullRef, pulling, refreshing, pullProgress } = usePullToRefresh({
     onRefresh: async () => {
       haptics.medium();
@@ -100,10 +205,10 @@ const Index = () => {
         selectChat(currentChat);
       }
     },
-    enabled: messages.length > 0,
+    enabled: messages.length > 0
   });
 
-  // Next-day follow-up
+  // Companion memory greeting
   useEffect(() => {
     const g = followUpGreeting();
     if (g && !sessionStorage.getItem("coreai_followup_shown")) {
@@ -112,11 +217,10 @@ const Index = () => {
     }
   }, []);
 
-  // Robust Auto-Scroll
+  // Auto-scroll when new messages arrive
   useEffect(() => {
     const container = scrollAreaRef.current;
     if (!container) return;
-
     if (!userScrolledUpRef.current) {
       requestAnimationFrame(() => {
         if (container) {
@@ -141,19 +245,22 @@ const Index = () => {
     setHasNewMessage(false);
     const container = scrollAreaRef.current;
     if (container) {
-      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: "smooth"
+      });
     }
   }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
         setShowSearch(prev => !prev);
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   useEffect(() => {
@@ -183,16 +290,16 @@ const Index = () => {
     }
   };
 
-  const handleQuickAction = async (action: string) => {
+  const handleQuickAction = async (action: 'rewrite' | 'summarize' | 'translate' | 'improve' | 'regenerate') => {
     if (!currentChat || messages.length === 0) return;
     const lastAIMessage = [...messages].reverse().find(m => !m.is_user);
     if (!lastAIMessage) return;
-    
-    const actionPrompts: Record<string, string> = {
+
+    const actionPrompts = {
       rewrite: `Please rewrite this more clearly:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
       summarize: `Please summarize the key points of this response in bullet points:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
       translate: `Please translate this to Hindi:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
-      improve: `Please improve and expand on this response with more details and examples:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
+      improve: `Please improve and expand on this response with more details and examples:\n\n"${lastAIMessage.content.substring(0, 500)}"`
     };
 
     if (action === 'regenerate') {
@@ -246,7 +353,7 @@ const Index = () => {
       try {
         const compressed = await compressImage(file);
         setFilePreview(compressed);
-        toast.success('Image ready');
+        toast.success("Image ready");
       } catch (err) {
         const reader = new FileReader();
         reader.onloadend = () => setFilePreview(reader.result as string);
@@ -266,29 +373,29 @@ const Index = () => {
     if (!user || !editingMessage || !currentChat) return;
     const editIndex = editingMessage.index;
     const messagesToDelete = messages.slice(editIndex + 1);
-
     for (const msg of messagesToDelete) {
       await deleteMessage(msg.id);
     }
-
     await updateMessage(editingMessage.id, content);
     setEditingMessage(null);
-
     setIsLoading(true);
     setIsAITyping(true);
+
     try {
       const aiMessage = await addMessage(currentChat.id, "", false);
       if (!aiMessage) return;
-
       const { data: session } = await supabase.auth.getSession();
       const authToken = session?.session?.access_token;
 
-      const updatedMessages = messages.slice(0, editIndex + 1).map(msg => msg.id === editingMessage.id ? { ...msg, content } : msg);
+      const updatedMessages = messages.slice(0, editIndex + 1).map(msg => 
+        msg.id === editingMessage.id ? { ...msg, content } : msg
+      );
       const conversationHistory = updatedMessages.slice(-12).map(msg => ({
         role: msg.is_user ? 'user' : 'assistant',
         content: msg.id === editingMessage.id ? content : msg.content,
         ...(msg.images && msg.images.length > 0 ? { images: msg.images } : {})
       }));
+
       const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
         method: 'POST',
@@ -304,6 +411,7 @@ const Index = () => {
           conversationHistory
         })
       });
+
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
@@ -313,6 +421,7 @@ const Index = () => {
       let receivedImages: any[] = [];
       let buffer = "";
       setIsAITyping(false);
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -354,16 +463,17 @@ const Index = () => {
 
     setIsLoading(true);
     setIsAITyping(true);
+
     try {
       await updateMessage(aiMessageId, "");
       const { data: session } = await supabase.auth.getSession();
       const authToken = session?.session?.access_token;
-
       const conversationHistory = messages.slice(0, aiMessageIndex).slice(-12).map(msg => ({
         role: msg.is_user ? 'user' : 'assistant',
         content: msg.content,
         ...(msg.images && msg.images.length > 0 ? { images: msg.images } : {})
       }));
+
       const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
         method: 'POST',
@@ -379,6 +489,7 @@ const Index = () => {
           conversationHistory
         })
       });
+
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
@@ -388,6 +499,7 @@ const Index = () => {
       let receivedImages: any[] = [];
       let buffer = "";
       setIsAITyping(false);
+
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -422,20 +534,22 @@ const Index = () => {
     }
   };
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string, overrideMode?: ModeType, skipUserMsg = false) => {
     if (editingMessage) {
       await handleSendEditedMessage(content);
       return;
     }
     if (!user) return;
 
-    const gate = usageLimits.checkCanSend(chatMode);
+    const currentActiveMode = overrideMode || chatMode;
+
+    const gate = usageLimits.checkCanSend(currentActiveMode);
     if (!gate.allowed) {
       const modeLabels: Record<string, string> = { chat: 'Chat', study: 'Study', image: 'Image', code: 'Code' };
       setUnlockPopup({
         open: true,
         reason: gate.reason || 'daily',
-        modeLabel: modeLabels[chatMode] || chatMode
+        modeLabel: modeLabels[currentActiveMode] || currentActiveMode
       });
       return;
     }
@@ -447,16 +561,34 @@ const Index = () => {
       if (!chatToUse) return;
     }
 
-    const messageImages = selectedFile && filePreview ? [{
-      url: filePreview,
-      type: selectedFile.type
-    }] : undefined;
+    if (!skipUserMsg) {
+      const messageImages = selectedFile && filePreview ? [{
+        url: filePreview,
+        type: selectedFile.type
+      }] : undefined;
 
-    const userMessage = await addMessage(chatToUse.id, content, true, messageImages);
-    if (!userMessage) return;
+      const userMessage = await addMessage(chatToUse.id, content, true, messageImages);
+      if (!userMessage) return;
 
-    userScrolledUpRef.current = false;
-    forceScrollToBottom();
+      userScrolledUpRef.current = false;
+      forceScrollToBottom();
+
+      // Check if user is in Normal mode and specialized intent is detected
+      if (!overrideMode && chatMode === 'normal') {
+        const suggested = detectSpecializedMode(content);
+        if (suggested && suggested !== 'normal') {
+          setPendingSwitch({
+            targetMode: suggested,
+            prompt: content,
+            chatId: chatToUse.id
+          });
+          return;
+        }
+      }
+    }
+
+    // Clear any pending switch once generation proceeds
+    setPendingSwitch(null);
 
     if (detectSubscriptionIntent(content)) {
       if (isPremium) {
@@ -482,7 +614,7 @@ const Index = () => {
       return;
     }
 
-    if (!selectedFile && chatMode === 'normal') {
+    if (!selectedFile && currentActiveMode === 'normal') {
       const local = tryLocalReply(content);
       if (local) {
         await addMessage(chatToUse.id, local, false);
@@ -490,16 +622,16 @@ const Index = () => {
       }
     }
 
-    if (!selectedFile && isCacheable(content, chatMode)) {
-      const cached = getCached(content, chatMode, selectedModel);
+    if (!selectedFile && isCacheable(content, currentActiveMode)) {
+      const cached = getCached(content, currentActiveMode, selectedModel);
       if (cached) {
         await addMessage(chatToUse.id, cached, false);
         return;
       }
     }
 
-    recordUsage(chatMode);
-    usageLimits.recordSend(chatMode);
+    recordUsage(currentActiveMode);
+    usageLimits.recordSend(currentActiveMode);
 
     setIsLoading(true);
     setIsAITyping(true);
@@ -542,14 +674,14 @@ const Index = () => {
       ];
       const hasMediaWord = ['image','photo','picture','tasveer','tasvir','chitra','फोटो','चित्र','तस्वीर'].some(w => lower.includes(w));
       const hasMakeWord = ['generate','create','make','banao','bana do','bana de','banaye','बनाओ','बनाइए','बनाना'].some(w => lower.includes(w));
-      const wantsImageGeneration = chatMode === 'photo' || (genKeywords.some(k => lower.includes(k)) || (hasMediaWord && hasMakeWord));
+      const wantsImageGeneration = currentActiveMode === 'photo' || (genKeywords.some(k => lower.includes(k)) || (hasMediaWord && hasMakeWord));
       
       if (wantsImageGeneration) {
         setIsGeneratingImage(true);
         setImageGenerationPrompt(content);
       }
 
-      const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
+      const modelToUse = currentActiveMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
         method: 'POST',
         headers: {
@@ -559,7 +691,7 @@ const Index = () => {
         body: JSON.stringify({
           message: content,
           model: modelToUse,
-          mode: chatMode,
+          mode: currentActiveMode,
           companion: buildCompanionContext(content),
           image: filePreview,
           fileText: fileTextToSend,
@@ -618,6 +750,7 @@ const Index = () => {
           break;
         }
         buffer += decoder.decode(value, { stream: true });
+
         const lines = buffer.split('\n');
         buffer = lines.pop() || "";
 
@@ -649,8 +782,8 @@ const Index = () => {
       }
       await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
 
-      if (!selectedFile && receivedImages.length === 0 && isCacheable(content, chatMode)) {
-        setCached(content, chatMode, selectedModel, accumulatedContent);
+      if (!selectedFile && receivedImages.length === 0 && isCacheable(content, currentActiveMode)) {
+        setCached(content, currentActiveMode, selectedModel, accumulatedContent);
       }
 
       setSelectedFile(null);
@@ -666,6 +799,18 @@ const Index = () => {
     }
   };
 
+  const handleSwitchModeAndExecute = async (targetMode: ModeType, prompt: string) => {
+    setChatMode(targetMode);
+    setPendingSwitch(null);
+    toast.success(`Switched to ${targetMode.toUpperCase()} mode`);
+    await handleSendMessage(prompt, targetMode, true);
+  };
+
+  const handleCancelSwitch = async (prompt: string) => {
+    setPendingSwitch(null);
+    await handleSendMessage(prompt, 'normal', true);
+  };
+
   const handleExportChat = async (chatId: string, format: 'text' | 'pdf') => {
     try {
       const chat = chats.find(c => c.id === chatId);
@@ -673,12 +818,18 @@ const Index = () => {
         toast.error("Chat not found");
         return;
       }
-      const { data: chatMessages, error } = await supabase.from('messages').select('*').eq('chat_id', chatId).order('created_at', { ascending: true });
+      const { data: chatMessages, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('chat_id', chatId)
+        .order('created_at', { ascending: true });
+
       if (error) throw error;
       if (!chatMessages || chatMessages.length === 0) {
         toast.error("No messages to export");
         return;
       }
+
       if (format === 'text') {
         exportChatAsText(chat.title, chatMessages);
         toast.success("Chat exported as text");
@@ -693,44 +844,50 @@ const Index = () => {
   };
 
   return (
-    <div className={`flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none ${isPremium ? "premium-mode" : ""}`}>
-      {/* Sidebar Drawer */}
+    <div className={`flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none ${isPremium ? 'premium-mode' : ''}`}>
+      {/* Sidebar with slide transition */}
       <AnimatePresence mode="wait">
         {!sidebarCollapsed && (
           <>
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 1 }} 
-              exit={{ opacity: 0 }} 
-              className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden" 
-              onClick={() => setSidebarCollapsed(true)} 
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 md:hidden"
+              onClick={() => setSidebarCollapsed(true)}
             />
-            <motion.div 
+            <motion.div
               initial={{ x: -280 }}
               animate={{ x: 0 }}
               exit={{ x: -280 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }} 
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
               className="fixed md:static h-full w-[280px] z-50 md:z-auto shrink-0 bg-sidebar border-r border-sidebar-border/40 shadow-xl md:shadow-none"
             >
-              <ChatSidebar 
-                chats={chats} 
-                currentChat={currentChat} 
-                onSelectChat={chat => {
+              <ChatSidebar
+                chats={chats}
+                currentChat={currentChat}
+                onSelectChat={(chat) => {
                   selectChat(chat);
-                  if (typeof window !== "undefined" && window.innerWidth < 1024) setSidebarCollapsed(true);
-                }} 
+                  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                    setSidebarCollapsed(true);
+                  }
+                }}
                 onNewChat={() => {
                   startNewChat();
-                  if (typeof window !== "undefined" && window.innerWidth < 1024) setSidebarCollapsed(true);
-                }} 
-                onSignOut={signOut} 
+                  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                    setSidebarCollapsed(true);
+                  }
+                }}
+                onSignOut={signOut}
                 onOpenSettings={() => {
                   setShowSettings(true);
-                  if (typeof window !== "undefined" && window.innerWidth < 1024) setSidebarCollapsed(true);
-                }} 
-                onDeleteChat={deleteChat} 
-                onExportChat={handleExportChat} 
-                user={user} 
+                  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                    setSidebarCollapsed(true);
+                  }
+                }}
+                onDeleteChat={deleteChat}
+                onExportChat={handleExportChat}
+                user={user}
                 onCollapse={() => setSidebarCollapsed(true)}
               />
             </motion.div>
@@ -738,17 +895,17 @@ const Index = () => {
         )}
       </AnimatePresence>
 
-      {/* Main Chat Canvas Area */}
+      {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 chat-layout-mobile relative">
         <div className="flex flex-col h-full relative">
           {showSettings ? (
             <div className="flex flex-col h-full bg-background">
               <div className="flex items-center justify-between p-4 border-b border-border/40">
                 <h2 className="text-lg font-bold tracking-tight text-foreground">Settings</h2>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setShowSettings(false)} 
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSettings(false)}
                   className="h-8 w-8 p-0 rounded-full hover:bg-muted"
                 >
                   <X className="h-4 w-4" />
@@ -764,30 +921,29 @@ const Index = () => {
             <>
               {/* Desktop Smart Tabs */}
               <div className="hidden md:block">
-                <SmartChatTabs 
-                  openChats={openTabs} 
-                  activeChat={currentChat} 
-                  onSelectTab={selectChat} 
-                  onCloseTab={handleCloseTab} 
-                  onNewTab={startNewChat} 
+                <SmartChatTabs
+                  openChats={openTabs}
+                  activeChat={currentChat}
+                  onSelectTab={selectChat}
+                  onCloseTab={handleCloseTab}
+                  onNewTab={startNewChat}
                 />
               </div>
 
-              {/* Claude-Style Minimalist Clean Header */}
+              {/* Minimal Clean Header */}
               <header className="px-3 py-2 sm:px-4 sm:py-2.5 flex justify-between items-center shrink-0 gap-2 z-20 border-b border-border/30 backdrop-blur-md bg-background/80">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   {sidebarCollapsed && (
-                    <motion.button 
+                    <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => setSidebarCollapsed(false)} 
+                      onClick={() => setSidebarCollapsed(false)}
                       className="h-8 w-8 p-0 shrink-0 inline-flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
                       title="Open sidebar"
                     >
                       <PanelLeft className="h-4 w-4" />
                     </motion.button>
                   )}
-                  
                   <div className="flex items-center gap-2 min-w-0">
                     <h1 className="text-sm font-semibold text-foreground truncate tracking-tight">
                       {currentChat ? currentChat.title : "CoreAI"}
@@ -806,106 +962,93 @@ const Index = () => {
                   )}
                 </div>
 
-                {/* Claude-Style Right Action Icons (Clean & Focused) */}
                 <div className="flex items-center gap-1 shrink-0">
                   <div className="hidden sm:block">
                     <MemoryControl chatId={currentChat?.id} />
                   </div>
                   <div className="hidden sm:block">
-                    <ResponseLengthControl value={responseLength} onChange={setResponseLength} />
+                    <ResponseLengthControl
+                      currentLength={responseLength}
+                      onLengthChange={setResponseLength}
+                    />
                   </div>
 
-                  {/* Search Button */}
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => {
-                      if (messages.length > 0) {
-                        setShowSearch(true);
-                      } else {
-                        setSidebarCollapsed(false);
-                      }
-                    }} 
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl transition-all" 
-                    title="Search" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/images')}
+                    className="h-8 px-2 text-xs font-medium text-muted-foreground hover:text-foreground rounded-lg"
+                    title="Image Styles"
+                  >
+                    <Palette className="h-3.5 w-3.5 mr-1 text-cyan-500" />
+                    <span className="hidden sm:inline">Styles</span>
+                  </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowSearch(true)}
+                    className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground"
+                    title="Search (Ctrl+K)"
                   >
                     <Search className="h-4 w-4" />
                   </Button>
 
-                  {/* Image Styles Shortcut */}
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    onClick={() => navigate("/images")} 
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl transition-all" 
-                    title="Image Styles"
-                  >
-                    <Palette className="h-4 w-4" />
-                  </Button>
-
-                  {/* New Chat Button (Claude-Style SquarePen) */}
                   <Button
                     variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted/60 rounded-xl transition-all"
+                    size="sm"
+                    onClick={startNewChat}
+                    className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground"
                     title="New Chat"
-                    onClick={() => {
-                      startNewChat();
-                      setChatMode("normal");
-                    }}
                   >
                     <SquarePen className="h-4 w-4" />
                   </Button>
                 </div>
               </header>
 
-              {/* Global Read-Aloud Player */}
+              {/* TTS Read-Aloud Header Player */}
               <ReadAloudHeaderPlayer />
 
-              {/* Pinned Messages */}
+              {/* Pinned Messages Bar */}
               <PinnedMessages 
                 chatId={currentChat?.id}
-                onUnpin={() => {}}
-                onScrollTo={scrollToMessage}
+                onSelectMessage={scrollToMessage}
               />
 
-              {/* Chat Search Bar */}
+              {/* Chat Search Dialog */}
               <ChatSearch
-                messages={messages}
-                onScrollToMessage={scrollToMessage}
-                isOpen={showSearch}
-                onClose={() => setShowSearch(false)}
+                open={showSearch}
+                onOpenChange={setShowSearch}
+                onSelectMessage={(chatId, messageId) => {
+                  const chat = chats.find(c => c.id === chatId);
+                  if (chat) {
+                    selectChat(chat);
+                    setTimeout(() => scrollToMessage(messageId), 300);
+                  }
+                }}
               />
 
-              {/* Scrollable Messages Canvas with Auto-Scroll & Pull to Refresh */}
+              {/* Chat Messages Container */}
               <div 
-                className={`chat-messages-container ${messages.length === 0 ? "overflow-hidden h-full flex flex-col justify-center" : ""}`} 
-                ref={(el) => {
-                  (scrollAreaRef as any).current = el;
-                  (pullRef as any).current = el;
-                }}
+                ref={scrollAreaRef}
                 onScroll={handleContainerScroll}
+                className="flex-1 overflow-y-auto min-h-0 relative chat-scroll chat-messages-container"
               >
-                <PullToRefreshIndicator pullProgress={pullProgress} refreshing={refreshing} pulling={pulling} />
-                
-                {messages.length > 0 && (
-                  <ScrollToBottom 
-                    scrollAreaRef={scrollAreaRef} 
-                    hasNewMessage={hasNewMessage} 
-                    onScrollToBottom={forceScrollToBottom} 
+                <div ref={pullRef} className="min-h-full flex flex-col justify-between">
+                  <PullToRefreshIndicator 
+                    pulling={pulling} 
+                    refreshing={refreshing} 
+                    progress={pullProgress} 
                   />
-                )}
-                
-                <div className={`p-2 sm:p-4 ${messages.length === 0 ? "h-full flex flex-col justify-center" : "pb-6 min-h-full flex flex-col"}`}>
-                  <div className={`max-w-3xl xl:max-w-4xl mx-auto w-full flex-1 flex flex-col ${messages.length === 0 ? "justify-center" : "justify-start"}`}>
+
+                  <div className="w-full">
                     {messages.length === 0 ? (
-                      <div className="flex-1 flex flex-col items-center justify-center py-4 sm:py-8">
+                      <div className="h-full flex flex-col items-center justify-center p-3 sm:p-4 text-center my-auto min-h-[48vh] sm:min-h-[55vh]">
                         <AnimatePresence mode="wait">
                           {showQuickActions ? (
                             <motion.div 
-                              key="cards" 
-                              className="w-full max-w-xl px-1 sm:px-2" 
-                              initial={{ opacity: 0, y: 14 }} 
+                              key="quick-actions" 
+                              initial={{ opacity: 0, y: 10 }} 
                               animate={{ opacity: 1, y: 0 }} 
                               exit={{ opacity: 0, scale: 0.96 }} 
                               transition={{ duration: 0.25, ease: "easeOut" }}
@@ -933,15 +1076,29 @@ const Index = () => {
                         </AnimatePresence>
                       </div>
                     ) : (
-                      <VirtualizedChatMessages 
-                        messages={messages}
-                        chatId={currentChat?.id}
-                        isAITyping={isAITyping}
-                        isGeneratingImage={isGeneratingImage}
-                        imagePrompt={imageGenerationPrompt}
-                        onEditMessage={handleEditMessage}
-                        onRegenerateResponse={handleRegenerateResponse}
-                      />
+                      <>
+                        <VirtualizedChatMessages 
+                          messages={messages}
+                          chatId={currentChat?.id}
+                          isAITyping={isAITyping}
+                          isGeneratingImage={isGeneratingImage}
+                          imagePrompt={imageGenerationPrompt}
+                          onEditMessage={handleEditMessage}
+                          onRegenerateResponse={handleRegenerateResponse}
+                        />
+
+                        {/* Interactive Mode Switch Suggestion Card */}
+                        {pendingSwitch && (
+                          <div className="px-3 sm:px-4 py-2 max-w-3xl xl:max-w-4xl mx-auto w-full">
+                            <ModeSwitchCard
+                              targetMode={pendingSwitch.targetMode}
+                              userPrompt={pendingSwitch.prompt}
+                              onSwitch={handleSwitchModeAndExecute}
+                              onCancel={handleCancelSwitch}
+                            />
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -1000,6 +1157,7 @@ const Index = () => {
                     disabled={isLoading} 
                     onFileSelect={handleFileSelect} 
                     onModeChange={setChatMode} 
+                    currentMode={chatMode} 
                     editingMessage={editingMessage} 
                     onCancelEdit={() => setEditingMessage(null)} 
                     onTypingChange={setIsUserTyping} 
@@ -1008,50 +1166,41 @@ const Index = () => {
                   />
                 </div>
               </div>
+
+              {/* Scroll To Bottom Button */}
+              <ScrollToBottom
+                visible={hasNewMessage}
+                hasNewMessages={hasNewMessage}
+                onClick={forceScrollToBottom}
+              />
             </div>
           )}
         </div>
       </div>
-      
-      {/* Offline indicator */}
-      <AnimatePresence>
-        {!isOnline && (
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 50 }}
-            className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-72 z-50"
-          >
-            <div className="bg-destructive/90 backdrop-blur-sm text-destructive-foreground px-4 py-3 rounded-lg shadow-lg">
-              <p className="text-sm font-medium">You're offline</p>
-              <p className="text-xs opacity-80">Messages will be sent when you're back online</p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      <SubscriptionPopup
-        open={showSubscriptionPopup}
-        onOpenChange={setShowSubscriptionPopup}
-        onUpgrade={() => {
-          activatePremium();
+      {/* Popups */}
+      <SubscriptionPopup 
+        isOpen={showSubscriptionPopup} 
+        onClose={() => setShowSubscriptionPopup(false)} 
+        onSelectPlan={(plan) => {
+          activatePremium(plan);
           setShowSubscriptionPopup(false);
-          toast.success("Premium activated! 🎉");
-        }}
+          toast.success(`Upgraded to ${plan.name}!`);
+        }} 
       />
-      <ManageSubscriptionDialog
-        open={showManageSubscription}
-        onOpenChange={setShowManageSubscription}
-        onUpgradeClick={() => setShowSubscriptionPopup(true)}
+
+      <ManageSubscriptionDialog 
+        isOpen={showManageSubscription} 
+        onClose={() => setShowManageSubscription(false)} 
       />
+
       <UnlockPopup
         open={unlockPopup.open}
-        onOpenChange={(o) => setUnlockPopup(s => ({ ...s, open: o }))}
-        reason={unlockPopup.reason}
+        reason={unlockPopup.reason || 'daily'}
         modeLabel={unlockPopup.modeLabel}
-        onUnlock={() => usageLimits.addBonusChats()}
+        onOpenChange={(open) => setUnlockPopup(prev => ({ ...prev, open }))}
         onUpgrade={() => {
-          setUnlockPopup(s => ({ ...s, open: false }));
+          setUnlockPopup({ open: false });
           setShowSubscriptionPopup(true);
         }}
       />
