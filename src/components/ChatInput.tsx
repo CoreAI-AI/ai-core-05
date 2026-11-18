@@ -281,7 +281,8 @@ export const ChatInput = memo(({
       />
 
       {/* Tactile Cushion Elastic Scale + Clean Offset Ring */}
-      <div className="relative bg-card/95 dark:bg-[#1A1A18]/95 backdrop-blur-md border border-border/70 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm hover:scale-[1.008] hover:border-foreground/25 hover:shadow-md focus-within:scale-[1.008] focus-within:border-foreground/40 focus-within:ring-2 focus-within:ring-foreground/20 focus-within:ring-offset-2 focus-within:ring-offset-background focus-within:shadow-xl transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] p-2 sm:p-2.5">
+            {/* Smooth Glitch-Free Input Container */}
+      <div className="relative bg-card/95 dark:bg-[#1A1A18]/95 backdrop-blur-md border border-border/70 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm hover:border-foreground/25 focus-within:border-foreground/35 dark:focus-within:border-white/25 focus-within:shadow-md transition-colors duration-200 p-2 sm:p-2.5">
         
         {/* Top Textarea with Animated Typewriter Placeholder */}
         <Textarea
