@@ -397,16 +397,16 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Center Heading with smooth text animation */}
-      <div className="text-center mb-5 h-9 sm:h-10 flex items-center justify-center overflow-hidden">
+          {/* Center Heading with smooth responsive text animation */}
+      <div className="w-full text-center mb-4 sm:mb-5 min-h-[52px] sm:min-h-[44px] flex items-center justify-center px-3">
         <AnimatePresence mode="wait">
           <motion.h2
             key={headlineIndex}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-sans px-2"
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="text-lg sm:text-2xl md:text-3xl font-bold tracking-tight text-foreground font-sans max-w-xs sm:max-w-md mx-auto leading-snug"
           >
             {headlinePhrases[headlineIndex]}
           </motion.h2>
