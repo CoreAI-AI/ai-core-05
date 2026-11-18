@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,21 +19,10 @@ const queryClient = new QueryClient();
 const GatedRoutes = () => {
   const { pathname } = useLocation();
   const [stage, setStage] = useState<"splash" | "app">("splash");
-
-  const handleSplashComplete = useCallback(() => {
-    setStage("app");
-  }, []);
-
-  if (isPublicPath(pathname) || stage === "app") {
-    return <AnimatedRoutes />;
-  }
-
+  if (isPublicPath(pathname) || stage === "app") return <AnimatedRoutes />;
   return (
     <AnimatePresence mode="wait">
-      <SplashScreen
-        key="splash"
-        onComplete={handleSplashComplete}
-      />
+      <SplashScreen key="splash" onComplete={() => setStage("app")} />
     </AnimatePresence>
   );
 };
