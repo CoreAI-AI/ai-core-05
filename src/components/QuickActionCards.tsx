@@ -48,9 +48,23 @@ interface QuickActionCardsProps {
   onSkip?: () => void;
 }
 
+// 10 Animated Rotating Headlines
+const headlinePhrases = [
+  "What should we create today?",
+  "How can I help you today?",
+  "What's on your mind?",
+  "What do you want to explore?",
+  "What shall we discover today?",
+  "Let's build something amazing.",
+  "Ask anything, learn everything.",
+  "What would you like to write?",
+  "Ready to brainstorm together?",
+  "What should we solve today?",
+];
+
 // 6 Dynamic Card Sets (Total 24 Distinct CoreAI Modes & Action Cards)
 const cardSets = [
-  // Set 1: Essential Insights (Matches Exact Screenshot)
+  // Set 1: Essential Insights
   [
     {
       id: "shopping",
@@ -288,6 +302,7 @@ const cardSets = [
 
 export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProps) => {
   const [activeSetIndex, setActiveSetIndex] = useState(0);
+  const [headlineIndex, setHeadlineIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
   const [selectedAction, setSelectedAction] = useState<{
@@ -303,7 +318,15 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
     if (onAction) onAction(prompt);
   };
 
-  // Rotate 24 cards (6 sets of 4) every 1.5 seconds (1500ms) with hover pause
+  // Rotate headline phrases every 2.8 seconds
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setHeadlineIndex((prev) => (prev + 1) % headlinePhrases.length);
+    }, 2800);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Rotate 24 cards (6 sets of 4) every 1.5 seconds with hover pause
   useEffect(() => {
     if (isPaused) return;
     const timer = setInterval(() => {
@@ -374,19 +397,23 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Center Heading matching Screenshot */}
-      <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="text-center mb-5"
-      >
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-sans">
-          What should we create today?
-        </h2>
-      </motion.div>
+      {/* Center Heading with smooth text animation */}
+      <div className="text-center mb-5 h-9 sm:h-10 flex items-center justify-center overflow-hidden">
+        <AnimatePresence mode="wait">
+          <motion.h2
+            key={headlineIndex}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground font-sans px-2"
+          >
+            {headlinePhrases[headlineIndex]}
+          </motion.h2>
+        </AnimatePresence>
+      </div>
 
-      {/* 4 Action Pills matching Screenshot */}
+      {/* 4 Action Pills */}
       <div className="flex items-center justify-center gap-2 mb-6 flex-wrap">
         <button
           type="button"
@@ -419,24 +446,36 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium bg-background border border-border/70 hover:border-foreground/30 hover:bg-muted/60 text-foreground transition-all shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-background border border-border/70 hover:border-foreground/30 hover:bg-muted/60 text-foreground transition-all shadow-xs"
             >
               <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className="hidden sm:inline">More</span>
+              <span>More</span>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
-            <DropdownMenuItem onClick={() => triggerAction("Brainstorm 10 creative startup ideas with high potential")} className="rounded-xl text-xs py-2 cursor-pointer">
-              <Brain className="h-3.5 w-3.5 mr-2 text-pink-500" />
+          <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg border-border">
+            <DropdownMenuItem 
+              onClick={() => triggerAction("Help me brainstorm creative project ideas and unique startup concepts.")}
+              className="text-xs cursor-pointer"
+            >
               Brainstorm Ideas
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => triggerAction("Provide a structured guide on how to learn anything fast")} className="rounded-xl text-xs py-2 cursor-pointer">
-              <Compass className="h-3.5 w-3.5 mr-2 text-blue-500" />
-              Learning Methods
+            <DropdownMenuItem 
+              onClick={() => triggerAction("Write a polite, concise and professional email.")}
+              className="text-xs cursor-pointer"
+            >
+              Draft Email
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => triggerAction("Summarize key concepts of modern machine learning")} className="rounded-xl text-xs py-2 cursor-pointer">
-              <Code className="h-3.5 w-3.5 mr-2 text-purple-500" />
-              AI Concepts
+            <DropdownMenuItem 
+              onClick={() => triggerAction("Create a healthy, easy daily routine plan.")}
+              className="text-xs cursor-pointer"
+            >
+              Daily Routine
+            </DropdownMenuItem>
+            <DropdownMenuItem 
+              onClick={() => triggerAction("Explain this concept simply like I am 12 years old.")}
+              className="text-xs cursor-pointer"
+            >
+              Explain Simply
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -498,7 +537,7 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
         )}
       </AnimatePresence>
 
-      {/* 2x2 Feature Cards Grid (24 Cards rotating across 6 sets every 1.5s) */}
+      {/* 2x2 Feature Cards Grid (Desktop & Mobile both show 2x2 grid, rotating 24 cards across 6 sets) */}
       <div className="w-full relative min-h-[148px]">
         <AnimatePresence mode="wait">
           <motion.div
@@ -507,7 +546,7 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.28, ease: "easeOut" }}
-            className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full"
+            className="grid grid-cols-2 gap-2 sm:gap-2.5 w-full"
           >
             {currentCards.map((card) => {
               const IconComp = card.icon;
@@ -515,17 +554,17 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
                 <Card
                   key={card.id}
                   onClick={() => triggerAction(card.prompt)}
-                  className={`p-3 sm:p-3.5 rounded-2xl bg-card/80 hover:bg-card border border-border/60 ${card.hoverBorder} transition-all duration-200 cursor-pointer group shadow-xs hover:shadow-sm`}
+                  className={`p-2.5 sm:p-3.5 rounded-2xl bg-card/80 hover:bg-card border border-border/60 ${card.hoverBorder} transition-all duration-200 cursor-pointer group shadow-xs hover:shadow-sm`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 border ${card.badgeClasses} transition-transform duration-200 group-hover:scale-105`}>
-                      <IconComp className="w-4 h-4" />
+                  <div className="flex items-center gap-2.5 sm:gap-3">
+                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 border ${card.badgeClasses} transition-transform duration-200 group-hover:scale-105`}>
+                      <IconComp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs sm:text-sm font-semibold text-foreground tracking-tight group-hover:text-primary transition-colors">
+                      <h4 className="text-xs sm:text-sm font-semibold text-foreground tracking-tight group-hover:text-primary transition-colors truncate">
                         {card.title}
                       </h4>
-                      <p className="text-[11px] text-muted-foreground truncate leading-snug">
+                      <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate leading-snug">
                         {card.description}
                       </p>
                     </div>
@@ -562,7 +601,7 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
         </button>
       </div>
 
-      {/* Quota Notice matching image-30.png */}
+      {/* Quota Notice */}
       <div className="mt-3 text-center">
         <span className="text-[11px] text-muted-foreground/80 inline-flex items-center gap-1 font-medium">
           <Zap className="h-3 w-3 text-amber-500 fill-amber-500" />
