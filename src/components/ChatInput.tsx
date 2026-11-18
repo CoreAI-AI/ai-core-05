@@ -35,6 +35,7 @@ interface ChatInputProps {
   onFileSelect?: (file: File) => void;
   onFilesSelect?: (files: File[]) => void;
   onModeChange?: (mode: ModeType) => void;
+  currentMode?: ModeType;
   editingMessage?: {
     id: string;
     content: string;
@@ -86,7 +87,12 @@ export const ChatInput = memo(({
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [currentMode, setCurrentMode] = useState<ModeType>("normal");
-
+  // Sync active mode if changed from switch card or parent
+  useEffect(() => {
+    if (propsCurrentMode && propsCurrentMode !== currentMode) {
+      setCurrentMode(propsCurrentMode);
+    }
+  }, [propsCurrentMode]);
   // Typewriter Animation States
   const [placeholderText, setPlaceholderText] = useState("");
   const [promptIndex, setPromptIndex] = useState(0);
