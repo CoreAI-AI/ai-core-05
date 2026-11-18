@@ -600,14 +600,6 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
           <RefreshCw className="h-3 w-3" />
         </button>
       </div>
-
-      {/* Quota Notice */}
-      <div className="mt-3 text-center">
-        <span className="text-[11px] text-muted-foreground/80 inline-flex items-center gap-1 font-medium">
-          <Zap className="h-3 w-3 text-amber-500 fill-amber-500" />
-          20/20 free chats left today
-        </span>
-      </div>
     </div>
   );
 };
