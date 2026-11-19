@@ -81,6 +81,11 @@ export const ChatInput = memo(({
   onFileSelect,
   onFilesSelect,
   onModeChange,
+  currentMode: propsCurrentMode,
+  editingMessage,
+  onCancelEdit,
+  onTypingChange,
+}: ChatInputProps) => {
   editingMessage,
   onCancelEdit,
   onTypingChange,
@@ -209,7 +214,14 @@ export const ChatInput = memo(({
   const handleMultipleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawFiles = e.target.files;
     if (!rawFiles || rawFiles.length === 0) return;
-
+    for (const file of fileList) {
+      try {
+        validateFile(file);
+        validFiles.push(file);
+      } catch (err: any) {
+        toast.error(`${file.name}: ${err.message || 'Invalid file'}`);
+      }
+    }
     const fileList = Array.from(rawFiles);
     const validFiles: File[] = [];
 
