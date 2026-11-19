@@ -37,11 +37,15 @@ export const ChatMessage = memo(({
     setLoadedImages(prev => ({ ...prev, [index]: true }));
   };
 
+  // Lovable-style multi-image grid (1 image is clean, 2-10 images render in a responsive grid)
   const renderAttachments = () => {
     if (!images || images.length === 0) return null;
     
     return (
-      <div className="mb-2 space-y-2">
+      <div className={cn(
+        "mb-2.5 gap-2",
+        images.length === 1 ? "block" : "grid grid-cols-2 sm:grid-cols-3"
+      )}>
         {images.map((image: any, index: number) => {
           const imageUrl = image.image_url?.url || image.url;
           const isImage = image.type?.startsWith('image/') || imageUrl?.startsWith('data:image') || imageUrl?.includes('image');
@@ -51,22 +55,25 @@ export const ChatMessage = memo(({
             return (
               <motion.div 
                 key={index} 
-                className="rounded-2xl overflow-hidden shadow-sm cursor-pointer group/image relative min-h-[140px] bg-muted/40 border border-border/40"
+                className={cn(
+                  "rounded-xl sm:rounded-2xl overflow-hidden shadow-xs cursor-pointer group/image relative bg-muted/40 border border-border/40",
+                  images.length === 1 ? "min-h-[140px] max-w-xs" : "aspect-square"
+                )}
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.25 }}
+                transition={{ duration: 0.2 }}
                 onClick={() => setFullScreenImage(imageUrl)}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
               >
                 {!isLoaded && (
-                  <div className="absolute inset-0 image-skeleton-shimmer rounded-2xl" />
+                  <div className="absolute inset-0 image-skeleton-shimmer rounded-xl" />
                 )}
                 <img
                   src={imageUrl}
                   alt={`Attachment ${index + 1}`}
                   className={cn(
-                    "w-full h-auto max-w-xs rounded-2xl transition-opacity duration-300",
+                    "w-full h-full object-cover transition-opacity duration-300",
                     isLoaded ? "opacity-100" : "opacity-0"
                   )}
                   loading="lazy"
@@ -76,8 +83,8 @@ export const ChatMessage = memo(({
                     e.currentTarget.style.display = 'none';
                   }}
                 />
-                <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-colors duration-200 flex items-center justify-center">
-                  <span className="text-white text-xs font-medium opacity-0 group-hover/image:opacity-100 transition-opacity duration-200 bg-black/60 px-3 py-1 rounded-full backdrop-blur-md">
+                <div className="absolute inset-0 bg-black/0 group-hover/image:bg-black/20 transition-colors duration-150 flex items-center justify-center">
+                  <span className="text-white text-[11px] font-medium opacity-0 group-hover/image:opacity-100 transition-opacity duration-150 bg-black/60 px-2.5 py-0.5 rounded-full backdrop-blur-md">
                     View
                   </span>
                 </div>
@@ -85,8 +92,8 @@ export const ChatMessage = memo(({
             );
           } else {
             return (
-              <div key={index} className="flex items-center gap-2 p-2.5 bg-muted/60 rounded-xl border border-border/40">
-                <FileIcon className="w-4 h-4 text-muted-foreground" />
+              <div key={index} className="flex items-center gap-2 p-2 bg-muted/60 rounded-xl border border-border/40">
+                <FileIcon className="w-4 h-4 text-muted-foreground shrink-0" />
                 <span className="text-xs text-muted-foreground truncate">
                   {image.name || 'Attached file'}
                 </span>
@@ -98,7 +105,7 @@ export const ChatMessage = memo(({
     );
   };
 
-  // User Message (Right-aligned pill like image-27)
+  // User Message (Right-aligned pill like Lovable)
   if (isUser) {
     return (
       <motion.div 
@@ -162,14 +169,17 @@ export const ChatMessage = memo(({
           transition={{ duration: 0.15 }}
         >
           {images && images.length > 0 && (
-            <div className="mb-3 space-y-2">
+            <div className={cn(
+              "mb-3 gap-2",
+              images.length === 1 ? "block" : "grid grid-cols-2 sm:grid-cols-3"
+            )}>
               {images.map((image: any, index: number) => {
                 const imageUrl = image.image_url?.url || image.url;
                 const isLoaded = loadedImages[index];
                 return (
                   <motion.div 
                     key={index} 
-                    className="rounded-2xl overflow-hidden shadow-sm cursor-pointer group/image relative min-h-[160px] bg-muted/40 border border-border/40"
+                    className="rounded-2xl overflow-hidden shadow-xs cursor-pointer group/image relative min-h-[160px] bg-muted/40 border border-border/40"
                     initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.25, delay: index * 0.05 }}
@@ -249,3 +259,4 @@ export const ChatMessage = memo(({
 });
 
 ChatMessage.displayName = 'ChatMessage';
+export default ChatMessage;
