@@ -1169,10 +1169,10 @@ const Index = () => {
 
               {/* Scroll To Bottom Button */}
               <ScrollToBottom
-                visible={hasNewMessage}
-                hasNewMessages={hasNewMessage}
-                onClick={forceScrollToBottom}
-              />
+  scrollAreaRef={scrollAreaRef}
+  hasNewMessage={hasNewMessage}
+  onScrollToBottom={forceScrollToBottom}
+/>
             </div>
           )}
         </div>
