@@ -5,9 +5,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface ScrollToBottomProps {
-  scrollAreaRef: React.RefObject<HTMLDivElement>;
+  scrollAreaRef?: React.RefObject<HTMLDivElement>;
   className?: string;
   hasNewMessage?: boolean;
+  hasNewMessages?: boolean;
+  visible?: boolean;
+  onClick?: () => void;
   onScrollToBottom?: () => void;
 }
 
@@ -15,14 +18,22 @@ export const ScrollToBottom = ({
   scrollAreaRef, 
   className, 
   hasNewMessage,
+  hasNewMessages,
+  visible,
+  onClick,
   onScrollToBottom 
 }: ScrollToBottomProps) => {
   const [showButton, setShowButton] = useState(false);
+  const isMessageAlert = Boolean(hasNewMessage || hasNewMessages);
 
   useEffect(() => {
-    // Works with native div (no Radix ScrollArea viewport)
-    const container = scrollAreaRef.current;
-    if (!container) return;
+    const container = scrollAreaRef?.current;
+    if (!container) {
+      if (typeof visible === 'boolean') {
+        setShowButton(visible);
+      }
+      return;
+    }
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
@@ -32,10 +43,14 @@ export const ScrollToBottom = ({
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
-  }, [scrollAreaRef]);
+  }, [scrollAreaRef, visible]);
 
   const scrollToBottom = useCallback(() => {
-    const container = scrollAreaRef.current;
+    if (onClick) {
+      onClick();
+      return;
+    }
+    const container = scrollAreaRef?.current;
     if (container) {
       container.scrollTo({
         top: container.scrollHeight,
@@ -43,7 +58,7 @@ export const ScrollToBottom = ({
       });
     }
     onScrollToBottom?.();
-  }, [scrollAreaRef, onScrollToBottom]);
+  }, [scrollAreaRef, onClick, onScrollToBottom]);
 
   return (
     <AnimatePresence>
@@ -61,12 +76,12 @@ export const ScrollToBottom = ({
             variant="secondary"
             className={cn(
               "rounded-full shadow-lg h-9 px-4 gap-2 bg-background/95 backdrop-blur-sm border hover:bg-muted active:scale-95 transition-all",
-              hasNewMessage 
+              isMessageAlert 
                 ? "border-primary bg-primary/10 hover:bg-primary/20" 
                 : "border-border"
             )}
           >
-            {hasNewMessage && (
+            {isMessageAlert && (
               <motion.span
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -75,9 +90,9 @@ export const ScrollToBottom = ({
                 <span className="absolute inset-0 bg-primary rounded-full animate-ping opacity-75" />
               </motion.span>
             )}
-            <ArrowDown className={cn("h-4 w-4", hasNewMessage && "text-primary")} />
-            <span className={cn("text-xs font-medium", hasNewMessage && "text-primary")}>
-              {hasNewMessage ? "New message" : "Scroll to bottom"}
+            <ArrowDown className={cn("h-4 w-4", isMessageAlert && "text-primary")} />
+            <span className={cn("text-xs font-medium", isMessageAlert && "text-primary")}>
+              {isMessageAlert ? "New message" : "Scroll to bottom"}
             </span>
           </Button>
         </motion.div>
