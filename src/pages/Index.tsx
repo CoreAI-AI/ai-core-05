@@ -142,6 +142,15 @@ const detectSpecializedMode = (text: string): ModeType | null => {
   return null;
 };
 
+interface AttachedItem {
+  id: string;
+  file: File;
+  preview: string;
+  name: string;
+  size: number;
+  isImage: boolean;
+}
+
 const Index = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading, showAuth, signOut, setShowAuth } = useAuth();
@@ -153,8 +162,8 @@ const Index = () => {
     createChat, 
     addMessage, 
     updateMessage, 
-    updateMessageLocal,
-    deleteMessage,
+    updateMessageLocal, 
+    deleteMessage, 
     startNewChat, 
     selectChat, 
     deleteChat 
@@ -171,8 +180,12 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isAITyping, setIsAITyping] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<string | null>(null);
+  
+  // Multi-file attached state (up to 10 images)
+  const [attachedFiles, setAttachedFiles] = useState<AttachedItem[]>([]);
+  const selectedFile = attachedFiles[0]?.file || null;
+  const filePreview = attachedFiles[0]?.preview || null;
+
   const [chatMode, setChatMode] = useState<ModeType>('normal');
   const [pendingSwitch, setPendingSwitch] = useState<{
     targetMode: ModeType;
@@ -219,42 +232,48 @@ const Index = () => {
 
   // Auto-scroll when new messages arrive
   useEffect(() => {
-    const container = scrollAreaRef.current;
-    if (!container) return;
-    if (!userScrolledUpRef.current) {
-      requestAnimationFrame(() => {
-        if (container) {
-          container.scrollTop = container.scrollHeight;
-        }
-      });
+    if (!userScrolledUpRef.current && scrollAreaRef.current) {
+      const scrollEl = scrollAreaRef.current;
+      scrollEl.scrollTop = scrollEl.scrollHeight;
     }
-  }, [messages, isAITyping, isLoading]);
-
-  const handleContainerScroll = useCallback(() => {
-    const container = scrollAreaRef.current;
-    if (!container) return;
-    const { scrollTop, scrollHeight, clientHeight } = container;
-    const distance = scrollHeight - scrollTop - clientHeight;
-    const isUp = distance > 120;
-    userScrolledUpRef.current = isUp;
-    setHasNewMessage(isUp);
-  }, []);
+  }, [messages, isAITyping]);
 
   const forceScrollToBottom = useCallback(() => {
     userScrolledUpRef.current = false;
     setHasNewMessage(false);
-    const container = scrollAreaRef.current;
-    if (container) {
-      container.scrollTo({
-        top: container.scrollHeight,
-        behavior: "smooth"
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTo({
+        top: scrollAreaRef.current.scrollHeight,
+        behavior: 'smooth'
       });
     }
   }, []);
 
+  const handleContainerScroll = useCallback(() => {
+    if (!scrollAreaRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollAreaRef.current;
+    const distance = scrollHeight - scrollTop - clientHeight;
+    userScrolledUpRef.current = distance > 120;
+    if (!userScrolledUpRef.current) {
+      setHasNewMessage(false);
+    }
+  }, []);
+
+  const scrollToMessage = useCallback((messageId: string) => {
+    const el = document.getElementById(`msg-${messageId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('ring-2', 'ring-primary', 'rounded-xl');
+      setTimeout(() => {
+        el.classList.remove('ring-2', 'ring-primary', 'rounded-xl');
+      }, 2000);
+    }
+  }, []);
+
+  // Keyboard shortcut Ctrl+K
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         setShowSearch(prev => !prev);
       }
@@ -263,65 +282,65 @@ const Index = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Smart tabs sync
   useEffect(() => {
-    if (currentChat && !openTabs.find(t => t.id === currentChat.id)) {
-      setOpenTabs(prev => [...prev, currentChat].slice(-5));
+    if (currentChat && !openTabs.some(t => t.id === currentChat.id)) {
+      setOpenTabs(prev => [...prev.slice(-4), currentChat]);
     }
   }, [currentChat]);
 
   const handleCloseTab = (chatId: string) => {
-    setOpenTabs(prev => prev.filter(t => t.id !== chatId));
-    if (currentChat?.id === chatId) {
-      const remaining = openTabs.filter(t => t.id !== chatId);
-      if (remaining.length > 0) {
-        selectChat(remaining[remaining.length - 1]);
-      } else {
-        startNewChat();
-      }
-    }
-  };
-
-  const scrollToMessage = (messageId: string) => {
-    const element = document.getElementById(`message-${messageId}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      element.classList.add('ring-2', 'ring-primary', 'transition-all');
-      setTimeout(() => element.classList.remove('ring-2', 'ring-primary'), 2000);
+    const remaining = openTabs.filter(t => t.id !== chatId);
+    setOpenTabs(remaining);
+    if (currentChat?.id === chatId && remaining.length > 0) {
+      selectChat(remaining[remaining.length - 1]);
+    } else if (remaining.length === 0) {
+      startNewChat();
     }
   };
 
   const handleQuickAction = async (action: 'rewrite' | 'summarize' | 'translate' | 'improve' | 'regenerate') => {
-    if (!currentChat || messages.length === 0) return;
-    const lastAIMessage = [...messages].reverse().find(m => !m.is_user);
-    if (!lastAIMessage) return;
+    const lastAiMsg = [...messages].reverse().find(m => !m.is_user);
+    if (!lastAiMsg) return;
 
-    const actionPrompts = {
-      rewrite: `Please rewrite this more clearly:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
-      summarize: `Please summarize the key points of this response in bullet points:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
-      translate: `Please translate this to Hindi:\n\n"${lastAIMessage.content.substring(0, 500)}"`,
-      improve: `Please improve and expand on this response with more details and examples:\n\n"${lastAIMessage.content.substring(0, 500)}"`
+    const prompts: Record<string, string> = {
+      rewrite: `Please rewrite this in a clearer, more engaging way:\n\n"${lastAiMsg.content}"`,
+      summarize: `Please summarize the key points of this response briefly:\n\n"${lastAiMsg.content}"`,
+      translate: `Please translate this to Hindi:\n\n"${lastAiMsg.content}"`,
+      improve: `Please improve and expand on this response with more details:\n\n"${lastAiMsg.content}"`,
+      regenerate: lastAiMsg.content
     };
 
     if (action === 'regenerate') {
-      const aiMsgIndex = messages.findIndex(m => m.id === lastAIMessage.id);
-      if (aiMsgIndex >= 0) {
-        handleRegenerateResponse(lastAIMessage.id, aiMsgIndex);
+      const lastUserMsg = [...messages].reverse().find(m => m.is_user);
+      if (lastUserMsg) {
+        handleSendMessage(lastUserMsg.content);
       }
-    } else if (actionPrompts[action]) {
-      handleSendMessage(actionPrompts[action]);
+    } else {
+      handleSendMessage(prompts[action]);
     }
   };
 
-  if (authLoading) return <PageSkeleton />;
-  if (showAuth || !user) return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+  const handleRegenerateResponse = (msgId: string) => {
+    const idx = messages.findIndex(m => m.id === msgId);
+    if (idx > 0) {
+      const userMsg = messages[idx - 1];
+      if (userMsg.is_user) {
+        handleSendMessage(userMsg.content);
+      }
+    }
+  };
 
-  const compressImage = (file: File, maxDim = 1280, quality = 0.75): Promise<string> => {
+  const compressImage = async (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
         const img = new Image();
         img.onload = () => {
-          let { width, height } = img;
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1200;
           if (width > maxDim || height > maxDim) {
             if (width > height) {
               height = Math.round((height * maxDim) / width);
@@ -331,12 +350,15 @@ const Index = () => {
               height = maxDim;
             }
           }
-          const canvas = document.createElement('canvas');
           canvas.width = width;
           canvas.height = height;
           const ctx = canvas.getContext('2d');
-          if (!ctx) return reject(new Error('Canvas not supported'));
+          if (!ctx) {
+            resolve(e.target?.result as string);
+            return;
+          }
           ctx.drawImage(img, 0, 0, width, height);
+          const quality = file.size > 2 * 1024 * 1024 ? 0.7 : 0.85;
           resolve(canvas.toDataURL('image/jpeg', quality));
         };
         img.onerror = reject;
@@ -347,22 +369,54 @@ const Index = () => {
     });
   };
 
-  const handleFileSelect = async (file: File) => {
-    setSelectedFile(file);
-    if (file.type.startsWith('image/')) {
-      try {
-        const compressed = await compressImage(file);
-        setFilePreview(compressed);
-        toast.success("Image ready");
-      } catch (err) {
-        const reader = new FileReader();
-        reader.onloadend = () => setFilePreview(reader.result as string);
-        reader.readAsDataURL(file);
-      }
-    } else {
-      setFilePreview(null);
-      toast.success(`Attached ${file.name}`);
+  // Lovable-style multi-image upload handler (up to 10 images)
+  const handleFilesSelect = async (files: File[]) => {
+    if (!files || files.length === 0) return;
+    const remainingSlots = 10 - attachedFiles.length;
+    if (remainingSlots <= 0) {
+      toast.error("Maximum 10 files allowed");
+      return;
     }
+    const filesToAdd = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      toast.info(`Only ${remainingSlots} more files could be added (max 10)`);
+    }
+
+    const newItems: AttachedItem[] = [];
+    for (const file of filesToAdd) {
+      const isImg = file.type.startsWith('image/');
+      let previewUrl = "";
+      if (isImg) {
+        try {
+          previewUrl = await compressImage(file);
+        } catch {
+          previewUrl = await new Promise<string>((resolve) => {
+            const r = new FileReader();
+            r.onloadend = () => resolve(r.result as string);
+            r.readAsDataURL(file);
+          });
+        }
+      }
+      newItems.push({
+        id: `${file.name}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        file,
+        preview: previewUrl,
+        name: file.name,
+        size: file.size,
+        isImage: isImg
+      });
+    }
+
+    setAttachedFiles(prev => [...prev, ...newItems]);
+    toast.success(`${newItems.length} file${newItems.length > 1 ? 's' : ''} attached`);
+  };
+
+  const handleFileSelect = async (file: File) => {
+    await handleFilesSelect([file]);
+  };
+
+  const removeAttachedFile = (id: string) => {
+    setAttachedFiles(prev => prev.filter(f => f.id !== id));
   };
 
   const handleEditMessage = (messageId: string, content: string, index: number) => {
@@ -392,11 +446,9 @@ const Index = () => {
       );
       const conversationHistory = updatedMessages.slice(-12).map(msg => ({
         role: msg.is_user ? 'user' : 'assistant',
-        content: msg.id === editingMessage.id ? content : msg.content,
-        ...(msg.images && msg.images.length > 0 ? { images: msg.images } : {})
+        content: msg.content
       }));
 
-      const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
         method: 'POST',
         headers: {
@@ -405,7 +457,7 @@ const Index = () => {
         },
         body: JSON.stringify({
           message: content,
-          model: modelToUse,
+          model: selectedModel,
           mode: chatMode,
           companion: buildCompanionContext(content),
           conversationHistory
@@ -418,7 +470,6 @@ const Index = () => {
       if (!reader) throw new Error("No response body");
 
       let accumulatedContent = "";
-      let receivedImages: any[] = [];
       let buffer = "";
       setIsAITyping(false);
 
@@ -429,112 +480,33 @@ const Index = () => {
         const lines = buffer.split('\n');
         buffer = lines.pop() || "";
         for (const line of lines) {
-          if (!line.trim() || !line.startsWith('data: ')) continue;
-          const data = line.slice(6);
-          if (data === '[DONE]') break;
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.content) {
-              accumulatedContent += parsed.content;
-              updateMessageLocal(aiMessage.id, accumulatedContent);
-            }
-            if (parsed.images?.length > 0) {
-              receivedImages = parsed.images;
-              updateMessageLocal(aiMessage.id, accumulatedContent, parsed.images);
-            }
-          } catch {}
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                accumulatedContent += parsed.content;
+                updateMessageLocal(aiMessage.id, accumulatedContent);
+              }
+            } catch {}
+          }
         }
       }
-      await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
+      if (accumulatedContent) {
+        await updateMessage(aiMessage.id, accumulatedContent);
+      }
     } catch (error) {
-      console.error('Error regenerating AI response:', error);
-      toast.error("Failed to regenerate response");
+      console.error('Error with edited message:', error);
+      toast.error("Failed to generate response");
     } finally {
       setIsLoading(false);
       setIsAITyping(false);
     }
   };
 
-  const handleRegenerateResponse = async (aiMessageId: string, aiMessageIndex: number) => {
-    if (!user || !currentChat || isLoading) return;
-    const userMessageIndex = aiMessageIndex - 1;
-    if (userMessageIndex < 0) return;
-    const userMessage = messages[userMessageIndex];
-
-    setIsLoading(true);
-    setIsAITyping(true);
-
-    try {
-      await updateMessage(aiMessageId, "");
-      const { data: session } = await supabase.auth.getSession();
-      const authToken = session?.session?.access_token;
-      const conversationHistory = messages.slice(0, aiMessageIndex).slice(-12).map(msg => ({
-        role: msg.is_user ? 'user' : 'assistant',
-        content: msg.content,
-        ...(msg.images && msg.images.length > 0 ? { images: msg.images } : {})
-      }));
-
-      const modelToUse = chatMode === 'photo' ? 'google/gemini-2.5-flash-image-preview' : selectedModel;
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
-        },
-        body: JSON.stringify({
-          message: userMessage.content,
-          model: modelToUse,
-          mode: chatMode,
-          companion: buildCompanionContext(userMessage.content),
-          conversationHistory
-        })
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      if (!reader) throw new Error("No response body");
-
-      let accumulatedContent = "";
-      let receivedImages: any[] = [];
-      let buffer = "";
-      setIsAITyping(false);
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || "";
-        for (const line of lines) {
-          if (!line.trim() || !line.startsWith('data: ')) continue;
-          const data = line.slice(6);
-          if (data === '[DONE]') break;
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.content) {
-              accumulatedContent += parsed.content;
-              updateMessageLocal(aiMessageId, accumulatedContent);
-            }
-            if (parsed.images?.length > 0) {
-              receivedImages = parsed.images;
-              updateMessageLocal(aiMessageId, accumulatedContent, parsed.images);
-            }
-          } catch {}
-        }
-      }
-      await updateMessage(aiMessageId, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
-      toast.success("Response regenerated");
-    } catch (error) {
-      console.error('Error regenerating AI response:', error);
-      toast.error("Failed to regenerate response");
-    } finally {
-      setIsLoading(false);
-      setIsAITyping(false);
-    }
-  };
-
-  const handleSendMessage = async (content: string, overrideMode?: ModeType, skipUserMsg = false) => {
+  const handleSendMessage = async (content: string, overrideMode?: ModeType, skipUserMsg?: boolean) => {
+    if (!content.trim() && attachedFiles.length === 0) return;
     if (editingMessage) {
       await handleSendEditedMessage(content);
       return;
@@ -562,10 +534,12 @@ const Index = () => {
     }
 
     if (!skipUserMsg) {
-      const messageImages = selectedFile && filePreview ? [{
-        url: filePreview,
-        type: selectedFile.type
-      }] : undefined;
+      // Map all attached files to message images array
+      const messageImages = attachedFiles.length > 0 ? attachedFiles.map(f => ({
+        url: f.preview || "",
+        type: f.file.type,
+        name: f.name
+      })) : undefined;
 
       const userMessage = await addMessage(chatToUse.id, content, true, messageImages);
       if (!userMessage) return;
@@ -614,7 +588,7 @@ const Index = () => {
       return;
     }
 
-    if (!selectedFile && currentActiveMode === 'normal') {
+    if (attachedFiles.length === 0 && currentActiveMode === 'normal') {
       const local = tryLocalReply(content);
       if (local) {
         await addMessage(chatToUse.id, local, false);
@@ -622,7 +596,7 @@ const Index = () => {
       }
     }
 
-    if (!selectedFile && isCacheable(content, currentActiveMode)) {
+    if (attachedFiles.length === 0 && isCacheable(content, currentActiveMode)) {
       const cached = getCached(content, currentActiveMode, selectedModel);
       if (cached) {
         await addMessage(chatToUse.id, cached, false);
@@ -644,11 +618,12 @@ const Index = () => {
 
       let fileTextToSend: string | undefined;
       let fileNameToSend: string | undefined;
-      if (selectedFile && !selectedFile.type.startsWith('image/')) {
+      const firstNonImage = attachedFiles.find(f => !f.isImage)?.file;
+      if (firstNonImage) {
         try {
-          const txt = await selectedFile.text();
+          const txt = await firstNonImage.text();
           fileTextToSend = txt.slice(0, 12000);
-          fileNameToSend = selectedFile.name;
+          fileNameToSend = firstNonImage.name;
         } catch (e) {
           console.warn('Failed to read file as text:', e);
         }
@@ -693,7 +668,8 @@ const Index = () => {
           model: modelToUse,
           mode: currentActiveMode,
           companion: buildCompanionContext(content),
-          image: filePreview,
+          image: attachedFiles.find(f => f.isImage)?.preview || null,
+          images: attachedFiles.filter(f => f.isImage).map(f => f.preview),
           fileText: fileTextToSend,
           fileName: fileNameToSend,
           conversationHistory
@@ -738,64 +714,69 @@ const Index = () => {
                 const parsed = JSON.parse(data);
                 if (parsed.content) {
                   accumulatedContent += parsed.content;
-                  updateMessageLocal(aiMessage.id, accumulatedContent);
                 }
-                if (parsed.images?.length > 0) {
+                if (parsed.images) {
                   receivedImages = parsed.images;
-                  updateMessageLocal(aiMessage.id, accumulatedContent, parsed.images);
                 }
-              } catch {}
+              } catch (e) {
+                console.error('Error parsing remaining buffer:', e);
+              }
             }
           }
           break;
         }
-        buffer += decoder.decode(value, { stream: true });
 
+        buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || "";
 
         for (const line of lines) {
-          if (!line.trim() || !line.startsWith('data: ')) continue;
-          const data = line.slice(6);
-          if (data === '[DONE]') {
-            sawDone = true;
-            break;
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') {
+              sawDone = true;
+              continue;
+            }
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                accumulatedContent += parsed.content;
+                updateMessageLocal(aiMessage.id, accumulatedContent);
+              }
+              if (parsed.images) {
+                receivedImages = parsed.images;
+                console.log('Received images in stream:', receivedImages);
+              }
+            } catch (e) {
+              console.error('Error parsing streaming data:', e);
+            }
           }
-          try {
-            const parsed = JSON.parse(data);
-            if (parsed.content) {
-              accumulatedContent += parsed.content;
-              updateMessageLocal(aiMessage.id, accumulatedContent);
-            }
-            if (parsed.images?.length > 0) {
-              receivedImages = parsed.images;
-              setIsGeneratingImage(false);
-              updateMessageLocal(aiMessage.id, accumulatedContent, parsed.images);
-            }
-          } catch {}
         }
-        if (sawDone) break;
       }
 
-      if (!accumulatedContent.trim() && receivedImages.length === 0) {
-        throw new Error("No content received");
-      }
-      await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
+      console.log('Final stream state:', {
+        contentLength: accumulatedContent.length,
+        imagesCount: receivedImages.length,
+        hasImages: receivedImages.length > 0
+      });
 
-      if (!selectedFile && receivedImages.length === 0 && isCacheable(content, currentActiveMode)) {
+      if (accumulatedContent || receivedImages.length > 0) {
+        await updateMessage(aiMessage.id, accumulatedContent, receivedImages.length > 0 ? receivedImages : undefined);
+      }
+
+      setAttachedFiles([]);
+
+      if (attachedFiles.length === 0 && receivedImages.length === 0 && isCacheable(content, currentActiveMode)) {
         setCached(content, currentActiveMode, selectedModel, accumulatedContent);
       }
 
-      setSelectedFile(null);
-      setFilePreview(null);
     } catch (error) {
-      console.error('Error calling AI:', error);
-      toast.error("Failed to get AI response. Please try again.");
+      console.error('Error sending message:', error);
+      toast.error("Failed to generate response");
     } finally {
       setIsLoading(false);
       setIsAITyping(false);
       setIsGeneratingImage(false);
-      setImageGenerationPrompt("");
     }
   };
 
@@ -842,7 +823,6 @@ const Index = () => {
       toast.error("Failed to export chat");
     }
   };
-
   return (
     <div className={`flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none ${isPremium ? 'premium-mode' : ''}`}>
       {/* Sidebar with slide transition */}
@@ -1028,7 +1008,7 @@ const Index = () => {
                 }}
               />
 
-              {/* Chat Messages Container */}
+              {/* Chat Messages Container with Centered Lovable Max Width */}
               <div 
                 ref={scrollAreaRef}
                 onScroll={handleContainerScroll}
@@ -1076,7 +1056,7 @@ const Index = () => {
                         </AnimatePresence>
                       </div>
                     ) : (
-                      <>
+                      <div className="max-w-3xl xl:max-w-4xl mx-auto w-full px-3 sm:px-4">
                         <VirtualizedChatMessages 
                           messages={messages}
                           chatId={currentChat?.id}
@@ -1089,7 +1069,7 @@ const Index = () => {
 
                         {/* Interactive Mode Switch Suggestion Card */}
                         {pendingSwitch && (
-                          <div className="px-3 sm:px-4 py-2 max-w-3xl xl:max-w-4xl mx-auto w-full">
+                          <div className="py-2 w-full">
                             <ModeSwitchCard
                               targetMode={pendingSwitch.targetMode}
                               userPrompt={pendingSwitch.prompt}
@@ -1098,7 +1078,7 @@ const Index = () => {
                             />
                           </div>
                         )}
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1106,7 +1086,7 @@ const Index = () => {
             </>
           )}
 
-          {/* Input - Fixed at bottom with sticky positioning */}
+          {/* Input Area - Fixed at bottom */}
           {!showSettings && (
             <div className="chat-input-fixed glass-navbar border-t-0">
               {/* Quick Action Buttons - Desktop only */}
@@ -1124,23 +1104,41 @@ const Index = () => {
                 </div>
               )}
               
-              {/* File Preview */}
-              {selectedFile && (
-                <div className="p-3 sm:p-4">
-                  <div className="max-w-2xl mx-auto">
-                    <div className="flex items-center gap-3 p-2.5 sm:p-3 bg-muted rounded-xl">
-                      {filePreview && <img src={filePreview} alt="Preview" className="w-14 h-14 object-cover rounded-lg" />}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm font-medium truncate">{selectedFile.name}</p>
-                        <p className="text-[11px] text-muted-foreground">{(selectedFile.size / 1024).toFixed(2)} KB</p>
+              {/* Lovable-Style Multi-File Preview Strip (up to 10 files) */}
+              {attachedFiles.length > 0 && (
+                <div className="px-3 sm:px-4 pt-2 pb-1">
+                  <div className="max-w-3xl xl:max-w-4xl mx-auto flex items-center gap-2 overflow-x-auto py-1 scrollbar-none">
+                    {attachedFiles.map((item) => (
+                      <div 
+                        key={item.id} 
+                        className="relative group shrink-0 flex items-center gap-2 bg-muted/80 backdrop-blur-xs border border-border/50 rounded-xl p-1.5 pr-2.5 max-w-[180px]"
+                      >
+                        {item.isImage && item.preview ? (
+                          <img src={item.preview} alt={item.name} className="w-10 h-10 object-cover rounded-lg shrink-0" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary shrink-0">
+                            FILE
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium truncate">{item.name}</p>
+                          <p className="text-[10px] text-muted-foreground">{(item.size / 1024).toFixed(0)} KB</p>
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => removeAttachedFile(item.id)}
+                          className="w-5 h-5 rounded-full bg-background/80 hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center transition-colors text-muted-foreground shrink-0 cursor-pointer"
+                          aria-label="Remove attachment"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => {
-                        setSelectedFile(null);
-                        setFilePreview(null);
-                      }} className="h-7 w-7 p-0 rounded-full">
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    ))}
+                    {attachedFiles.length < 10 && (
+                      <span className="text-[11px] text-muted-foreground shrink-0 pl-1 font-medium">
+                        {attachedFiles.length}/10
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
@@ -1155,7 +1153,8 @@ const Index = () => {
                   <ChatInput 
                     onSendMessage={handleSendMessage} 
                     disabled={isLoading} 
-                    onFileSelect={handleFileSelect} 
+                    onFileSelect={handleFileSelect}
+                    onFilesSelect={handleFilesSelect} 
                     onModeChange={setChatMode} 
                     currentMode={chatMode} 
                     editingMessage={editingMessage} 
@@ -1167,12 +1166,12 @@ const Index = () => {
                 </div>
               </div>
 
-              {/* Scroll To Bottom Button */}
+              {/* Safe Crash-Proof Scroll To Bottom Button */}
               <ScrollToBottom
-  scrollAreaRef={scrollAreaRef}
-  hasNewMessage={hasNewMessage}
-  onScrollToBottom={forceScrollToBottom}
-/>
+                scrollAreaRef={scrollAreaRef}
+                hasNewMessage={hasNewMessage}
+                onScrollToBottom={forceScrollToBottom}
+              />
             </div>
           )}
         </div>
