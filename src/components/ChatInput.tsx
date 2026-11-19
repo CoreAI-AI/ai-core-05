@@ -86,18 +86,16 @@ export const ChatInput = memo(({
   onCancelEdit,
   onTypingChange,
 }: ChatInputProps) => {
-  editingMessage,
-  onCancelEdit,
-  onTypingChange,
-}: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [currentMode, setCurrentMode] = useState<ModeType>("normal");
+
   // Sync active mode if changed from switch card or parent
   useEffect(() => {
     if (propsCurrentMode && propsCurrentMode !== currentMode) {
       setCurrentMode(propsCurrentMode);
     }
   }, [propsCurrentMode]);
+
   // Typewriter Animation States
   const [placeholderText, setPlaceholderText] = useState("");
   const [promptIndex, setPromptIndex] = useState(0);
@@ -123,9 +121,9 @@ export const ChatInput = memo(({
     }
   }, [editingMessage]);
 
-  // Dynamic Typewriter Effect for Placeholder
+  // Smooth Typewriter Loop
   useEffect(() => {
-    if (message.length > 0) return; // Pause typewriter when user is typing
+    if (message.length > 0) return;
 
     const currentPhrase = placeholderPrompts[promptIndex % placeholderPrompts.length];
     let timer: NodeJS.Timeout;
@@ -154,7 +152,7 @@ export const ChatInput = memo(({
     return () => clearTimeout(timer);
   }, [placeholderText, isDeleting, promptIndex, message.length]);
 
-  // Auto-resize textarea height
+  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -164,6 +162,7 @@ export const ChatInput = memo(({
     }
   }, [message]);
 
+  // Notify parent of typing status
   useEffect(() => {
     onTypingChange?.(message.length > 0);
   }, [message, onTypingChange]);
@@ -171,7 +170,7 @@ export const ChatInput = memo(({
   const { isRecording, transcribing, startRecording, stopRecording } = useVoiceRecorder();
 
   const triggerHaptic = () => {
-    if (typeof window !== 'undefined' && 'vibrate' in navigator) {
+    if (typeof window !== "undefined" && "vibrate" in navigator) {
       navigator.vibrate(10);
     }
   };
@@ -210,27 +209,20 @@ export const ChatInput = memo(({
     }
   };
 
-  // Multiple files selection handler (up to 8 images)
+  // Multiple files selection handler (up to 8 images / docs)
   const handleMultipleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawFiles = e.target.files;
     if (!rawFiles || rawFiles.length === 0) return;
+
+    const fileList = Array.from(rawFiles);
+    const validFiles: File[] = [];
+
     for (const file of fileList) {
       try {
         validateFile(file);
         validFiles.push(file);
       } catch (err: any) {
-        toast.error(`${file.name}: ${err.message || 'Invalid file'}`);
-      }
-    }
-    const fileList = Array.from(rawFiles);
-    const validFiles: File[] = [];
-
-    for (const file of fileList) {
-      const validation = validateFile(file);
-      if (!validation.valid) {
-        toast.error(`${file.name}: ${validation.error}`);
-      } else {
-        validFiles.push(file);
+        toast.error(`${file.name}: ${err.message || "Invalid file"}`);
       }
     }
 
@@ -298,8 +290,7 @@ export const ChatInput = memo(({
         className="hidden"
       />
 
-      {/* Tactile Cushion Elastic Scale + Clean Offset Ring */}
-            {/* Smooth Glitch-Free Input Container */}
+      {/* Smooth Glitch-Free Input Container */}
       <div className="relative bg-card/95 dark:bg-[#1A1A18]/95 backdrop-blur-md border border-border/70 dark:border-white/10 rounded-2xl sm:rounded-3xl shadow-sm hover:border-foreground/25 focus-within:border-foreground/35 dark:focus-within:border-white/25 focus-within:shadow-md transition-colors duration-200 p-2 sm:p-2.5">
         
         {/* Top Textarea with Animated Typewriter Placeholder */}
