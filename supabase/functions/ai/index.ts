@@ -196,60 +196,58 @@ ${DOST_RULES}`;
 
     messagesArray.push({ role: "user", content: userParts });
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+       const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
 
-    // IMAGE GENERATION
-    if (wantsImageGeneration && LOVABLE_API_KEY) {
+    // 1. 100% FREE IMAGE GENERATION (Pollinations.ai Flux Engine - ₹0, No Key, No Credits Needed)
+    if (wantsImageGeneration) {
       try {
-        const imageRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${LOVABLE_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            model: "google/gemini-2.5-flash-image",
-            messages: [
-              {
-                role: "user",
-                content: `Generate a high quality visual image prompt based on this: ${message}`
-              }
-            ],
-            modalities: ["image", "text"]
-          }),
+        // Clean trigger words from prompt
+        const cleanPrompt = message
+          .replace(/^(image of|generate an image of|generate image of|create an image of|make an image of|draw|photo of|picture of|ek|ki|ka|banao|image banao|tasveer banao)\s*/i, '')
+          .trim() || message.trim();
+        
+        const seed = Math.floor(Math.random() * 10000000);
+        // High quality Flux model via Pollinations
+        const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
+
+        const textReply = `Here is your generated image of "${cleanPrompt}":`;
+        const out = {
+          content: textReply,
+          images: [{ url: pollinationsUrl, type: "image/png", name: "generated-image.png" }]
+        };
+
+        return new Response(`data: ${JSON.stringify(out)}\n\ndata: [DONE]\n\n`, {
+          headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
         });
-
-        if (imageRes.ok) {
-          const imgData = await imageRes.json();
-          const firstChoice = imgData.choices?.[0];
-          const generatedImg = firstChoice?.message?.images?.[0]?.image_url?.url;
-          const textReply = firstChoice?.message?.content || "";
-
-          if (generatedImg) {
-            const out = {
-              content: textReply,
-              images: [{ url: generatedImg, type: "image/png", name: "generated-image.png" }]
-            };
-            return new Response(`data: ${JSON.stringify(out)}\n\ndata: [DONE]\n\n`, {
-              headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
-            });
-          }
-        }
       } catch (err) {
-        console.error("Image generation error:", err);
+        console.error("Pollinations image generation error:", err);
       }
     }
 
-    // TEXT & VISION CHAT: Prefer Groq for pure text, fallback to Gemini Gateway
+    // 2. TEXT & VISION CHAT: 100% Free via Groq (Llama 3.3 70B & Llama 3.2 Vision)
     let streamResponse: Response | null = null;
 
-    if (GROQ_API_KEY && allInputImages.length === 0 && !fileText) {
+    if (GROQ_API_KEY) {
       try {
-        const groqMessages = messagesArray.map(m => ({
-          role: m.role,
-          content: typeof m.content === 'string' ? m.content : (Array.isArray(m.content) ? m.content[0]?.text || '' : '')
-        }));
+        const isVision = allInputImages.length > 0;
+        const chosenModel = isVision 
+          ? "llama-3.2-11b-vision-preview" 
+          : "llama-3.3-70b-versatile";
+
+        const groqMessages = messagesArray.map(m => {
+          if (Array.isArray(m.content)) {
+            return {
+              role: m.role,
+              content: m.content.map((c: any) => {
+                if (c.type === 'text') return { type: 'text', text: c.text };
+                if (c.type === 'image_url') return { type: 'image_url', image_url: { url: c.image_url.url } };
+                return c;
+              })
+            };
+          }
+          return { role: m.role, content: typeof m.content === 'string' ? m.content : '' };
+        });
 
         streamResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
           method: "POST",
@@ -258,7 +256,7 @@ ${DOST_RULES}`;
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            model: "llama-3.3-70b-versatile",
+            model: chosenModel,
             messages: groqMessages,
             stream: true,
             temperature: 0.7,
@@ -266,7 +264,8 @@ ${DOST_RULES}`;
           }),
         });
 
-        if (!streamResponse.ok) {
+        // Backup 1: If 70B is busy, fallback to instant 8B model (Free)
+        if (!streamResponse.ok && !isVision) {
           streamResponse = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -283,40 +282,39 @@ ${DOST_RULES}`;
           });
         }
       } catch (err) {
-        console.warn("Groq fetch error, falling back to Lovable Gateway:", err);
+        console.warn("Groq fetch error:", err);
         streamResponse = null;
       }
     }
 
-    // Fallback or Vision routing (Gemini 2.5 Flash)
+    // 3. Optional secondary fallback only if Groq is temporarily unreachable
     if (!streamResponse || !streamResponse.ok) {
-      if (!LOVABLE_API_KEY) {
-        return new Response(JSON.stringify({ error: "No AI service key configured." }), {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+      if (LOVABLE_API_KEY) {
+        try {
+          streamResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${LOVABLE_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "google/gemini-2.5-flash",
+              messages: messagesArray,
+              stream: true,
+            }),
+          });
+        } catch (_) {
+          streamResponse = null;
+        }
       }
+    }
 
-      streamResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: allInputImages.length > 0 ? "google/gemini-2.5-flash" : (model || "google/gemini-2.5-flash"),
-          messages: messagesArray,
-          stream: true,
-        }),
+    if (!streamResponse || !streamResponse.ok) {
+      return new Response(JSON.stringify({ error: "AI service temporarily busy. Please retry." }), {
+        status: 503,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-
-      if (!streamResponse.ok) {
-        const errText = await streamResponse.text();
-        return new Response(JSON.stringify({ error: `AI Gateway error: ${errText}` }), {
-          status: streamResponse.status,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    }
     }
 
     // Pass through SSE stream
