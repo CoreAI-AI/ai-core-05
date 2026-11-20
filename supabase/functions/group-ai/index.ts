@@ -70,12 +70,21 @@ serve(async (req) => {
       });
     }
 
-       const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
     if (!GROQ_API_KEY) {
       return new Response(JSON.stringify({ error: "AI service unavailable" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const messages = [
+      { role: "system", content: "You are CoreAI, a helpful AI assistant in a group chat." },
+      ...conversationHistory.map((h: any) => ({
+        role: h.role === "assistant" ? "assistant" : "user",
+        content: h.content,
+      })),
+      { role: "user", content: message },
+    ];
 
     // Call Groq Llama 3.3
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
@@ -91,27 +100,10 @@ serve(async (req) => {
       }),
     });
 
-    messages.push({ role: "user", content: message });
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages,
-        stream: false,
-      }),
-    });
-
     if (!response.ok) {
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded" }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "Payment required" }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       return new Response(JSON.stringify({ error: "AI error" }), {
