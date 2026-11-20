@@ -1,5 +1,5 @@
 // Local (no-AI) responder for small-talk, greetings, thanks, bye, and
-// tiny utility asks (calculator, word/character count). Saves AI credits.
+// tiny utility asks. Saves AI credits and enforces mode persona.
 
 import { getBrandIdentityReply } from './brandIdentity';
 
@@ -37,27 +37,71 @@ const WEBSITE_LINK = [
   "iss website ka link", "yeh website ka link", "website ka naam",
 ];
 
+const MODE_GREETINGS: Record<string, string[]> = {
+  'recipe': [
+    "Namaste! 🍳 Main CoreAI Cooking Assistant hoon. Aaj aap kya banana chahenge? Koi recipe, diet meal, ya kitchen ke bache ingredients se kuch naya?",
+    "Hello Chef! 🍲 Aaj kya special pakayein? Dish ka naam batayein ya ingredients share karein!"
+  ],
+  'code': [
+    "Hello! 💻 Code Assistant active hai. Aaj kis language, bug ya project pe kaam karna hai? Code debugging, logic ya architecture?",
+    "Hey Dev! 🚀 Kaunsa code likhna ya debug karna hai? Language aur requirement batayein."
+  ],
+  'study': [
+    "Hello! 📚 Study Notes Assistant ready hai. Aaj kaunsa subject ya chapter padhna hai? Quick revision notes banayein ya concepts samjhein?",
+    "Namaste! 📖 Kaunsa topic prepare karna hai? Main simplified notes aur summaries bana sakta hoon."
+  ],
+  'homework': [
+    "Hello! 📝 Homework Helper mode active hai. Kaunsa question ya assignment solve karna hai? Sawal type karein ya photo bhejein!",
+    "Hey! ✍️ Homework mein kya dikkat aa rahi hai? Question share karein, step-by-step solve karte hain."
+  ],
+  'photo': [
+    "Hello! 🎨 Image Studio ready hai. Aap kis cheez ki 4K photo, digital art ya poster generate karna chahte hain? Apna prompt likhein!",
+    "Namaste! 🖼️ Kaisi image banani hai? Subject, style aur lighting describe karein!"
+  ],
+  'deep-search': [
+    "Hello! 🔍 Deep Search mode active hai. Kis topic pe aapko in-depth analysis, structured sections aur research report chahiye?",
+    "Hey! 🌐 Kis subject par deep analytical research karni hai? Topic batayein."
+  ],
+  'creative': [
+    "Hello! ✍️ Creative Writing Studio ready hai. Aaj kya likhna chahenge — story, kavita, script, ya essay?",
+    "Namaste! 🎭 Kis theme par creative writeup chahiye? Apna concept batayein."
+  ],
+  'analyze': [
+    "Hello! 📊 Analyzer active hai. Kaunsa text, data ya document breakdown aur summarize karna hai?",
+    "Hey! 📈 Kis content ka key insights aur critical summary banana hai?"
+  ],
+  'rich': [
+    "Hello! 💼 Executive Strategy & Wealth Advisory active hai. Market analysis, business scaling ya high-level consultation?",
+    "Welcome! 💎 Luxury markets, high-tier business decisions ya portfolio strategy mein kya discuss karna hai?"
+  ],
+  'poor': [
+    "Namaste! 🪙 Smart Budget & Savings Advisor active hai. Expense cut, daily savings ya affordable alternatives mein kya madad karoon?",
+    "Hello! 💡 Paise bachane ka smart tareeqa ya pocket-friendly options dhoondhein?"
+  ],
+  'normal': [
+    "Namaste! 👋 Kaise madad kar sakta hoon aaj?",
+    "Hey! 😊 Kya jaanna chahenge?",
+    "Hello! Batao, kis topic pe baat karni hai?"
+  ]
+};
+
 function pick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
 /**
- * Returns a canned reply for trivial messages so we skip the AI call.
- * Returns null when the message needs the real model.
+ * Returns a canned reply for trivial messages based on mode so we skip the AI call.
  */
-export function tryLocalReply(raw: string): string | null {
+export function tryLocalReply(raw: string, mode: string = 'normal'): string | null {
   if (!raw) return null;
   const identity = getBrandIdentityReply(raw);
   if (identity) return identity;
   const msg = norm(raw);
-  if (msg.length === 0 || msg.length > 60) return null;
+  if (msg.length === 0 || msg.length > 80) return null;
 
   if (GREETINGS.includes(msg)) {
-    return pick([
-      "Namaste! 👋 Kaise madad kar sakta hoon aaj?",
-      "Hey! 😊 Kya jaanna chahenge?",
-      "Hello! Batao, kis topic pe baat karni hai?",
-    ]);
+    const list = MODE_GREETINGS[mode] || MODE_GREETINGS['normal'];
+    return pick(list);
   }
   if (THANKS.some((t) => msg === t || msg.startsWith(t + " "))) {
     return pick([
@@ -98,7 +142,6 @@ export function tryLocalReply(raw: string): string | null {
   return null;
 }
 
-// Detect if user wants to buy/upgrade to premium subscription
 const SUB_PATTERNS: RegExp[] = [
   /\b(buy|purchase|get|want|need|take|lena|lunga|loonga|chahiye|chahta|khareed|kharid)\b.*\b(subscription|premium|plan|pro|paid|upgrade|membership)\b/i,
   /\b(subscription|premium|plan|pro|paid|upgrade|membership)\b.*\b(buy|purchase|lena|lunga|loonga|chahiye|chahta|khareed|kharid|price|cost|kitna|kitne|how much)\b/i,
@@ -122,4 +165,3 @@ export function detectSubscriptionIntent(input: string): boolean {
   if (!t || t.length > 200) return false;
   return SUB_PATTERNS.some((r) => r.test(t));
 }
-
