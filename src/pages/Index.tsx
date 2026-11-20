@@ -707,15 +707,16 @@ const Index = () => {
         })
       });
       if (!response.ok) {
-                if (response.status === 402) {
+                  if (response.status === 402) {
           const isImg = currentActiveMode === 'photo' || /image|photo|tasveer|picture|draw|banao/i.test(content);
           if (isImg) {
-            const cleanPrompt = content.replace(/^(image of|generate an image of|generate image of|create an image of|make an image of|draw|photo of|picture of|ek|ki|ka|banao|image banao|tasveer banao)\s*/i, '').trim() || content.trim();
+            const rawPrompt = content.replace(/^(image of|generate an image of|generate image of|create an image of|make an image of|draw|photo of|picture of|ek|ki|ka|banao|image banao|tasveer banao)\s*/i, '').trim() || content.trim();
+            const enhancedPrompt = `${rawPrompt}, highly detailed, 8k resolution, ultra-realistic, photorealistic, cinematic lighting, shallow depth of field, sharp focus, masterpiece, professional photography, clean composition, no watermark, no text, no logo`;
             const seed = Math.floor(Math.random() * 10000000);
-            const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
+            const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&model=flux-realism&nologo=true&enhance=true&seed=${seed}`;
             await updateMessage(
               aiMessage.id,
-              `Here is your generated image of "${cleanPrompt}":`,
+              `Here is your generated image of "${rawPrompt}":`,
               [{ url: pollinationsUrl, type: 'image/png', name: 'generated-image.png' }]
             );
           } else {
@@ -726,6 +727,7 @@ const Index = () => {
           setIsGeneratingImage(false);
           return;
         }
+        
         if (response.status === 429) {
           toast.error("Too many requests. Please wait a moment.");
           await updateMessage(aiMessage.id, "⏳ Rate limit reached. Please wait a moment.");
