@@ -596,24 +596,30 @@ const Index = () => {
       }
     }
 
-    // Direct ₹0 Flux 4K Image Generation (Pollinations.ai - Never fails, No credits needed)
+       // ChatGPT-Style 8K Ultra-Realistic Image Generation (₹0, No Watermark, Flux-Realism Engine)
     const isImageRequest = currentActiveMode === 'photo' || /image|photo|tasveer|picture|draw|banao/i.test(content);
     if (isImageRequest && attachedFiles.length === 0) {
       setIsLoading(true);
       setIsAITyping(false);
       setIsGeneratingImage(true);
-      const cleanPrompt = content
+
+      const rawPrompt = content
         .replace(/^(image of|generate an image of|generate image of|create an image of|make an image of|draw|photo of|picture of|ek|ki|ka|banao|image banao|tasveer banao)\s*/i, '')
         .trim() || content.trim();
+
+      // ChatGPT-style Auto-Prompt Expansion: Makes simple prompts look like 8K Masterpieces
+      const enhancedPrompt = `${rawPrompt}, highly detailed, 8k resolution, ultra-realistic, photorealistic, cinematic lighting, shallow depth of field, sharp focus, masterpiece, professional photography, clean composition, no watermark, no text, no logo`;
+
       const seed = Math.floor(Math.random() * 10000000);
-      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
-      
+      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(enhancedPrompt)}?width=1024&height=1024&model=flux-realism&nologo=true&enhance=true&seed=${seed}`;
+
       await addMessage(
         chatToUse.id,
-        `Here is your generated image of "${cleanPrompt}":`,
+        `Here is your generated image of "${rawPrompt}":`,
         false,
         [{ url: pollinationsUrl, type: 'image/png', name: 'generated-image.png' }]
       );
+
       setIsLoading(false);
       setIsGeneratingImage(false);
       recordUsage(currentActiveMode);
