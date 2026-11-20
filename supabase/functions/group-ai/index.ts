@@ -90,7 +90,6 @@ serve(async (req) => {
         stream: false,
       }),
     });
-    }
 
     messages.push({ role: "user", content: message });
 
