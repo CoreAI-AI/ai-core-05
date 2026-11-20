@@ -315,7 +315,6 @@ ${DOST_RULES}`;
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    }
 
     // Pass through SSE stream
     const reader = streamResponse.body?.getReader();
