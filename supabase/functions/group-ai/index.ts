@@ -70,28 +70,26 @@ serve(async (req) => {
       });
     }
 
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) {
+       const GROQ_API_KEY = Deno.env.get("GROQ_API_KEY");
+    if (!GROQ_API_KEY) {
       return new Response(JSON.stringify({ error: "AI service unavailable" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const messages: any[] = [
-      {
-        role: "system",
-        content: "You are CoreAI, an intelligent and helpful AI assistant participating in a group chat. Be conversational, friendly, and helpful. Keep responses concise but informative. Respond in the same language the user writes in.",
+    // Call Groq Llama 3.3
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { 
+        Authorization: `Bearer ${GROQ_API_KEY}`, 
+        "Content-Type": "application/json" 
       },
-    ];
-
-    const recent = Array.isArray(conversationHistory) ? conversationHistory.slice(-10) : [];
-    for (const msg of recent) {
-      if (msg && typeof msg.content === 'string') {
-        messages.push({
-          role: msg.isAI ? "assistant" : "user",
-          content: msg.content.slice(0, 5000),
-        });
-      }
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        messages,
+        stream: false,
+      }),
+    });
     }
 
     messages.push({ role: "user", content: message });
