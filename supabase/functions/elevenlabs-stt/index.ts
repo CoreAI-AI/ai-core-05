@@ -24,7 +24,7 @@ Deno.serve(async (req) => {
 
     const inFormData = await req.formData();
     const audio = inFormData.get("audio");
-    if (!(audio instanceof File) && !(audio instanceof Blob)) {
+    if (!audio || typeof audio === "string") {
       return new Response(
         JSON.stringify({ error: "Missing audio file" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     const data = await resp.json();
     return new Response(
       JSON.stringify({ text: data.text ?? "", raw: data }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" },
     );
   } catch (e) {
     console.error("STT exception", e);
