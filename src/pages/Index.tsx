@@ -588,12 +588,37 @@ const Index = () => {
       return;
     }
 
-    if (attachedFiles.length === 0 && currentActiveMode === 'normal') {
-      const local = tryLocalReply(content);
+          if (attachedFiles.length === 0) {
+      const local = tryLocalReply(content, currentActiveMode);
       if (local) {
         await addMessage(chatToUse.id, local, false);
         return;
       }
+    }
+
+    // Direct ₹0 Flux 4K Image Generation (Pollinations.ai - Never fails, No credits needed)
+    const isImageRequest = currentActiveMode === 'photo' || /image|photo|tasveer|picture|draw|banao/i.test(content);
+    if (isImageRequest && attachedFiles.length === 0) {
+      setIsLoading(true);
+      setIsAITyping(false);
+      setIsGeneratingImage(true);
+      const cleanPrompt = content
+        .replace(/^(image of|generate an image of|generate image of|create an image of|make an image of|draw|photo of|picture of|ek|ki|ka|banao|image banao|tasveer banao)\s*/i, '')
+        .trim() || content.trim();
+      const seed = Math.floor(Math.random() * 10000000);
+      const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
+      
+      await addMessage(
+        chatToUse.id,
+        `Here is your generated image of "${cleanPrompt}":`,
+        false,
+        [{ url: pollinationsUrl, type: 'image/png', name: 'generated-image.png' }]
+      );
+      setIsLoading(false);
+      setIsGeneratingImage(false);
+      recordUsage(currentActiveMode);
+      usageLimits.recordSend(currentActiveMode);
+      return;
     }
 
     if (attachedFiles.length === 0 && isCacheable(content, currentActiveMode)) {
@@ -676,9 +701,20 @@ const Index = () => {
         })
       });
       if (!response.ok) {
-        if (response.status === 402) {
-          toast.error("AI credits exhausted.");
-          await updateMessage(aiMessage.id, "⚠️ AI credits are currently exhausted. Responses will resume shortly.");
+                if (response.status === 402) {
+          const isImg = currentActiveMode === 'photo' || /image|photo|tasveer|picture|draw|banao/i.test(content);
+          if (isImg) {
+            const cleanPrompt = content.replace(/^(image of|generate an image of|generate image of|create an image of|make an image of|draw|photo of|picture of|ek|ki|ka|banao|image banao|tasveer banao)\s*/i, '').trim() || content.trim();
+            const seed = Math.floor(Math.random() * 10000000);
+            const pollinationsUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=1024&height=1024&model=flux&nologo=true&seed=${seed}`;
+            await updateMessage(
+              aiMessage.id,
+              `Here is your generated image of "${cleanPrompt}":`,
+              [{ url: pollinationsUrl, type: 'image/png', name: 'generated-image.png' }]
+            );
+          } else {
+            await updateMessage(aiMessage.id, "AI service temporarily busy. Please retry in a moment.");
+          }
           setIsLoading(false);
           setIsAITyping(false);
           setIsGeneratingImage(false);
