@@ -121,23 +121,23 @@ serve(async (req) => {
         noteTitle = `Analysis: ${fileName}`;
     }
 
-    // Call Lovable AI
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      // Call Groq (100% Free with 128k context window)
+    const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
+    const aiResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${GROQ_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: 'You are a helpful assistant that summarizes and analyzes documents.' },
           { role: 'user', content: prompt }
         ],
       }),
     });
-
+    
     if (!aiResponse.ok) {
       throw new Error('AI request failed');
     }
