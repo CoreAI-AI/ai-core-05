@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
     const data = await resp.json();
     return new Response(
       JSON.stringify({ text: data.text ?? "", raw: data }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" },
+      { headers: { ...corsHeaders, "Content-Type": "application/json" }}
     );
   } catch (e) {
     console.error("STT exception", e);
