@@ -1,51 +1,52 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { ArrowLeft, Search, Sparkles, Wand2, X, Square, Smartphone, Monitor } from "lucide-react";
+import { ArrowLeft, Search, Sparkles, Wand2, X, Square, Smartphone, Monitor, Download, Share2, Trash2, RefreshCw, FolderHeart, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import StyleCard from "@/components/StyleCard";
 import ImageUploadModal from "@/components/ImageUploadModal";
+import { toast } from "sonner";
+import { 
+  CREATIVE_STUDIO_STYLES, 
+  CREATIVE_STUDIO_CATEGORIES, 
+  buildStylePrompt, 
+  getMyCreations, 
+  saveMyCreation, 
+  deleteMyCreation, 
+  type StyleItem, 
+  type CreationItem 
+} from "@/lib/creativeStudioStyles";
 import { 
   getActiveFestival, 
   getTrendingStyles, 
-  updateTrendScores,
-  type Festival,
-  type TrendingStyle
+  updateTrendScores, 
+  type Festival, 
+  type TrendingStyle 
 } from "@/lib/festivalDetection";
 
-// High-Definition Curated Aesthetic Styles for CoreAI
-const allStylesList = [
-  { name: "Photorealistic 8K", category: "Cinematic", image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500&h=650&fit=crop", prompt: "Hyper-realistic 8K studio portrait, Rembrandt lighting, ultra-detailed skin textures" },
-  { name: "Ghibli Dreamscape", category: "Anime & 3D", image: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=500&h=650&fit=crop", prompt: "Studio Ghibli style anime scene with watercolor cloudscapes, vibrant lush hills" },
-  { name: "3D Pixar Character", category: "Anime & 3D", image: "https://images.unsplash.com/photo-1566577739112-5180d4bf9390?w=500&h=650&fit=crop", prompt: "3D Pixar animated hero character, cinematic sub-surface scattering lighting" },
-  { name: "Cyberpunk 2099", category: "Cinematic", image: "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=500&h=650&fit=crop", prompt: "Cyberpunk neon city street in rain, holographic signs, moody teal and magenta glow" },
-  { name: "Royal Rajputi Heritage", category: "Indian & Heritage", image: "https://images.unsplash.com/photo-1582562124811-c09040d0a901?w=500&h=650&fit=crop", prompt: "Majestic Indian royal palace courtyard, regal golden embroidery, historic grandeur" },
-  { name: "Classical Oil Painting", category: "Artistic", image: "https://images.unsplash.com/photo-1579762715118-a6f1d4b934f1?w=500&h=650&fit=crop", prompt: "Renaissance oil painting masterwork with deep chiaroscuro and rich textures" },
-  { name: "Bollywood Blockbuster", category: "Cinematic", image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=500&h=650&fit=crop", prompt: "Grand Bollywood movie cinematic poster with dramatic backlighting and smoke" },
-  { name: "Anime Neon Portrait", category: "Anime & 3D", image: "https://images.unsplash.com/photo-1578632767115-351597cf2477?w=500&h=650&fit=crop", prompt: "Crisp modern Makoto Shinkai aesthetic anime portrait with dynamic lens flare" },
-  { name: "Jaipur Block-Print", category: "Indian & Heritage", image: "https://images.unsplash.com/photo-1558171813-4c088753af8f?w=500&h=650&fit=crop", prompt: "Intricate Rajasthani floral block-print pattern with natural indigo and saffron dyes" },
-  { name: "Vintage 70s Polaroid", category: "Cinematic", image: "https://images.unsplash.com/photo-1533158326339-7f3cf2404354?w=500&h=650&fit=crop", prompt: "Nostalgic 1970s Polaroid film grain, warm nostalgic tones, authentic light leak" },
-  { name: "Soft Watercolor Wash", category: "Artistic", image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=500&h=650&fit=crop", prompt: "Dreamy botanical watercolor painting with soft pastel splashes on cold-press paper" },
-  { name: "Vogue Fashion Editorial", category: "Cinematic", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=500&h=650&fit=crop", prompt: "High fashion editorial magazine cover portrait, bold high-contrast avant-garde style" },
-  { name: "Madhubani Folk Art", category: "Indian & Heritage", image: "https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=500&h=650&fit=crop", prompt: "Traditional Mithila Madhubani line art with sacred peacock and lotus motifs" },
-  { name: "Fine Graphite Sketch", category: "Artistic", image: "https://images.unsplash.com/photo-1544717305-2782549b5136?w=500&h=650&fit=crop", prompt: "Detailed charcoal and graphite pencil sketch with realistic cross-hatching" },
-  { name: "Cozy Golden Hour Glow", category: "Festive", image: "https://images.unsplash.com/photo-1512389142860-9c449e58a814?w=500&h=650&fit=crop", prompt: "Warm magical festival lights bokeh, cozy golden atmosphere and sparkling reflections" },
-  { name: "Minimalist Vector Flat", category: "Artistic", image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=500&h=650&fit=crop", prompt: "Modern sleek vector illustration with bold shapes, smooth gradients, and clean lines" }
-];
 
-const CATEGORIES = ["All", "Trending", "Indian & Heritage", "Cinematic", "Anime & 3D", "Artistic", "Festive"];
+// 200 Styles across 11 Categories powered by Creative Studio Engine
+const allStylesList = CREATIVE_STUDIO_STYLES;
+const CATEGORIES = CREATIVE_STUDIO_CATEGORIES;
 
 const ImagesSection = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedStyle, setSelectedStyle] = useState<{ name: string; image: string; prompt?: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<"explore" | "creations">("explore");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedStyle, setSelectedStyle] = useState<StyleItem | null>(null);
   const [activeFestival, setActiveFestival] = useState<Festival | null>(null);
   const [composerPrompt, setComposerPrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState<"1:1" | "16:9" | "9:16">("1:1");
   const composerInputRef = useRef<HTMLInputElement>(null);
   const [trendingStyles, setTrendingStyles] = useState<TrendingStyle[]>([]);
+  const [creations, setCreations] = useState<CreationItem[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    setCreations(getMyCreations());
+  }, []);
 
   useEffect(() => {
     setActiveFestival(getActiveFestival());
@@ -78,23 +79,75 @@ const ImagesSection = () => {
     return list;
   }, [selectedCategory, searchQuery, trendingStyles]);
 
-  const handleOpenStyle = (style: { name: string; image: string; prompt?: string }) => {
+   const handleOpenStyle = (style: StyleItem) => {
     setSelectedStyle(style);
     if (!composerPrompt.trim()) {
       setComposerPrompt(style.prompt || "");
     }
-    setModalOpen(true);
-  };
-
-  const handleSelectStyleToComposer = (style: { name: string; image: string; prompt?: string }) => {
-    setSelectedStyle(style);
-    setComposerPrompt(style.prompt || "");
     composerInputRef.current?.focus();
   };
 
-  const handleCreateFromComposer = () => {
-    if (!composerPrompt.trim() && !selectedStyle) return;
-    setModalOpen(true);
+  const handleDirectGenerate = async () => {
+    const finalPrompt = buildStylePrompt(selectedStyle || undefined, composerPrompt, aspectRatio);
+    setIsGenerating(true);
+    toast.loading("Generating in " + (selectedStyle?.name || "Creative") + " style...", { id: "gen-toast" });
+
+    try {
+      const encoded = encodeURIComponent(finalPrompt);
+      const seed = Math.floor(Math.random() * 999999);
+      const generatedUrl = `https://image.pollinations.ai/prompt/${encoded}?model=flux-realism&seed=${seed}&nologo=true&enhance=true`;
+
+      // Pre-load image to verify
+      const img = new Image();
+      img.src = generatedUrl;
+      await new Promise((resolve) => {
+        img.onload = resolve;
+        img.onerror = resolve;
+      });
+
+      // Save to My Creations
+      const saved = saveMyCreation({
+        prompt: composerPrompt.trim() || selectedStyle?.name || "Creative Artwork",
+        styleName: selectedStyle?.name || "Photorealistic 8K",
+        imageUrl: generatedUrl,
+        aspectRatio: aspectRatio
+      });
+
+      setCreations(getMyCreations());
+      setActiveTab("creations");
+      toast.success("Created successfully! Saved to My Creations", { id: "gen-toast" });
+    } catch (e) {
+      toast.error("Generation error, please try again", { id: "gen-toast" });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDeleteCreation = (id: string) => {
+    deleteMyCreation(id);
+    setCreations(getMyCreations());
+    toast.success("Creation removed");
+  };
+
+  const handleDownloadImage = (url: string, name: string) => {
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `coreai-${name.toLowerCase().replace(/\\s+/g, "-")}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Image downloading...");
+  };
+
+  const handleShareImage = async (url: string, title: string) => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `CoreAI Creation: ${title}`, url });
+      } catch {}
+    } else {
+      navigator.clipboard.writeText(url);
+      toast.success("Image link copied to clipboard!");
+    }
   };
 
   return (
@@ -111,11 +164,34 @@ const ImagesSection = () => {
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
-            <div>
-              <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground">
+                      <div className="flex items-center gap-2">
+              <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground hidden sm:block">
                 Image Styles
               </h1>
+              <div className="flex items-center gap-1 bg-muted/50 p-0.5 rounded-full border border-border/50">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("explore")}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                    activeTab === "explore" ? "bg-foreground text-background shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Compass className="w-3.5 h-3.5" />
+                  <span>Explore (200)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("creations")}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                    activeTab === "creations" ? "bg-foreground text-background shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <FolderHeart className="w-3.5 h-3.5" />
+                  <span>My Creations ({creations.length})</span>
+                </button>
+              </div>
             </div>
+
           </div>
 
           {/* Quick Search Input */}
@@ -226,14 +302,16 @@ const ImagesSection = () => {
                 }
                 className="w-full h-12 sm:h-14 pl-4 pr-24 sm:pr-28 text-sm sm:text-base rounded-xl sm:rounded-2xl bg-background/90 border border-border/70 text-foreground placeholder:text-muted-foreground/70 focus:outline-hidden focus:ring-2 focus:ring-primary/40 transition-all shadow-inner"
               />
-              <Button
+                          <Button
                 type="button"
-                onClick={handleCreateFromComposer}
-                className="absolute right-1.5 sm:right-2 h-9 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-foreground text-background hover:opacity-90 font-medium text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-sm"
+                disabled={isGenerating}
+                onClick={handleDirectGenerate}
+                className="absolute right-1.5 sm:right-2 h-9 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-foreground text-background hover:opacity-90 font-medium text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-60"
               >
-                <Wand2 className="w-3.5 h-3.5" />
-                <span>Create</span>
+                {isGenerating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                <span>{isGenerating ? "Creating..." : "Create"}</span>
               </Button>
+
             </div>
           </div>
         </section>
@@ -276,34 +354,105 @@ const ImagesSection = () => {
             </Button>
           </div>
         )}
-
-        {/* Grid of Styles */}
-        <section className="space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-              {selectedCategory} ({filteredStyles.length})
-            </p>
-          </div>
-
-          {filteredStyles.length === 0 ? (
-            <div className="py-16 text-center text-muted-foreground text-sm">
-              No styles found matching "{searchQuery}"
+        
+        {/* Conditional View: My Creations vs 200 Styles Grid */}
+        {activeTab === "creations" ? (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+                <FolderHeart className="w-4 h-4 text-primary" />
+                My Creations ({creations.length})
+              </h2>
             </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-              {filteredStyles.map((style) => (
-                <StyleCard
-                  key={style.name}
-                  name={style.name}
-                  imageUrl={style.image}
-                  prompt={style.prompt}
-                  tag={style.category}
-                  onClick={() => handleOpenStyle(style)}
-                />
-              ))}
+
+            {creations.length === 0 ? (
+              <div className="py-16 text-center text-muted-foreground text-sm border border-dashed border-border/60 rounded-2xl p-6">
+                <FolderHeart className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
+                <p className="font-medium text-foreground">No creations yet</p>
+                <p className="text-xs text-muted-foreground mt-1">Pick any style from Explore tab and press Create!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                {creations.map((c) => (
+                  <div key={c.id} className="group relative aspect-square rounded-2xl overflow-hidden border border-border/50 bg-muted/30">
+                    <img src={c.imageUrl} alt={c.prompt} className="h-full w-full object-cover transition-transform group-hover:scale-105 duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2.5 flex flex-col justify-between">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteCreation(c.id);
+                          }}
+                          className="p-1.5 rounded-full bg-black/60 text-white hover:text-destructive backdrop-blur-md transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold text-white truncate">{c.styleName}</p>
+                        <p className="text-[10px] text-white/70 line-clamp-1">{c.prompt}</p>
+                        <div className="flex items-center gap-1.5 mt-2">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDownloadImage(c.imageUrl, c.styleName);
+                            }}
+                            className="flex-1 py-1 rounded-md bg-white text-black text-[11px] font-medium flex items-center justify-center gap-1 hover:bg-white/90 transition-colors"
+                          >
+                            <Download className="w-3 h-3" /> Download
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleShareImage(c.imageUrl, c.styleName);
+                            }}
+                            className="p-1 rounded-md bg-white/20 text-white backdrop-blur-md hover:bg-white/30 transition-colors"
+                            title="Share"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        ) : (
+          /* Grid of 200 Styles */
+          <section className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                {selectedCategory} ({filteredStyles.length})
+              </p>
             </div>
-          )}
-        </section>
+
+            {filteredStyles.length === 0 ? (
+              <div className="py-16 text-center text-muted-foreground text-sm">
+                No styles found matching "{searchQuery}"
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+                {filteredStyles.map((style) => (
+                  <StyleCard
+                    key={style.name}
+                    name={style.name}
+                    imageUrl={style.image}
+                    prompt={style.prompt}
+                    tag={style.category}
+                    onClick={() => handleOpenStyle(style)}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
       </main>
 
             {/* Style Application Modal */}
