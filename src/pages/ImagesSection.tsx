@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
-import { ArrowLeft, Search } from "lucide-react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { ArrowLeft, Search, Sparkles, Wand2, X, Square, Smartphone, Monitor } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
@@ -39,9 +39,12 @@ const ImagesSection = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [modalOpen, setModalOpen] = useState(false);
+   const [modalOpen, setModalOpen] = useState(false);
   const [selectedStyle, setSelectedStyle] = useState<{ name: string; image: string; prompt?: string } | null>(null);
   const [activeFestival, setActiveFestival] = useState<Festival | null>(null);
+  const [composerPrompt, setComposerPrompt] = useState("");
+  const [aspectRatio, setAspectRatio] = useState<"1:1" | "16:9" | "9:16">("1:1");
+  const composerInputRef = useRef<HTMLInputElement>(null);
   const [trendingStyles, setTrendingStyles] = useState<TrendingStyle[]>([]);
 
   useEffect(() => {
@@ -77,6 +80,20 @@ const ImagesSection = () => {
 
   const handleOpenStyle = (style: { name: string; image: string; prompt?: string }) => {
     setSelectedStyle(style);
+    if (!composerPrompt.trim()) {
+      setComposerPrompt(style.prompt || "");
+    }
+    setModalOpen(true);
+  };
+
+  const handleSelectStyleToComposer = (style: { name: string; image: string; prompt?: string }) => {
+    setSelectedStyle(style);
+    setComposerPrompt(style.prompt || "");
+    composerInputRef.current?.focus();
+  };
+
+  const handleCreateFromComposer = () => {
+    if (!composerPrompt.trim() && !selectedStyle) return;
     setModalOpen(true);
   };
 
@@ -134,8 +151,92 @@ const ImagesSection = () => {
         </div>
       </header>
 
-      {/* Main Content with Full Smooth Scroll */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-8 pb-24">
+           {/* Main Content with Full Smooth Scroll */}
+      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-6 pb-24">
+        
+        {/* ChatGPT Style Floating Prompt & Style Bar */}
+        <section className="relative rounded-2xl sm:rounded-3xl border border-border/50 bg-gradient-to-b from-muted/30 to-card/60 p-4 sm:p-6 backdrop-blur-xl shadow-sm">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+                  <Sparkles className="w-3 h-3" /> CoreAI Images
+                </span>
+                {selectedStyle && (
+                  <span className="flex items-center gap-1 text-[11px] font-medium bg-muted text-foreground px-2.5 py-0.5 rounded-full border border-border/60">
+                    {selectedStyle.name}
+                    <button onClick={() => setSelectedStyle(null)} className="hover:text-destructive">
+                      <X className="w-3 h-3 ml-1" />
+                    </button>
+                  </span>
+                )}
+              </div>
+
+              {/* Aspect Ratio Selector Pills (ChatGPT Style) */}
+              <div className="flex items-center gap-1 bg-background/80 border border-border/60 p-0.5 rounded-full">
+                <button
+                  type="button"
+                  onClick={() => setAspectRatio("1:1")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                    aspectRatio === "1:1" ? "bg-foreground text-background shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Square 1:1"
+                >
+                  <Square className="w-3 h-3" /> 1:1
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAspectRatio("16:9")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                    aspectRatio === "16:9" ? "bg-foreground text-background shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Landscape 16:9"
+                >
+                  <Monitor className="w-3 h-3" /> 16:9
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAspectRatio("9:16")}
+                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
+                    aspectRatio === "9:16" ? "bg-foreground text-background shadow-xs" : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Portrait 9:16"
+                >
+                  <Smartphone className="w-3 h-3" /> 9:16
+                </button>
+              </div>
+            </div>
+
+            {/* Prompt Composer Input */}
+            <div className="relative flex items-center">
+              <input
+                ref={composerInputRef}
+                value={composerPrompt}
+                onChange={(e) => setComposerPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleCreateFromComposer();
+                  }
+                }}
+                placeholder={
+                  selectedStyle 
+                    ? `Describe in ${selectedStyle.name} style... (or press Create)` 
+                    : "Describe any image to create, or pick a style below..."
+                }
+                className="w-full h-12 sm:h-14 pl-4 pr-24 sm:pr-28 text-sm sm:text-base rounded-xl sm:rounded-2xl bg-background/90 border border-border/70 text-foreground placeholder:text-muted-foreground/70 focus:outline-hidden focus:ring-2 focus:ring-primary/40 transition-all shadow-inner"
+              />
+              <Button
+                type="button"
+                onClick={handleCreateFromComposer}
+                className="absolute right-1.5 sm:right-2 h-9 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-foreground text-background hover:opacity-90 font-medium text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-sm"
+              >
+                <Wand2 className="w-3.5 h-3.5" />
+                <span>Create</span>
+              </Button>
+            </div>
+          </div>
+        </section>
         
         {/* Subtle Festival Banner if active */}
         {activeFestival && selectedCategory === "All" && !searchQuery && (
@@ -205,14 +306,14 @@ const ImagesSection = () => {
         </section>
       </main>
 
-      {/* Style Application Modal */}
+            {/* Style Application Modal */}
       <ImageUploadModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        styleName={selectedStyle?.name || ""}
+        styleName={selectedStyle?.name || "Photorealistic 8K"}
         styleImage={selectedStyle?.image}
         isCelebrityStyle={selectedStyle?.name === "Celebrity Style"}
-        discoverText={selectedStyle?.prompt}
+        discoverText={composerPrompt.trim() || selectedStyle?.prompt}
       />
     </div>
   );
