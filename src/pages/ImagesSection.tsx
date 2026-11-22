@@ -1,241 +1,184 @@
-import { useState, useEffect, useMemo, useRef } from "react";
-import { ArrowLeft, Search, Sparkles, Wand2, X, Square, Smartphone, Monitor, Download, Share2, Trash2, RefreshCw, FolderHeart, Compass } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { ArrowLeft, Search, Sparkles, Wand2, X, Square, Smartphone, Monitor, Download, Share2, Trash2, RefreshCw, FolderHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
-import StyleCard from "@/components/StyleCard";
-import ImageUploadModal from "@/components/ImageUploadModal";
 import { toast } from "sonner";
-import { 
-  CREATIVE_STUDIO_STYLES, 
-  CREATIVE_STUDIO_CATEGORIES, 
-  buildStylePrompt, 
-  getMyCreations, 
-  saveMyCreation, 
-  deleteMyCreation, 
-  type StyleItem, 
-  type CreationItem 
-} from "@/lib/creativeStudioStyles";
-import { 
-  getActiveFestival, 
-  getTrendingStyles, 
-  updateTrendScores, 
-  type Festival, 
-  type TrendingStyle 
-} from "@/lib/festivalDetection";
-
-
-// 200 Styles across 11 Categories powered by Creative Studio Engine
-const allStylesList = CREATIVE_STUDIO_STYLES;
-const CATEGORIES = CREATIVE_STUDIO_CATEGORIES;
+import { TRENDING_PHOTO_STYLES, TEMPLATE_STYLES, type ImageStyleItem } from "@/lib/trendingStylesData";
+import { getMyCreations, saveMyCreation, deleteMyCreation, type CreationItem } from "@/lib/creativeStudioStyles";
 
 const ImagesSection = () => {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<"Trending" | "Templates">("Trending");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
-  const [activeTab, setActiveTab] = useState<"explore" | "creations">("explore");
-  const [modalOpen, setModalOpen] = useState(false);
-  const [selectedStyle, setSelectedStyle] = useState<StyleItem | null>(null);
-  const [activeFestival, setActiveFestival] = useState<Festival | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState<ImageStyleItem | null>(null);
   const [composerPrompt, setComposerPrompt] = useState("");
   const [aspectRatio, setAspectRatio] = useState<"1:1" | "16:9" | "9:16">("1:1");
-  const composerInputRef = useRef<HTMLInputElement>(null);
-  const [trendingStyles, setTrendingStyles] = useState<TrendingStyle[]>([]);
-  const [creations, setCreations] = useState<CreationItem[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [creations, setCreations] = useState<CreationItem[]>([]);
+  const [showCreations, setShowCreations] = useState(false);
+  const composerInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setCreations(getMyCreations());
   }, []);
 
-  useEffect(() => {
-    setActiveFestival(getActiveFestival());
-    setTrendingStyles(getTrendingStyles(6));
+  const activeStyles = activeTab === "Trending" ? TRENDING_PHOTO_STYLES : TEMPLATE_STYLES;
 
-    const interval = setInterval(() => {
-      updateTrendScores();
-      setTrendingStyles(getTrendingStyles(6));
-    }, 30000);
+  const filteredStyles = activeStyles.filter((style) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+    return style.name.toLowerCase().includes(q) || style.prompt.toLowerCase().includes(q);
+  });
 
-    return () => clearInterval(interval);
-  }, []);
-
-  // Filtered styles based on category & search
-  const filteredStyles = useMemo(() => {
-    let list = allStylesList;
-
-    if (selectedCategory === "Trending") {
-      const trendingNames = new Set(trendingStyles.map(t => t.name.toLowerCase()));
-      list = list.filter(s => trendingNames.has(s.name.toLowerCase()) || s.name.includes("Photorealistic") || s.name.includes("Ghibli") || s.name.includes("Cyberpunk"));
-    } else if (selectedCategory !== "All") {
-      list = list.filter(s => s.category === selectedCategory);
-    }
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      list = list.filter(s => s.name.toLowerCase().includes(q) || s.prompt.toLowerCase().includes(q) || s.category.toLowerCase().includes(q));
-    }
-
-    return list;
-  }, [selectedCategory, searchQuery, trendingStyles]);
-
-   const handleOpenStyle = (style: StyleItem) => {
+  const handleSelectStyle = (style: ImageStyleItem) => {
     setSelectedStyle(style);
-    if (!composerPrompt.trim()) {
-      setComposerPrompt(style.prompt || "");
-    }
+    setComposerPrompt(style.prompt);
+    setShowCreations(false);
     composerInputRef.current?.focus();
+    toast.success(`Selected style: ${style.name}`);
   };
 
   const handleDirectGenerate = async () => {
-    const finalPrompt = buildStylePrompt(selectedStyle || undefined, composerPrompt, aspectRatio);
+    const rawPrompt = composerPrompt.trim() || selectedStyle?.prompt || "Cinematic masterpiece portrait";
+    const stylePrefix = selectedStyle ? `${selectedStyle.name} style: ` : "";
+    const finalPrompt = selectedStyle 
+      ? selectedStyle.template.replace("{prompt}", rawPrompt)
+      : `${stylePrefix}${rawPrompt}, ultra-detailed, photorealistic, 8k resolution, masterpiece`;
+
     setIsGenerating(true);
-    toast.loading("Generating in " + (selectedStyle?.name || "Creative") + " style...", { id: "gen-toast" });
+
+    const dims = aspectRatio === "16:9" 
+      ? { w: 1280, h: 720 } 
+      : aspectRatio === "9:16" 
+      ? { w: 720, h: 1280 } 
+      : { w: 1024, h: 1024 };
+
+    const encodedPrompt = encodeURIComponent(finalPrompt);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${dims.w}&height=${dims.h}&model=flux-realism&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
 
     try {
-      const encoded = encodeURIComponent(finalPrompt);
-      const seed = Math.floor(Math.random() * 999999);
-      const generatedUrl = `https://image.pollinations.ai/prompt/${encoded}?model=flux-realism&seed=${seed}&nologo=true&enhance=true`;
-
-      // Pre-load image to verify
-      const img = new Image();
-      img.src = generatedUrl;
-      await new Promise((resolve) => {
-        img.onload = resolve;
-        img.onerror = resolve;
+      await new Promise<void>((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+        img.src = imageUrl;
+        setTimeout(() => resolve(), 3500);
       });
 
-      // Save to My Creations
-      const saved = saveMyCreation({
-        prompt: composerPrompt.trim() || selectedStyle?.name || "Creative Artwork",
-        styleName: selectedStyle?.name || "Photorealistic 8K",
-        imageUrl: generatedUrl,
-        aspectRatio: aspectRatio
+      saveMyCreation({
+        prompt: rawPrompt,
+        styleName: selectedStyle?.name || "Custom Style",
+        imageUrl,
+        aspectRatio
       });
 
       setCreations(getMyCreations());
-      setActiveTab("creations");
-      toast.success("Created successfully! Saved to My Creations", { id: "gen-toast" });
-    } catch (e) {
-      toast.error("Generation error, please try again", { id: "gen-toast" });
+      setShowCreations(true);
+      toast.success("Image generated successfully!");
+    } catch {
+      toast.error("Failed to generate image. Please try again.");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleDownloadImage = async (url: string, styleName: string) => {
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `CoreAI-${styleName.replace(/\s+/g, "_")}-${Date.now()}.jpg`;
+      a.click();
+      toast.success("Downloaded!");
+    } catch {
+      window.open(url, "_blank");
     }
   };
 
   const handleDeleteCreation = (id: string) => {
     deleteMyCreation(id);
     setCreations(getMyCreations());
-    toast.success("Creation removed");
-  };
-
-  const handleDownloadImage = (url: string, name: string) => {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `coreai-${name.toLowerCase().replace(/\\s+/g, "-")}.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success("Image downloading...");
-  };
-
-  const handleShareImage = async (url: string, title: string) => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: `CoreAI Creation: ${title}`, url });
-      } catch {}
-    } else {
-      navigator.clipboard.writeText(url);
-      toast.success("Image link copied to clipboard!");
-    }
+    toast.info("Creation deleted");
   };
 
   return (
-    <div className="h-[100dvh] overflow-y-auto bg-background text-foreground flex flex-col">
-      {/* Sleek Minimalist Sticky Header */}
-      <header className="sticky top-0 z-30 bg-background/85 backdrop-blur-xl border-b border-border/40 shrink-0">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <div className="flex flex-col min-h-screen bg-background text-foreground transition-colors duration-200">
+      {/* Top Header */}
+      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/50">
+        <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate(-1)}
-              className="h-9 w-9 rounded-full hover:bg-muted/60"
+            <button
+              onClick={() => navigate("/")}
+              className="p-2 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Back to chat"
             >
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-                      <div className="flex items-center gap-2">
-              <h1 className="text-base sm:text-lg font-semibold tracking-tight text-foreground hidden sm:block">
-                Image Styles
-              </h1>
-              <div className="flex items-center gap-1 bg-muted/50 p-0.5 rounded-full border border-border/50">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("explore")}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                    activeTab === "explore" ? "bg-foreground text-background shadow-xs" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Compass className="w-3.5 h-3.5" />
-                  <span>Explore (200)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("creations")}
-                  className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                    activeTab === "creations" ? "bg-foreground text-background shadow-xs" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <FolderHeart className="w-3.5 h-3.5" />
-                  <span>My Creations ({creations.length})</span>
-                </button>
-              </div>
-            </div>
-
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-lg font-semibold tracking-tight text-foreground">
+              Images
+            </h1>
           </div>
 
-          {/* Quick Search Input */}
-          <div className="relative w-40 sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search styles..."
-              className="h-8 pl-8 pr-3 text-xs rounded-full bg-muted/40 border-border/50 focus-visible:ring-1"
-            />
+          <div className="flex items-center gap-2">
+            {/* Search Input */}
+            <div className="relative w-40 sm:w-56">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search styles..."
+                className="w-full h-8 pl-8 pr-3 text-xs rounded-full bg-muted/60 border border-border/40 text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
+              />
+            </div>
+
+            {/* Creations Toggle */}
+            <button
+              onClick={() => setShowCreations(!showCreations)}
+              className={`p-2 rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                showCreations ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+              }`}
+              title="My Creations"
+            >
+              <FolderHeart className="w-4 h-4" />
+              <span className="hidden sm:inline text-xs">{creations.length}</span>
+            </button>
           </div>
         </div>
 
-        {/* Minimal Category Pills */}
-        <div className="max-w-5xl mx-auto px-4 pb-2.5 pt-1 overflow-x-auto no-scrollbar flex items-center gap-1.5">
-          {CATEGORIES.map((cat) => {
-            const isActive = selectedCategory === cat;
+        {/* 2 TABS: Trending & Templates */}
+        <div className="max-w-6xl mx-auto px-4 pb-3 pt-1 flex items-center gap-2">
+          {(["Trending", "Templates"] as const).map((tab) => {
+            const isActive = activeTab === tab && !showCreations;
             return (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`text-xs px-3.5 py-1 rounded-full whitespace-nowrap transition-all duration-150 ${
+                key={tab}
+                onClick={() => {
+                  setActiveTab(tab);
+                  setShowCreations(false);
+                }}
+                className={`text-xs px-4 py-1.5 rounded-full font-medium transition-all duration-150 ${
                   isActive
-                    ? "bg-foreground text-background font-medium shadow-2xs"
-                    : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/70"
+                    ? "bg-foreground text-background shadow-xs"
+                    : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted"
                 }`}
               >
-                {cat}
+                {tab}
               </button>
             );
           })}
         </div>
       </header>
 
-           {/* Main Content with Full Smooth Scroll */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6 space-y-6 pb-24">
-        
-        {/* ChatGPT Style Floating Prompt & Style Bar */}
-        <section className="relative rounded-2xl sm:rounded-3xl border border-border/50 bg-gradient-to-b from-muted/30 to-card/60 p-4 sm:p-6 backdrop-blur-xl shadow-sm">
-          <div className="flex flex-col gap-3">
+      {/* Main Container */}
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-5 space-y-6 pb-28">
+        {/* Floating Prompt Composer */}
+        <section className="relative rounded-2xl border border-border/50 bg-gradient-to-b from-muted/30 to-card/60 p-3.5 sm:p-5 backdrop-blur-xl shadow-xs">
+          <div className="flex flex-col gap-2.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-primary px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20">
+                <span className="flex items-center gap-1 text-[11px] font-semibold tracking-wider text-primary px-2.5 py-0.5 rounded-full bg-primary/10 border border-primary/20">
                   <Sparkles className="w-3 h-3" /> CoreAI Images
                 </span>
                 {selectedStyle && (
@@ -248,42 +191,27 @@ const ImagesSection = () => {
                 )}
               </div>
 
-              {/* Aspect Ratio Selector Pills (ChatGPT Style) */}
+              {/* Aspect Ratio Selector */}
               <div className="flex items-center gap-1 bg-background/80 border border-border/60 p-0.5 rounded-full">
-                <button
-                  type="button"
-                  onClick={() => setAspectRatio("1:1")}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                    aspectRatio === "1:1" ? "bg-foreground text-background shadow-xs" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="Square 1:1"
-                >
-                  <Square className="w-3 h-3" /> 1:1
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAspectRatio("16:9")}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                    aspectRatio === "16:9" ? "bg-foreground text-background shadow-xs" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="Landscape 16:9"
-                >
-                  <Monitor className="w-3 h-3" /> 16:9
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAspectRatio("9:16")}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all ${
-                    aspectRatio === "9:16" ? "bg-foreground text-background shadow-xs" : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title="Portrait 9:16"
-                >
-                  <Smartphone className="w-3 h-3" /> 9:16
-                </button>
+                {(["1:1", "16:9", "9:16"] as const).map((ratio) => (
+                  <button
+                    key={ratio}
+                    type="button"
+                    onClick={() => setAspectRatio(ratio)}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-medium transition-all ${
+                      aspectRatio === ratio ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {ratio === "1:1" && <Square className="w-3 h-3" />}
+                    {ratio === "16:9" && <Monitor className="w-3 h-3" />}
+                    {ratio === "9:16" && <Smartphone className="w-3 h-3" />}
+                    {ratio}
+                  </button>
+                ))}
               </div>
             </div>
 
-            {/* Prompt Composer Input */}
+            {/* Input & Create Button */}
             <div className="relative flex items-center">
               <input
                 ref={composerInputRef}
@@ -292,100 +220,54 @@ const ImagesSection = () => {
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    handleCreateFromComposer();
+                    handleDirectGenerate();
                   }
                 }}
                 placeholder={
                   selectedStyle 
-                    ? `Describe in ${selectedStyle.name} style... (or press Create)` 
-                    : "Describe any image to create, or pick a style below..."
+                    ? `Describe in ${selectedStyle.name} style...` 
+                    : "Describe any image to create, or tap a style below..."
                 }
-                className="w-full h-12 sm:h-14 pl-4 pr-24 sm:pr-28 text-sm sm:text-base rounded-xl sm:rounded-2xl bg-background/90 border border-border/70 text-foreground placeholder:text-muted-foreground/70 focus:outline-hidden focus:ring-2 focus:ring-primary/40 transition-all shadow-inner"
+                className="w-full h-11 sm:h-12 pl-3.5 pr-24 sm:pr-28 text-xs sm:text-sm rounded-xl bg-background border border-border/70 text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-primary shadow-inner"
               />
-                          <Button
+              <Button
                 type="button"
                 disabled={isGenerating}
                 onClick={handleDirectGenerate}
-                className="absolute right-1.5 sm:right-2 h-9 sm:h-10 px-3 sm:px-4 rounded-lg sm:rounded-xl bg-foreground text-background hover:opacity-90 font-medium text-xs sm:text-sm flex items-center gap-1.5 transition-all shadow-sm disabled:opacity-60"
+                className="absolute right-1.5 h-8 sm:h-9 px-3 sm:px-4 rounded-lg bg-foreground text-background hover:opacity-90 font-medium text-xs flex items-center gap-1.5 transition-all disabled:opacity-60"
               >
                 {isGenerating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
                 <span>{isGenerating ? "Creating..." : "Create"}</span>
               </Button>
-
             </div>
           </div>
         </section>
-        
-        {/* Subtle Festival Banner if active */}
-        {activeFestival && selectedCategory === "All" && !searchQuery && (
-          <div 
-            onClick={() => handleOpenStyle({
-              name: activeFestival.styleName,
-              image: "https://images.unsplash.com/photo-1604948501466-4e9c339b9c24?w=500&h=500&fit=crop",
-              prompt: `Celebrate ${activeFestival.name} in majestic visual style`
-            })}
-            className="relative rounded-2xl overflow-hidden border border-border/40 bg-card/40 p-4 sm:p-5 flex items-center justify-between cursor-pointer hover:border-foreground/20 transition-all duration-200 group"
-          >
-            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-              <div className="h-12 w-12 sm:h-14 sm:w-14 rounded-xl overflow-hidden shrink-0 border border-border/50">
-                <img
-                  src="https://images.unsplash.com/photo-1604948501466-4e9c339b9c24?w=500&h=500&fit=crop"
-                  alt={activeFestival.name}
-                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-[10px] uppercase tracking-wider font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                    {activeFestival.tag}
-                  </span>
-                </div>
-                <h3 className="text-sm sm:text-base font-semibold text-foreground truncate mt-1">
-                  {activeFestival.styleName}
-                </h3>
-                <p className="text-xs text-muted-foreground truncate">
-                  Special festive look for your portraits
-                </p>
-              </div>
-            </div>
 
-            <Button size="sm" variant="outline" className="rounded-full text-xs shrink-0 border-border/60 hover:bg-muted">
-              Apply
-            </Button>
-          </div>
-        )}
-        
-        {/* Conditional View: My Creations vs 200 Styles Grid */}
-        {activeTab === "creations" ? (
+        {/* My Creations View */}
+        {showCreations ? (
           <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
-                <FolderHeart className="w-4 h-4 text-primary" />
-                My Creations ({creations.length})
-              </h2>
-            </div>
+            <h2 className="text-sm font-semibold tracking-tight text-foreground flex items-center gap-2">
+              <FolderHeart className="w-4 h-4 text-primary" />
+              My Creations ({creations.length})
+            </h2>
 
             {creations.length === 0 ? (
               <div className="py-16 text-center text-muted-foreground text-sm border border-dashed border-border/60 rounded-2xl p-6">
                 <FolderHeart className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
                 <p className="font-medium text-foreground">No creations yet</p>
-                <p className="text-xs text-muted-foreground mt-1">Pick any style from Explore tab and press Create!</p>
+                <p className="text-xs text-muted-foreground mt-1">Select any style and press Create!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
                 {creations.map((c) => (
-                  <div key={c.id} className="group relative aspect-square rounded-2xl overflow-hidden border border-border/50 bg-muted/30">
+                  <div key={c.id} className="group relative aspect-square rounded-xl overflow-hidden border border-border/50 bg-muted/30">
                     <img src={c.imageUrl} alt={c.prompt} className="h-full w-full object-cover transition-transform group-hover:scale-105 duration-300" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2.5 flex flex-col justify-between">
-                      <div className="flex justify-end gap-1">
+                      <div className="flex justify-end">
                         <button
                           type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteCreation(c.id);
-                          }}
-                          className="p-1.5 rounded-full bg-black/60 text-white hover:text-destructive backdrop-blur-md transition-colors"
-                          title="Delete"
+                          onClick={() => handleDeleteCreation(c.id)}
+                          className="p-1.5 rounded-full bg-black/60 text-white hover:text-destructive"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -393,29 +275,13 @@ const ImagesSection = () => {
                       <div>
                         <p className="text-xs font-semibold text-white truncate">{c.styleName}</p>
                         <p className="text-[10px] text-white/70 line-clamp-1">{c.prompt}</p>
-                        <div className="flex items-center gap-1.5 mt-2">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDownloadImage(c.imageUrl, c.styleName);
-                            }}
-                            className="flex-1 py-1 rounded-md bg-white text-black text-[11px] font-medium flex items-center justify-center gap-1 hover:bg-white/90 transition-colors"
-                          >
-                            <Download className="w-3 h-3" /> Download
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleShareImage(c.imageUrl, c.styleName);
-                            }}
-                            className="p-1 rounded-md bg-white/20 text-white backdrop-blur-md hover:bg-white/30 transition-colors"
-                            title="Share"
-                          >
-                            <Share2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleDownloadImage(c.imageUrl, c.styleName)}
+                          className="mt-2 w-full py-1 rounded-md bg-white text-black text-[11px] font-medium flex items-center justify-center gap-1"
+                        >
+                          <Download className="w-3 h-3" /> Download
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -424,11 +290,11 @@ const ImagesSection = () => {
             )}
           </section>
         ) : (
-          /* Grid of 200 Styles */
+          /* RESPONSIVE GRID: 2 cols mobile, 3 cols tablet, 4-5 cols desktop */
           <section className="space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                {selectedCategory} ({filteredStyles.length})
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                {activeTab} ({filteredStyles.length})
               </p>
             </div>
 
@@ -437,33 +303,44 @@ const ImagesSection = () => {
                 No styles found matching "{searchQuery}"
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 sm:gap-4">
-                {filteredStyles.map((style) => (
-                  <StyleCard
-                    key={style.name}
-                    name={style.name}
-                    imageUrl={style.image}
-                    prompt={style.prompt}
-                    tag={style.category}
-                    onClick={() => handleOpenStyle(style)}
-                  />
-                ))}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-4">
+                {filteredStyles.map((style) => {
+                  const isSelected = selectedStyle?.id === style.id;
+                  return (
+                    <div
+                      key={style.id}
+                      onClick={() => handleSelectStyle(style)}
+                      className={`group relative flex flex-col rounded-xl overflow-hidden cursor-pointer border transition-all duration-200 ${
+                        isSelected 
+                          ? "ring-2 ring-primary border-primary shadow-md scale-[1.02]" 
+                          : "border-border/60 hover:border-foreground/30 hover:shadow-xs"
+                      }`}
+                    >
+                      {/* Image Thumbnail */}
+                      <div className="relative aspect-4/5 w-full overflow-hidden bg-muted">
+                        <img
+                          src={style.image}
+                          alt={style.name}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        
+                        {/* Title Badge matching screenshot */}
+                        <div className="absolute bottom-2 left-2 right-2">
+                          <p className="text-xs sm:text-sm font-semibold text-white drop-shadow-sm leading-tight line-clamp-1">
+                            {style.name}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </section>
         )}
-
       </main>
-
-            {/* Style Application Modal */}
-      <ImageUploadModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        styleName={selectedStyle?.name || "Photorealistic 8K"}
-        styleImage={selectedStyle?.image}
-        isCelebrityStyle={selectedStyle?.name === "Celebrity Style"}
-        discoverText={composerPrompt.trim() || selectedStyle?.prompt}
-      />
     </div>
   );
 };
