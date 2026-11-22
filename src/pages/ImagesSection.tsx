@@ -133,43 +133,49 @@ const ImagesSection = () => {
                 className="w-full h-8 pl-8 pr-3 text-xs rounded-full bg-muted/60 border border-border/40 text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
               />
             </div>
-
-            {/* Creations Toggle */}
+            
+ {/* Creations Toggle - ChatGPT Pill */}
             <button
               onClick={() => setShowCreations(!showCreations)}
-              className={`p-2 rounded-full text-xs font-medium flex items-center gap-1.5 transition-colors ${
-                showCreations ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+              className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-all border cursor-pointer ${
+                showCreations 
+                  ? "bg-foreground text-background border-foreground shadow-2xs" 
+                  : "bg-muted/40 text-muted-foreground hover:text-foreground border-border/50 hover:bg-muted/70"
               }`}
               title="My Creations"
             >
-              <FolderHeart className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">{creations.length}</span>
+              <FolderHeart className="w-3.5 h-3.5" />
+              <span className="text-xs">Creations</span>
+              <span className="text-[11px] opacity-70">({creations.length})</span>
             </button>
           </div>
         </div>
 
-        {/* 2 TABS: Trending & Templates */}
+        {/* 2 TABS: ChatGPT Segmented Pill Bar */}
         <div className="max-w-6xl mx-auto px-4 pb-3 pt-1 flex items-center gap-2">
-          {(["Trending", "Templates"] as const).map((tab) => {
-            const isActive = activeTab === tab && !showCreations;
-            return (
-              <button
-                key={tab}
-                onClick={() => {
-                  setActiveTab(tab);
-                  setShowCreations(false);
-                }}
-                className={`text-xs px-4 py-1.5 rounded-full font-medium transition-all duration-150 ${
-                  isActive
-                    ? "bg-foreground text-background shadow-xs"
-                    : "bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted"
-                }`}
-              >
-                {tab}
-              </button>
-            );
-          })}
+          <div className="inline-flex p-1 bg-muted/40 rounded-full border border-border/50 backdrop-blur-xs">
+            {(["Trending", "Templates"] as const).map((tab) => {
+              const isActive = activeTab === tab && !showCreations;
+              return (
+                <button
+                  key={tab}
+                  onClick={() => {
+                    setActiveTab(tab);
+                    setShowCreations(false);
+                  }}
+                  className={`text-xs px-4 py-1.5 rounded-full font-medium transition-all duration-150 cursor-pointer ${
+                    isActive
+                      ? "bg-background text-foreground shadow-2xs font-semibold"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                  }`}
+                >
+                  {tab}
+                </button>
+              );
+            })}
+          </div>
         </div>
+
       </header>
 
       {/* Main Container */}
