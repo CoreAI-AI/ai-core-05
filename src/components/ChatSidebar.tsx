@@ -1,5 +1,9 @@
 import { useState, useMemo } from "react";
-import { Search, MessageSquare, Settings, Trash2, Image, MoreVertical, FileText, FileDown, PanelLeftClose, Sparkles, Pin, PinOff, Plus } from "lucide-react";
+import { 
+  Search, MessageSquare, Settings, Trash2, MoreVertical, FileText, FileDown, 
+  PanelLeftClose, Pin, PinOff, Plus, BookOpen, Briefcase, Rocket, Scale, 
+  Terminal, Heart, Languages, Mic, Swords, Hourglass, ChevronDown, ChevronUp 
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -17,10 +21,83 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const sidebarNavItems = [
-  { icon: Image, label: "Image Studio", action: 'photos' },
-  { icon: Settings, label: "Settings", action: 'settings' },
-  { icon: Sparkles, label: "Explore AI", action: 'explore' },
+export interface CoreAIFeatureItem {
+  id: string;
+  label: string;
+  icon: any;
+  prompt: string;
+}
+
+// 11 CoreAI 0-Expense Special Features
+export const coreAiFeatures: CoreAIFeatureItem[] = [
+  // First 5 Features (Visible by default)
+  {
+    id: 'doc-reader',
+    label: 'Document & Notes Q&A',
+    icon: FileText,
+    prompt: 'Hello! I am your AI Document & Notes Reader. Please paste any notes, article, or document text here. I can summarize it, extract key insights, or answer any questions about it.'
+  },
+  {
+    id: 'quiz-maker',
+    label: 'Flashcards & Quiz',
+    icon: BookOpen,
+    prompt: 'Welcome to Flashcards & Quiz Maker! Give me any topic or paste study notes, and I will generate 5 interactive flashcards and a 5-question quiz with answers to test your knowledge.'
+  },
+  {
+    id: 'mock-interview',
+    label: 'Mock Interviewer',
+    icon: Briefcase,
+    prompt: 'Welcome to AI Mock Interviewer! Which job role or exam interview would you like to practice today? (e.g. Software Engineer, UPSC, Marketing, Data Analyst). Tell me your target role to begin.'
+  },
+  {
+    id: 'startup-incubator',
+    label: 'Startup & Idea Incubator',
+    icon: Rocket,
+    prompt: 'Welcome to Startup & Idea Incubator! Share your rough business or app idea. I will generate: 1) Value Proposition, 2) Target Audience & SWOT Analysis, 3) 5 Unique Brand Names, and 4) A 30-Day Launch Roadmap.'
+  },
+  {
+    id: 'decision-matrix',
+    label: 'Decision Matrix',
+    icon: Scale,
+    prompt: 'Welcome to Decision Matrix! What difficult choice or dilemma are you facing? (e.g. "Job A vs Job B" or "College vs Startup"). List your options, and I will create a structured pros, cons, and risk comparison table.'
+  },
+  // Expanded 6 Features (Visible on "More...")
+  {
+    id: 'prompt-vault',
+    label: 'Prompt Vault & Optimizer',
+    icon: Terminal,
+    prompt: 'Welcome to Prompt Vault! Paste any simple or rough prompt you have written, and I will rewrite and optimize it into an expert-level, high-precision prompt with clear constraints and formatting.'
+  },
+  {
+    id: 'mood-journal',
+    label: 'Mind & Mood Journal',
+    icon: Heart,
+    prompt: 'Welcome to your safe space Daily Mind & Mood Journal. How are you feeling today? Share what happened today or what is on your mind. I am here to listen like a trusted, empathetic friend.'
+  },
+  {
+    id: 'language-partner',
+    label: 'Language Exchange',
+    icon: Languages,
+    prompt: 'Hello! I am your interactive Language Exchange Partner. Which language would you like to practice with me today? We can practice conversations, correct grammar, and learn 3 new vocabulary words!'
+  },
+  {
+    id: 'voice-walkie',
+    label: 'Voice Walkie-Talkie',
+    icon: Mic,
+    prompt: 'Voice Walkie-Talkie mode active! You can speak or ask anything aloud, and I will reply with concise, spoken-style natural responses.'
+  },
+  {
+    id: 'debate-arena',
+    label: 'AI Debate Arena',
+    icon: Swords,
+    prompt: 'Welcome to AI Debate Arena! Name any topic or debate motion (e.g. "Remote Work vs Office" or "Social Media impact on youth"). I will present Affirmative arguments, Negative arguments, and an objective final verdict.'
+  },
+  {
+    id: 'future-you',
+    label: 'Future You (Time Capsule)',
+    icon: Hourglass,
+    prompt: 'Hello from 10 years in the future! I am your Future Self. Tell me: What is your current age, what is your biggest struggle right now, and what are your biggest dreams? Let us talk, or write a note to lock in your Digital Time Capsule.'
+  }
 ];
 
 interface ChatSidebarProps {
