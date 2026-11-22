@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ArrowLeft, Search, Sparkles, Wand2, X, Square, Smartphone, Monitor, Download, Share2, Trash2, RefreshCw, FolderHeart } from "lucide-react";
+import { ArrowLeft, Search, Sparkles, Wand2, X, Square, Smartphone, Monitor, Download, RefreshCw, FolderHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -35,7 +35,7 @@ const ImagesSection = () => {
     setComposerPrompt(style.prompt);
     setShowCreations(false);
     composerInputRef.current?.focus();
-    toast.success(`Selected style: ${style.name}`);
+    toast.success(`Selected: ${style.name}`);
   };
 
   const handleDirectGenerate = async () => {
@@ -48,13 +48,13 @@ const ImagesSection = () => {
     setIsGenerating(true);
 
     const dims = aspectRatio === "16:9" 
-      ? { w: 1280, h: 720 } 
+      ? { width: 1024, height: 576 } 
       : aspectRatio === "9:16" 
-      ? { w: 720, h: 1280 } 
-      : { w: 1024, h: 1024 };
+      ? { width: 576, height: 1024 } 
+      : { width: 768, height: 768 };
 
     const encodedPrompt = encodeURIComponent(finalPrompt);
-    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${dims.w}&height=${dims.h}&model=flux-realism&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${dims.width}&height=${dims.height}&model=flux-realism&nologo=true&seed=${Math.floor(Math.random() * 1000000)}`;
 
     try {
       await new Promise<void>((resolve) => {
@@ -62,35 +62,35 @@ const ImagesSection = () => {
         img.onload = () => resolve();
         img.onerror = () => resolve();
         img.src = imageUrl;
-        setTimeout(() => resolve(), 3500);
+        setTimeout(()resolve, 4000);
       });
 
-      saveMyCreation({
+      const newCreation = saveMyCreation({
         prompt: rawPrompt,
-        styleName: selectedStyle?.name || "Custom Style",
+        styleName: selectedStyle ? selectedStyle.name : "Custom Style",
+        category: "Trending",
         imageUrl,
-        aspectRatio
       });
 
       setCreations(getMyCreations());
       setShowCreations(true);
       toast.success("Image generated successfully!");
-    } catch {
-      toast.error("Failed to generate image. Please try again.");
+    } catch (err) {
+      toast.error("Generation timed out. Please try again.");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleDownloadImage = async (url: string, styleName: string) => {
+  const handleDownloadImage = (url: string, title: string) => {
     try {
-      const res = await fetch(url);
-      const blob = await res.blob();
       const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `CoreAI-${styleName.replace(/\s+/g, "_")}-${Date.now()}.jpg`;
+      a.href = url;
+      a.download = `coreai-${title.toLowerCase().replace(/\s+/g, "-")}-${Date.now()}.jpg`;
+      a.target = "_blank";
+      document.body.appendChild(a);
       a.click();
-      toast.success("Downloaded!");
+      document.body.removeChild(a);
     } catch {
       window.open(url, "_blank");
     }
@@ -103,9 +103,10 @@ const ImagesSection = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground transition-colors duration-200">
+    // FIX SCROLL: h-screen h-[100dvh] overflow-y-auto overflow-x-hidden ensures smooth full-page scrolling
+    <div className="flex flex-col h-screen h-[100dvh] overflow-y-auto overflow-x-hidden bg-background text-foreground transition-colors duration-200">
       {/* Top Header */}
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/50">
+      <header className="sticky top-0 z-30 bg-background/90 backdrop-blur-md border-b border-border/50 shrink-0">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <button
@@ -258,29 +259,26 @@ const ImagesSection = () => {
                 <p className="text-xs text-muted-foreground mt-1">Select any style and press Create!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {creations.map((c) => (
                   <div key={c.id} className="group relative aspect-square rounded-xl overflow-hidden border border-border/50 bg-muted/30">
-                    <img src={c.imageUrl} alt={c.prompt} className="h-full w-full object-cover transition-transform group-hover:scale-105 duration-300" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2.5 flex flex-col justify-between">
-                      <div className="flex justify-end">
+                    <img src={c.imageUrl} alt={c.styleName} className="h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2.5 flex flex-col justify-end">
+                      <p className="text-[11px] font-medium text-white line-clamp-1">{c.styleName}</p>
+                      <p className="text-[10px] text-white/70 line-clamp-1">{c.prompt}</p>
+                      <div className="flex items-center gap-1.5 mt-2">
                         <button
-                          type="button"
-                          onClick={() => handleDeleteCreation(c.id)}
-                          className="p-1.5 rounded-full bg-black/60 text-white hover:text-destructive"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      <div>
-                        <p className="text-xs font-semibold text-white truncate">{c.styleName}</p>
-                        <p className="text-[10px] text-white/70 line-clamp-1">{c.prompt}</p>
-                        <button
-                          type="button"
                           onClick={() => handleDownloadImage(c.imageUrl, c.styleName)}
-                          className="mt-2 w-full py-1 rounded-md bg-white text-black text-[11px] font-medium flex items-center justify-center gap-1"
+                          className="flex-1 py-1 rounded-md bg-white text-black text-[11px] font-medium flex items-center justify-center gap-1"
                         >
                           <Download className="w-3 h-3" /> Download
+                        </button>
+                        <button
+                          onClick={() => handleDeleteCreation(c.id)}
+                          className="p-1 rounded-md bg-destructive/80 text-white hover:bg-destructive"
+                          title="Delete"
+                        >
+                          <X className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -289,12 +287,23 @@ const ImagesSection = () => {
               </div>
             )}
           </section>
+        ) : activeTab === "Templates" ? (
+          /* TEMPLATES EMPTY STATE (User: template mein abhi kuch nahi ho) */
+          <section className="py-20 text-center border border-dashed border-border/60 rounded-2xl p-8">
+            <div className="max-w-xs mx-auto space-y-2">
+              <Sparkles className="w-8 h-8 text-muted-foreground/40 mx-auto" />
+              <p className="text-sm font-semibold text-foreground">Templates Coming Soon</p>
+              <p className="text-xs text-muted-foreground">
+                All 40 styles are currently available in the <strong>Trending</strong> tab.
+              </p>
+            </div>
+          </section>
         ) : (
-          /* RESPONSIVE GRID: 2 cols mobile, 3 cols tablet, 4-5 cols desktop */
+          /* TRENDING RESPONSIVE GRID: 2 cols mobile, 3 cols tablet, 4-5 cols desktop */
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                {activeTab} ({filteredStyles.length})
+                Trending Styles ({filteredStyles.length})
               </p>
             </div>
 
@@ -316,7 +325,7 @@ const ImagesSection = () => {
                           : "border-border/60 hover:border-foreground/30 hover:shadow-xs"
                       }`}
                     >
-                      {/* Image Thumbnail */}
+                      {/* Image Thumbnail matching user's screenshots */}
                       <div className="relative aspect-4/5 w-full overflow-hidden bg-muted">
                         <img
                           src={style.image}
@@ -324,9 +333,9 @@ const ImagesSection = () => {
                           loading="lazy"
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
                         
-                        {/* Title Badge matching screenshot */}
+                        {/* Title Badge at bottom */}
                         <div className="absolute bottom-2 left-2 right-2">
                           <p className="text-xs sm:text-sm font-semibold text-white drop-shadow-sm leading-tight line-clamp-1">
                             {style.name}
