@@ -887,7 +887,7 @@ const Index = () => {
               transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
               className="fixed md:static h-full w-[280px] z-50 md:z-auto shrink-0 bg-sidebar border-r border-sidebar-border/40 shadow-xl md:shadow-none"
             >
-              <ChatSidebar
+                        <ChatSidebar
                 chats={chats}
                 currentChat={currentChat}
                 onSelectChat={(chat) => {
@@ -898,6 +898,13 @@ const Index = () => {
                 }}
                 onNewChat={() => {
                   startNewChat();
+                  if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+                    setSidebarCollapsed(true);
+                  }
+                }}
+                onSelectFeature={async (feature) => {
+                  await startNewChat();
+                  handleSendMessage(feature.prompt);
                   if (typeof window !== 'undefined' && window.innerWidth < 1024) {
                     setSidebarCollapsed(true);
                   }
@@ -914,6 +921,7 @@ const Index = () => {
                 user={user}
                 onCollapse={() => setSidebarCollapsed(true)}
               />
+
             </motion.div>
           </>
         )}
