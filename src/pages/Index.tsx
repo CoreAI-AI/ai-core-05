@@ -958,15 +958,16 @@ const Index = () => {
               <header className="px-3 py-2 sm:px-4 sm:py-2.5 flex justify-between items-center shrink-0 gap-2 z-20 border-b border-border/30 backdrop-blur-md bg-background/80">
                 <div className="flex items-center gap-2 min-w-0 flex-1">
                   {sidebarCollapsed && (
-                    <motion.button
+                                       <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       onClick={() => setSidebarCollapsed(false)}
-                      className="h-8 w-8 p-0 shrink-0 inline-flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+                      className="h-8 w-8 p-0 shrink-0 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
                       title="Open sidebar"
                     >
                       <PanelLeft className="h-4 w-4" />
                     </motion.button>
+
                   )}
                   <div className="flex items-center gap-2 min-w-0">
                     <h1 className="text-sm font-semibold text-foreground truncate tracking-tight">
@@ -997,22 +998,22 @@ const Index = () => {
                     />
                   </div>
 
-                  <Button
+                                    <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => navigate('/images')}
-                    className="h-8 px-2 text-xs font-medium text-muted-foreground hover:text-foreground rounded-lg"
+                    className="h-8 px-3 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
                     title="Image Styles"
                   >
-                    <Palette className="h-3.5 w-3.5 mr-1 text-cyan-500" />
+                    <Palette className="h-3.5 w-3.5 mr-1.5 text-primary" />
                     <span className="hidden sm:inline">Styles</span>
                   </Button>
 
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => setShowSearch(true)}
-                    className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground"
+                    className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
                     title="Search (Ctrl+K)"
                   >
                     <Search className="h-4 w-4" />
@@ -1020,13 +1021,14 @@ const Index = () => {
 
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={startNewChat}
-                    className="h-8 w-8 p-0 rounded-lg text-muted-foreground hover:text-foreground"
+                    className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
                     title="New Chat"
                   >
                     <SquarePen className="h-4 w-4" />
                   </Button>
+
                 </div>
               </header>
 
