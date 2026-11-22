@@ -61,7 +61,6 @@ const availableModes: { id: ModeType; label: string; icon: any; color: string }[
   { id: 'poor', label: 'Poor Mode (Savings)', icon: PiggyBank, color: 'text-teal-400' },
 ];
 
-// 10 Typewriter Placeholder Prompts
 const placeholderPrompts: string[] = [
   "How can CoreAI help you today?",
   "Ask anything or solve a complex problem...",
@@ -89,14 +88,12 @@ export const ChatInput = memo(({
   const [message, setMessage] = useState("");
   const [currentMode, setCurrentMode] = useState<ModeType>("normal");
 
-  // Sync active mode if changed from switch card or parent
   useEffect(() => {
     if (propsCurrentMode && propsCurrentMode !== currentMode) {
       setCurrentMode(propsCurrentMode);
     }
   }, [propsCurrentMode]);
 
-  // Typewriter Animation States
   const [placeholderText, setPlaceholderText] = useState("");
   const [promptIndex, setPromptIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -105,7 +102,6 @@ export const ChatInput = memo(({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const anyFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto focus input
   useEffect(() => {
     const timer = setTimeout(() => {
       textareaRef.current?.focus();
@@ -113,7 +109,6 @@ export const ChatInput = memo(({
     return () => clearTimeout(timer);
   }, []);
 
-  // Handle message editing
   useEffect(() => {
     if (editingMessage) {
       setMessage(editingMessage.content);
@@ -121,7 +116,6 @@ export const ChatInput = memo(({
     }
   }, [editingMessage]);
 
-  // Smooth Typewriter Loop
   useEffect(() => {
     if (message.length > 0) return;
 
@@ -152,7 +146,6 @@ export const ChatInput = memo(({
     return () => clearTimeout(timer);
   }, [placeholderText, isDeleting, promptIndex, message.length]);
 
-  // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
@@ -162,7 +155,6 @@ export const ChatInput = memo(({
     }
   }, [message]);
 
-  // Notify parent of typing status
   useEffect(() => {
     onTypingChange?.(message.length > 0);
   }, [message, onTypingChange]);
@@ -209,7 +201,6 @@ export const ChatInput = memo(({
     }
   };
 
-  // Multiple files selection handler (up to 8 images / docs)
   const handleMultipleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawFiles = e.target.files;
     if (!rawFiles || rawFiles.length === 0) return;
@@ -234,7 +225,6 @@ export const ChatInput = memo(({
       }
     }
 
-    // Reset input value so same files can be re-selected if removed
     e.target.value = '';
   };
 
@@ -305,22 +295,11 @@ export const ChatInput = memo(({
           className="w-full min-h-[44px] max-h-[160px] resize-none border-0 bg-transparent px-2 pt-1 pb-2 text-sm sm:text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none transition-all duration-75"
         />
 
-        {/* Bottom Ergonomic Action Bar */}
+        {/* Bottom Ergonomic Action Bar — Only Single Clean Bar */}
         <div className="flex items-center justify-between gap-1 pt-1 border-t border-border/30 dark:border-white/5">
-          {/* Left Actions: Attach + Mode Selector */}
-          <div className="flex items-center gap-1">
-            {/* Attachment Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 shrink-0 transition-colors"
-                  title="Attach up to 8 images or files"
-                >
-                            {/* Left Actions: + Menu & Modes Pill */}
+          {/* Left Actions: + Menu & Modes Pill */}
           <div className="flex items-center gap-1.5">
+            {/* Attachment Menu (+) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -356,7 +335,7 @@ export const ChatInput = memo(({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-3 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 transition-all cursor-pointer"
+                  className="h-7 px-2.5 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 transition-all cursor-pointer"
                   title="Change CoreAI Mode"
                 >
                   {activeModeConfig.id === 'normal' ? (
@@ -422,106 +401,6 @@ export const ChatInput = memo(({
               className={`h-8 w-8 rounded-full p-0 transition-all duration-150 flex items-center justify-center shrink-0 ${
                 message.trim() && !disabled
                   ? "bg-foreground text-background hover:opacity-90 active:scale-90 shadow-2xs cursor-pointer"
-                  : "bg-muted/50 text-muted-foreground/30 cursor-not-allowed"
-              }`}
-              title="Send message"
-            >
-              <ArrowUp className="h-4 w-4 stroke-[2.5]" />
-            </Button>
-          </div>
-
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-52 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
-                <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
-                  <ImageIcon className="h-4 w-4 mr-2.5 text-cyan-500" />
-                  Photos (Up to 8 Images)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-xs py-2">
-                  <Camera className="h-4 w-4 mr-2.5 text-emerald-500" />
-                  Camera (Take Photo)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
-                  <FileIcon className="h-4 w-4 mr-2.5 text-amber-500" />
-                  File (Document / PDF)
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* CoreAI Mode Pill with Logo */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 px-2.5 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent hover:border-border/40 transition-all"
-                  title="Change CoreAI Mode"
-                >
-                  {activeModeConfig.id === 'normal' ? (
-                    <img src={coreaiLogo} alt="CoreAI" className="h-3.5 w-3.5 rounded-full object-contain shrink-0" />
-                  ) : (
-                    <activeModeConfig.icon className={`h-3.5 w-3.5 ${activeModeConfig.color}`} />
-                  )}
-                  <span className="truncate max-w-[90px]">{activeModeConfig.label.split(' ')[0]}</span>
-                  <ChevronDown className="h-3 w-3 opacity-50" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 max-h-[300px] overflow-y-auto p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
-                <div className="px-2.5 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  CoreAI Modes
-                </div>
-                {availableModes.map((m) => (
-                  <DropdownMenuItem
-                    key={m.id}
-                    onClick={() => handleSelectMode(m.id, m.label)}
-                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl cursor-pointer text-xs ${
-                      currentMode === m.id ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {m.id === 'normal' ? (
-                        <img src={coreaiLogo} alt="CoreAI" className="h-3.5 w-3.5 rounded-full object-contain shrink-0" />
-                      ) : (
-                        <m.icon className={`h-3.5 w-3.5 ${m.color}`} />
-                      )}
-                      <span>{m.label}</span>
-                    </div>
-                    {currentMode === m.id && <span className="text-[10px] text-primary font-semibold">Active</span>}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Right Actions: Mic + Send Button */}
-          <div className="flex items-center gap-1.5">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={handleVoiceRecording}
-              disabled={disabled || transcribing}
-              className={`h-8 w-8 rounded-full shrink-0 transition-all ${
-                isRecording ? 'bg-destructive/20 text-destructive animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
-              }`}
-              title={isRecording ? "Stop recording" : "Voice input"}
-            >
-              {transcribing ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
-              ) : (
-                <Mic className="h-4 w-4" />
-              )}
-            </Button>
-
-                      <Button
-              type="button"
-              onClick={() => handleSubmit()}
-              disabled={!message.trim() || disabled}
-              className={`h-8 w-8 rounded-full p-0 transition-all duration-150 flex items-center justify-center shrink-0 ${
-                message.trim() && !disabled
-                  ? "bg-foreground text-background hover:opacity-90 active:scale-90 shadow-xs cursor-pointer"
                   : "bg-muted/50 text-muted-foreground/30 cursor-not-allowed"
               }`}
               title="Send message"
