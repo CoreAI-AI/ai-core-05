@@ -404,14 +404,14 @@ export const ChatInput = memo(({
               )}
             </Button>
 
-            <Button
+                      <Button
               type="button"
               onClick={() => handleSubmit()}
               disabled={!message.trim() || disabled}
-              className={`h-8 w-8 rounded-xl p-0 transition-all duration-200 flex items-center justify-center shrink-0 ${
+              className={`h-8 w-8 rounded-full p-0 transition-all duration-150 flex items-center justify-center shrink-0 ${
                 message.trim() && !disabled
-                  ? "bg-foreground text-background hover:opacity-90 active:scale-95 shadow-xs"
-                  : "bg-muted/60 text-muted-foreground/40 cursor-not-allowed scale-95"
+                  ? "bg-foreground text-background hover:opacity-90 active:scale-90 shadow-xs cursor-pointer"
+                  : "bg-muted/50 text-muted-foreground/30 cursor-not-allowed"
               }`}
               title="Send message"
             >
