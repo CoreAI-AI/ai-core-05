@@ -111,6 +111,7 @@ interface ChatSidebarProps {
   onExportChat: (chatId: string, format: 'text' | 'pdf') => void;
   user: User | null;
   onCollapse?: () => void;
+  onSelectFeature?: (feature: CoreAIFeatureItem) => void;
 }
 
 export const ChatSidebar = ({
@@ -123,14 +124,27 @@ export const ChatSidebar = ({
   onDeleteChat,
   onExportChat,
   user,
-  onCollapse
+  onCollapse,
+  onSelectFeature
 }: ChatSidebarProps) => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [pinnedChats, setPinnedChats] = useState<Set<string>>(() => {
     const saved = localStorage.getItem('pinnedChats');
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
+
+  const handleFeatureClick = (feature: CoreAIFeatureItem) => {
+    if (onSelectFeature) {
+      onSelectFeature(feature);
+    } else {
+      onNewChat();
+    }
+    if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
+      onCollapse();
+    }
+  };
 
   const handleAction = (action: string) => {
     if (action === 'newChat') {
@@ -294,21 +308,60 @@ export const ChatSidebar = ({
         </Button>
       </div>
 
-      {/* Navigation Items (Image Studio, Settings, Explore AI) */}
+           {/* 11 CoreAI Features & Settings */}
       <div className="p-2 border-b border-sidebar-border/30">
-        <nav className="space-y-0.5">
-          {sidebarNavItems.map((item) => (
+        <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
+          <span>AI Features</span>
+          <span className="text-[10px] font-normal text-primary">100% Free</span>
+        </div>
+        <nav className="space-y-0.5 mt-1">
+          {/* Settings Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start h-8 text-xs text-sidebar-foreground hover:bg-muted/60 rounded-xl"
+            onClick={() => {
+              onOpenSettings();
+              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
+                onCollapse();
+              }
+            }}
+          >
+            <Settings className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+            Settings
+          </Button>
+
+          {/* First 5 Features or All 11 when Expanded */}
+          {(showAllFeatures ? coreAiFeatures : coreAiFeatures.slice(0, 5)).map((feature) => (
             <Button
-              key={item.label}
+              key={feature.id}
               variant="ghost"
               size="sm"
-              className="w-full justify-start h-9 text-xs sm:text-sm text-sidebar-foreground hover:bg-muted/60 rounded-xl"
-              onClick={() => handleAction(item.action)}
+              className="w-full justify-start h-8 text-xs text-sidebar-foreground hover:bg-muted/60 rounded-xl"
+              onClick={() => handleFeatureClick(feature)}
+              title={feature.label}
             >
-              <item.icon className="w-4 h-4 mr-2.5 text-muted-foreground" />
-              {item.label}
+              <feature.icon className="w-3.5 h-3.5 mr-2 text-primary shrink-0" />
+              <span className="truncate">{feature.label}</span>
             </Button>
           ))}
+
+          {/* More / Less Toggle Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-between h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-lg transition-all"
+            onClick={() => setShowAllFeatures(!showAllFeatures)}
+          >
+            <span className="flex items-center gap-1 font-medium">
+              {showAllFeatures ? "Show Less" : "More Features (6+)"}
+            </span>
+            {showAllFeatures ? (
+              <ChevronUp className="w-3 h-3 text-muted-foreground" />
+            ) : (
+              <ChevronDown className="w-3 h-3 text-muted-foreground" />
+            )}
+          </Button>
         </nav>
       </div>
 
