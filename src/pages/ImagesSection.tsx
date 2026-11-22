@@ -62,7 +62,7 @@ const ImagesSection = () => {
         img.onload = () => resolve();
         img.onerror = () => resolve();
         img.src = imageUrl;
-        setTimeout(()resolve, 4000);
+       setTimeout(resolve, 4000);
       });
 
       const newCreation = saveMyCreation({
