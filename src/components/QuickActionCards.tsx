@@ -413,12 +413,12 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
         </AnimatePresence>
       </div>
 
-      {/* 4 Action Pills */}
+           {/* 4 Action Pills - ChatGPT Capsule Style */}
       <div className="flex items-center justify-center gap-2 mb-6 flex-wrap">
         <button
           type="button"
           onClick={() => handlePillClick("image")}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-background border border-border/70 hover:border-foreground/30 hover:bg-muted/60 text-foreground transition-all shadow-xs"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
         >
           <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
           <span>Create image</span>
@@ -427,7 +427,7 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
         <button
           type="button"
           onClick={() => handlePillClick("advice")}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-background border border-border/70 hover:border-foreground/30 hover:bg-muted/60 text-foreground transition-all shadow-xs"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
         >
           <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
           <span>Get advice</span>
@@ -436,7 +436,7 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
         <button
           type="button"
           onClick={() => handlePillClick("summarize")}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-background border border-border/70 hover:border-foreground/30 hover:bg-muted/60 text-foreground transition-all shadow-xs"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
         >
           <FileText className="h-3.5 w-3.5 text-muted-foreground" />
           <span>Summarize text</span>
@@ -446,12 +446,13 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-background border border-border/70 hover:border-foreground/30 hover:bg-muted/60 text-foreground transition-all shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
             >
               <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
               <span>More</span>
             </button>
           </DropdownMenuTrigger>
+
           <DropdownMenuContent align="end" className="w-48 rounded-xl shadow-lg border-border">
             <DropdownMenuItem 
               onClick={() => triggerAction("Help me brainstorm creative project ideas and unique startup concepts.")}
@@ -505,7 +506,7 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-2.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-2.5">
               {selectedAction.options.map((opt, i) => (
                 <button
                   key={i}
@@ -514,7 +515,7 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
                     triggerAction(opt);
                     setSelectedAction(null);
                   }}
-                  className="text-left text-xs p-2 rounded-xl bg-muted/50 hover:bg-muted text-foreground/90 transition-colors border border-border/40 hover:border-foreground/20 leading-relaxed"
+                  className="text-left text-xs px-3 py-2 rounded-full bg-muted/40 hover:bg-muted text-foreground transition-all border border-border/50 hover:border-foreground/20 leading-relaxed cursor-pointer active:scale-[0.99]"
                 >
                   {opt}
                 </button>
@@ -526,13 +527,14 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
                 value={customInput}
                 onChange={(e) => setCustomInput(e.target.value)}
                 placeholder={selectedAction.placeholder || "Type your request..."}
-                className="h-8 text-xs bg-background rounded-xl border border-border/70"
+                className="h-8 text-xs bg-background rounded-full border border-border/70 px-3.5"
               />
-              <Button type="submit" size="sm" className="h-8 px-3 rounded-xl text-xs gap-1">
+              <Button type="submit" size="sm" className="h-8 px-3.5 rounded-full text-xs gap-1 bg-foreground text-background hover:opacity-90">
                 <Send className="h-3 w-3" />
                 <span>Go</span>
               </Button>
             </form>
+
           </motion.div>
         )}
       </AnimatePresence>
