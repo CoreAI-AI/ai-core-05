@@ -319,6 +319,117 @@ export const ChatInput = memo(({
                   className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 shrink-0 transition-colors"
                   title="Attach up to 8 images or files"
                 >
+                            {/* Left Actions: + Menu & Modes Pill */}
+          <div className="flex items-center gap-1.5">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
+                  title="Attach up to 8 images or files"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-52 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
+                <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
+                  <ImageIcon className="h-4 w-4 mr-2.5 text-cyan-500" />
+                  Photos (Up to 8 Images)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-xs py-2">
+                  <Camera className="h-4 w-4 mr-2.5 text-emerald-500" />
+                  Camera (Take Photo)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
+                  <FileIcon className="h-4 w-4 mr-2.5 text-amber-500" />
+                  File (Document / PDF)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* CoreAI Mode Pill with Logo */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 px-3 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 transition-all cursor-pointer"
+                  title="Change CoreAI Mode"
+                >
+                  {activeModeConfig.id === 'normal' ? (
+                    <img src={coreaiLogo} alt="CoreAI" className="h-3.5 w-3.5 rounded-full object-contain shrink-0" />
+                  ) : (
+                    <activeModeConfig.icon className={`h-3.5 w-3.5 ${activeModeConfig.color}`} />
+                  )}
+                  <span className="truncate max-w-[90px]">{activeModeConfig.label.split(' ')[0]}</span>
+                  <ChevronDown className="h-3 w-3 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 max-h-[300px] overflow-y-auto p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
+                <div className="px-2.5 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                  CoreAI Modes
+                </div>
+                {availableModes.map((m) => (
+                  <DropdownMenuItem
+                    key={m.id}
+                    onClick={() => handleSelectMode(m.id, m.label)}
+                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl cursor-pointer text-xs ${
+                      currentMode === m.id ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      {m.id === 'normal' ? (
+                        <img src={coreaiLogo} alt="CoreAI" className="h-3.5 w-3.5 rounded-full object-contain shrink-0" />
+                      ) : (
+                        <m.icon className={`h-3.5 w-3.5 ${m.color}`} />
+                      )}
+                      <span>{m.label}</span>
+                    </div>
+                    {currentMode === m.id && <span className="text-[10px] text-primary font-semibold">Active</span>}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Right Actions: Mic + Send Button */}
+          <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleVoiceRecording}
+              disabled={disabled || transcribing}
+              className={`h-8 w-8 rounded-full shrink-0 transition-all ${
+                isRecording ? 'bg-destructive/20 text-destructive animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
+              }`}
+              title={isRecording ? "Stop recording" : "Voice input"}
+            >
+              {transcribing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+              ) : (
+                <Mic className="h-4 w-4" />
+              )}
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => handleSubmit()}
+              disabled={!message.trim() || disabled}
+              className={`h-8 w-8 rounded-full p-0 transition-all duration-150 flex items-center justify-center shrink-0 ${
+                message.trim() && !disabled
+                  ? "bg-foreground text-background hover:opacity-90 active:scale-90 shadow-2xs cursor-pointer"
+                  : "bg-muted/50 text-muted-foreground/30 cursor-not-allowed"
+              }`}
+              title="Send message"
+            >
+              <ArrowUp className="h-4 w-4 stroke-[2.5]" />
+            </Button>
+          </div>
+
                   <Plus className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
