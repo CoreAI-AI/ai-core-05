@@ -21,7 +21,7 @@ import {
   PiggyBank,
   Sparkles
 } from "lucide-react";
-import { FeaturesModal, CoreAIFeatureItem } from "@/components/FeaturesModal";
+import { allCoreAiFeatures } from "@/components/FeaturesModal";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -379,8 +379,6 @@ export const ChatInput = memo(({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Features Button right next to Mode Pill */}
-            // ✅ NAYA REPLACE CODE
 {/* CoreAI Features Dropdown (Exact like Modes) */}
 <DropdownMenu>
   <DropdownMenuTrigger asChild>
