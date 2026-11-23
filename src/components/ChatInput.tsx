@@ -59,9 +59,25 @@ const availableModes: { id: ModeType; label: string; icon: any; color: string }[
   { id: 'creative', label: 'Creative Writing', icon: Brain, color: 'text-pink-500' },
   { id: 'analyze', label: 'Analyze & Summarize', icon: FileText, color: 'text-indigo-500' },
   { id: 'recipe', label: 'Recipe & Cooking', icon: Utensils, color: 'text-orange-500' },
-  { id: 'rich', label: 'Rich Mode (Wealth)', icon: TrendingUp, color: 'text-emerald-400' },
+   { id: 'rich', label: 'Rich Mode (Wealth)', icon: TrendingUp, color: 'text-emerald-400' },
   { id: 'poor', label: 'Poor Mode (Savings)', icon: PiggyBank, color: 'text-teal-400' },
 ];
+
+// Unique color badges & descriptions for each CoreAI Feature
+const featureCardStyles: Record<string, { bg: string; border: string; desc: string }> = {
+  'doc-reader': { bg: 'bg-blue-500/15 text-blue-400 border-blue-500/30', border: 'hover:border-blue-500/50 hover:bg-blue-500/10', desc: 'Summarize & Q&A' },
+  'quiz-maker': { bg: 'bg-purple-500/15 text-purple-400 border-purple-500/30', border: 'hover:border-purple-500/50 hover:bg-purple-500/10', desc: 'Flashcards & Test' },
+  'mock-interview': { bg: 'bg-amber-500/15 text-amber-400 border-amber-500/30', border: 'hover:border-amber-500/50 hover:bg-amber-500/10', desc: 'Practice Job Roles' },
+  'startup-incubator': { bg: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', border: 'hover:border-emerald-500/50 hover:bg-emerald-500/10', desc: 'SWOT & Roadmap' },
+  'decision-matrix': { bg: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30', border: 'hover:border-cyan-500/50 hover:bg-cyan-500/10', desc: 'Pros & Cons Matrix' },
+  'prompt-vault': { bg: 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30', border: 'hover:border-indigo-500/50 hover:bg-indigo-500/10', desc: 'Optimize Prompts' },
+  'mood-journal': { bg: 'bg-rose-500/15 text-rose-400 border-rose-500/30', border: 'hover:border-rose-500/50 hover:bg-rose-500/10', desc: 'Mind & Empathy Space' },
+  'language-partner': { bg: 'bg-orange-500/15 text-orange-400 border-orange-500/30', border: 'hover:border-orange-500/50 hover:bg-orange-500/10', desc: 'Grammar & Vocab' },
+  'voice-walkie': { bg: 'bg-fuchsia-500/15 text-fuchsia-400 border-fuchsia-500/30', border: 'hover:border-fuchsia-500/50 hover:bg-fuchsia-500/10', desc: 'Spoken Voice Chat' },
+  'debate-arena': { bg: 'bg-red-500/15 text-red-400 border-red-500/30', border: 'hover:border-red-500/50 hover:bg-red-500/10', desc: 'Pro vs Con Verdict' },
+  'future-you': { bg: 'bg-teal-500/15 text-teal-400 border-teal-500/30', border: 'hover:border-teal-500/50 hover:bg-teal-500/10', desc: 'Time Capsule Chat' },
+  'code-assistant': { bg: 'bg-lime-500/15 text-lime-400 border-lime-500/30', border: 'hover:border-lime-500/50 hover:bg-lime-500/10', desc: 'Write & Debug Code' },
+};
 
 const placeholderPrompts: string[] = [
   "How can CoreAI help you today?",
@@ -379,7 +395,7 @@ export const ChatInput = memo(({
               </DropdownMenuContent>
             </DropdownMenu>
 
-{/* CoreAI Features Dropdown (Exact like Modes) */}
+{/* CoreAI Features Dropdown - Rich Colorful Mini-Cards */}
 <DropdownMenu>
   <DropdownMenuTrigger asChild>
     <Button
@@ -394,28 +410,48 @@ export const ChatInput = memo(({
       <ChevronDown className="h-3 w-3 opacity-50" />
     </Button>
   </DropdownMenuTrigger>
-  <DropdownMenuContent align="start" className="w-64 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
-    <div className="flex items-center justify-between px-2.5 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-      <span>CoreAI Features</span>
-      <span className="text-[10px] text-emerald-400 font-bold">{allCoreAiFeatures.length}</span>
+  <DropdownMenuContent align="start" className="w-[320px] sm:w-[420px] p-2.5 rounded-2xl bg-popover/95 backdrop-blur-xl border border-border/80 shadow-2xl z-50">
+    <div className="flex items-center justify-between px-2 py-1 mb-1.5 border-b border-border/40 pb-1.5">
+      <span className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+        <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+        CoreAI Features
+      </span>
+      <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-full font-bold border border-emerald-500/20">
+        {allCoreAiFeatures.length} Cards
+      </span>
     </div>
-    {/* Smooth Scrollable Container with touch support */}
-    <div className="max-h-[260px] overflow-y-auto overscroll-contain touch-pan-y pr-1 space-y-0.5">
-      {allCoreAiFeatures.map((f) => (
-        <DropdownMenuItem
-          key={f.id}
-          onClick={() => {
-            onSendMessage(f.prompt);
-            toast.success(`${f.label} activated!`);
-          }}
-          className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl cursor-pointer text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-        >
-          <div className="w-6 h-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
-            <f.icon className="h-3.5 w-3.5 text-emerald-400" />
-          </div>
-          <span className="truncate font-medium">{f.label}</span>
-        </DropdownMenuItem>
-      ))}
+    {/* Smooth Scrollable 2-Column Card Grid */}
+    <div className="max-h-[310px] overflow-y-auto overscroll-contain touch-pan-y pr-1 space-y-1.5 sm:space-y-0 sm:grid sm:grid-cols-2 sm:gap-1.5">
+      {allCoreAiFeatures.map((f) => {
+        const style = featureCardStyles[f.id] || {
+          bg: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30',
+          border: 'hover:border-emerald-500/50 hover:bg-emerald-500/10',
+          desc: 'Specialized feature'
+        };
+        return (
+          <DropdownMenuItem
+            key={f.id}
+            onClick={() => {
+              onSendMessage(f.prompt);
+              toast.success(`${f.label} activated!`);
+            }}
+            className={cn(
+              "flex items-start gap-2 p-2 rounded-xl cursor-pointer transition-all border text-left",
+              "bg-card/60 hover:bg-muted/80 text-foreground",
+              style.border,
+              "hover:-translate-y-0.5 active:translate-y-0"
+            )}
+          >
+            <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border mt-0.5 shadow-xs", style.bg)}>
+              <f.icon className="h-3.5 w-3.5" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-xs text-foreground truncate">{f.label}</div>
+              <div className="text-[9px] text-muted-foreground truncate">{style.desc}</div>
+            </div>
+          </DropdownMenuItem>
+        );
+      })}
     </div>
   </DropdownMenuContent>
 </DropdownMenu>
