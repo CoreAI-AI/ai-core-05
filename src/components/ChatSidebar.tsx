@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { 
   Search, MessageSquare, Settings, Trash2, MoreVertical, FileText, FileDown, 
   PanelLeftClose, Pin, PinOff, Plus, BookOpen, Briefcase, Rocket, Scale, 
-  Terminal, Heart, Languages, Mic, Swords, Hourglass, ChevronDown, ChevronUp 
+  Terminal, Heart, Languages, Mic, Swords, Hourglass, ChevronDown, ChevronUp,
+  Sparkles, StickyNote, Globe, X
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -127,8 +128,22 @@ export const ChatSidebar = ({
   onCollapse,
   onSelectFeature
 }: ChatSidebarProps) => {
-  const navigate = useNavigate();
+    const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcut (Ctrl+K or Cmd+K) to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const [showAllFeatures, setShowAllFeatures] = useState(false);
   const [pinnedChats, setPinnedChats] = useState<Set<string>>(() => {
     const saved = localStorage.getItem('pinnedChats');
@@ -285,15 +300,29 @@ export const ChatSidebar = ({
           </div>
         </div>
         
-        {/* Search chats */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                {/* ChatGPT Style Sleek Search chats */}
+        <div className="relative flex items-center group">
+          <Search className="absolute left-3 w-3.5 h-3.5 text-muted-foreground group-focus-within:text-foreground transition-colors pointer-events-none" />
           <Input 
+            ref={searchInputRef}
             placeholder="Search chats..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-8.5 h-9 bg-muted/40 hover:bg-muted/60 border border-border/40 text-xs sm:text-sm text-sidebar-foreground placeholder:text-muted-foreground rounded-xl focus-visible:ring-1 focus-visible:ring-foreground/20" 
+            className="pl-8.5 pr-14 h-9 bg-muted/40 hover:bg-muted/70 focus:bg-background border border-border/40 focus:border-foreground/30 text-xs text-sidebar-foreground placeholder:text-muted-foreground/80 rounded-xl transition-all shadow-none focus-visible:ring-0" 
           />
+          {searchQuery ? (
+            <button
+              type="button"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          ) : (
+            <kbd className="pointer-events-none absolute right-2.5 text-[9px] font-mono text-muted-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded border border-border/40">
+              ⌘K
+            </kbd>
+          )}
         </div>
       </div>
 
@@ -308,13 +337,62 @@ export const ChatSidebar = ({
         </Button>
       </div>
 
-                 {/* Settings Navigation */}
+                       {/* 3 Action Tabs + Settings Navigation */}
       <div className="p-2 border-b border-sidebar-border/30">
         <nav className="space-y-0.5">
+          {/* Tab 1: Explore Prompts */}
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start h-8 text-xs text-sidebar-foreground hover:bg-muted/60 rounded-xl"
+            className="w-full justify-start h-8 text-xs text-sidebar-foreground hover:bg-muted/60 rounded-xl group transition-all"
+            onClick={() => {
+              navigate('/explore');
+              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
+                onCollapse();
+              }
+            }}
+          >
+            <Sparkles className="w-3.5 h-3.5 mr-2 text-indigo-400 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Explore Prompts</span>
+          </Button>
+
+          {/* Tab 2: Notes & Canvas */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start h-8 text-xs text-sidebar-foreground hover:bg-muted/60 rounded-xl group transition-all"
+            onClick={() => {
+              navigate('/notes');
+              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
+                onCollapse();
+              }
+            }}
+          >
+            <StickyNote className="w-3.5 h-3.5 mr-2 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Notes & Canvas</span>
+          </Button>
+
+          {/* Tab 3: Deep Research */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start h-8 text-xs text-sidebar-foreground hover:bg-muted/60 rounded-xl group transition-all"
+            onClick={() => {
+              onNewChat();
+              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
+                onCollapse();
+              }
+            }}
+          >
+            <Globe className="w-3.5 h-3.5 mr-2 text-cyan-400 group-hover:scale-110 transition-transform" />
+            <span className="truncate">Deep Research</span>
+          </Button>
+
+          {/* Settings Tab */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start h-8 text-xs text-sidebar-foreground hover:bg-muted/60 rounded-xl transition-all"
             onClick={() => {
               onOpenSettings();
               if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
@@ -323,7 +401,7 @@ export const ChatSidebar = ({
             }}
           >
             <Settings className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
-            Settings
+            <span className="truncate">Settings</span>
           </Button>
         </nav>
       </div>
