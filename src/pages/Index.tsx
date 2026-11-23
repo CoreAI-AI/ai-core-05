@@ -27,7 +27,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useOfflineDraft } from "@/hooks/useOfflineDraft";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { X, PanelLeft, Search, SquarePen, Palette } from "lucide-react";
+import { X, PanelLeft, SquarePen, Focus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { exportChatAsText, exportChatAsPDF } from "@/lib/exportChat";
@@ -205,7 +205,8 @@ const Index = () => {
   const [imageGenerationPrompt, setImageGenerationPrompt] = useState("");
   const [isUserTyping, setIsUserTyping] = useState(false);
   const [openTabs, setOpenTabs] = useState<Chat[]>([]);
-  const [showSearch, setShowSearch] = useState(false);
+    const [showSearch, setShowSearch] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
   const [responseLength, setResponseLength] = useState<'concise' | 'normal' | 'detailed'>('normal');
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string; index: number } | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -871,7 +872,7 @@ const Index = () => {
     <div className={`flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none ${isPremium ? 'premium-mode' : ''}`}>
       {/* Sidebar with slide transition */}
       <AnimatePresence mode="wait">
-        {!sidebarCollapsed && (
+                   {!sidebarCollapsed && !isFocusMode && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
@@ -1006,25 +1007,28 @@ const Index = () => {
                     />
                   </div>
 
-                                    <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/images')}
-                    className="h-8 px-3 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
-                    title="Image Styles"
-                  >
-                    <Palette className="h-3.5 w-3.5 mr-1.5 text-primary" />
-                    <span className="hidden sm:inline">Styles</span>
-                  </Button>
-
-                  <Button
+                                      <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setShowSearch(true)}
-                    className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
-                    title="Search (Ctrl+K)"
+                    onClick={() => {
+                      setIsFocusMode(prev => {
+                        const next = !prev;
+                        if (next) {
+                          toast.success("Focus Mode enabled");
+                        } else {
+                          toast.info("Focus Mode disabled");
+                        }
+                        return next;
+                      });
+                    }}
+                    className={`h-8 w-8 rounded-full transition-all cursor-pointer ${
+                      isFocusMode
+                        ? 'bg-primary/20 text-primary border border-primary/40 shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
+                    }`}
+                    title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
                   >
-                    <Search className="h-4 w-4" />
+                    <Focus className="h-4 w-4" />
                   </Button>
 
                   <Button
