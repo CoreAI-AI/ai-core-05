@@ -16,10 +16,12 @@ import {
   FileText,
   ChevronDown,
   BookOpen,
-  Utensils,
+    Utensils,
   TrendingUp,
-  PiggyBank
+  PiggyBank,
+  Sparkles
 } from "lucide-react";
+import { FeaturesModal, CoreAIFeatureItem } from "@/components/FeaturesModal";
 import { toast } from "sonner";
 import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -87,7 +89,8 @@ export const ChatInput = memo(({
 }: ChatInputProps) => {
   const [message, setMessage] = useState("");
   const [currentMode, setCurrentMode] = useState<ModeType>("normal");
-
+  const [showFeaturesModal, setShowFeaturesModal] = useState(false);
+  
   useEffect(() => {
     if (propsCurrentMode && propsCurrentMode !== currentMode) {
       setCurrentMode(propsCurrentMode);
@@ -346,32 +349,48 @@ export const ChatInput = memo(({
                   <span className="truncate max-w-[90px]">{activeModeConfig.label.split(' ')[0]}</span>
                   <ChevronDown className="h-3 w-3 opacity-50" />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 max-h-[300px] overflow-y-auto p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
+                           </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-60 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
                 <div className="px-2.5 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  CoreAI Modes
+                  CoreAI Modes ({availableModes.length})
                 </div>
-                {availableModes.map((m) => (
-                  <DropdownMenuItem
-                    key={m.id}
-                    onClick={() => handleSelectMode(m.id, m.label)}
-                    className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl cursor-pointer text-xs ${
-                      currentMode === m.id ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {m.id === 'normal' ? (
-                        <img src={coreaiLogo} alt="CoreAI" className="h-3.5 w-3.5 rounded-full object-contain shrink-0" />
-                      ) : (
-                        <m.icon className={`h-3.5 w-3.5 ${m.color}`} />
-                      )}
-                      <span>{m.label}</span>
-                    </div>
-                    {currentMode === m.id && <span className="text-[10px] text-primary font-semibold">Active</span>}
-                  </DropdownMenuItem>
-                ))}
+                {/* Scrollable Container with explicit touch-pan-y so all 11 modes can be smoothly scrolled */}
+                <div className="max-h-[260px] overflow-y-auto overscroll-contain touch-pan-y pr-1 space-y-0.5">
+                  {availableModes.map((m) => (
+                    <DropdownMenuItem
+                      key={m.id}
+                      onClick={() => handleSelectMode(m.id, m.label)}
+                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl cursor-pointer text-xs ${
+                        currentMode === m.id ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        {m.id === 'normal' ? (
+                          <img src={coreaiLogo} alt="CoreAI" className="h-3.5 w-3.5 rounded-full object-contain shrink-0" />
+                        ) : (
+                          <m.icon className={`h-3.5 w-3.5 ${m.color}`} />
+                        )}
+                        <span>{m.label}</span>
+                      </div>
+                      {currentMode === m.id && <span className="text-[10px] text-primary font-semibold">Active</span>}
+                    </DropdownMenuItem>
+                  ))}
+                </div>
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Features Button right next to Mode Pill */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFeaturesModal(true)}
+              className="h-7 px-2.5 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 hover:border-emerald-500/40 hover:shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)] transition-all cursor-pointer"
+              title="Open CoreAI Features"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+              <span>Features</span>
+            </Button>
           </div>
 
           {/* Right Actions: Mic + Send Button */}
@@ -411,12 +430,23 @@ export const ChatInput = memo(({
         </div>
       </div>
 
-      {/* Powered by Tagline */}
+            {/* Powered by Tagline */}
       <div className="text-center mt-1.5">
         <p className="text-[10px] text-muted-foreground/80 tracking-tight">
           CoreAI can make mistakes. Verify important information.
         </p>
       </div>
+
+      {/* Uploaded Design Matched Features Pop-up */}
+      <FeaturesModal
+        isOpen={showFeaturesModal}
+        onClose={() => setShowFeaturesModal(false)}
+        onSelectFeature={(feature: CoreAIFeatureItem) => {
+          onSendMessage(feature.prompt);
+          setShowFeaturesModal(false);
+          toast.success(`${feature.label} activated!`);
+        }}
+      />
     </div>
   );
 });
