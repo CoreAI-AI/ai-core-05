@@ -380,17 +380,48 @@ export const ChatInput = memo(({
             </DropdownMenu>
 
             {/* Features Button right next to Mode Pill */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowFeaturesModal(true)}
-              className="h-7 px-2.5 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 hover:border-emerald-500/40 hover:shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)] transition-all cursor-pointer"
-              title="Open CoreAI Features"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
-              <span>Features</span>
-            </Button>
+            // ✅ NAYA REPLACE CODE
+{/* CoreAI Features Dropdown (Exact like Modes) */}
+<DropdownMenu>
+  <DropdownMenuTrigger asChild>
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
+      className="h-7 px-2.5 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 hover:border-emerald-500/40 hover:shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)] transition-all cursor-pointer"
+      title="Open CoreAI Features"
+    >
+      <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+      <span>Features</span>
+      <ChevronDown className="h-3 w-3 opacity-50" />
+    </Button>
+  </DropdownMenuTrigger>
+  <DropdownMenuContent align="start" className="w-64 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
+    <div className="flex items-center justify-between px-2.5 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+      <span>CoreAI Features</span>
+      <span className="text-[10px] text-emerald-400 font-bold">{allCoreAiFeatures.length}</span>
+    </div>
+    {/* Smooth Scrollable Container with touch support */}
+    <div className="max-h-[260px] overflow-y-auto overscroll-contain touch-pan-y pr-1 space-y-0.5">
+      {allCoreAiFeatures.map((f) => (
+        <DropdownMenuItem
+          key={f.id}
+          onClick={() => {
+            onSendMessage(f.prompt);
+            toast.success(`${f.label} activated!`);
+          }}
+          className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl cursor-pointer text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        >
+          <div className="w-6 h-6 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+            <f.icon className="h-3.5 w-3.5 text-emerald-400" />
+          </div>
+          <span className="truncate font-medium">{f.label}</span>
+        </DropdownMenuItem>
+      ))}
+    </div>
+  </DropdownMenuContent>
+</DropdownMenu>
+
           </div>
 
           {/* Right Actions: Mic + Send Button */}
@@ -438,15 +469,7 @@ export const ChatInput = memo(({
       </div>
 
       {/* Uploaded Design Matched Features Pop-up */}
-      <FeaturesModal
-        isOpen={showFeaturesModal}
-        onClose={() => setShowFeaturesModal(false)}
-        onSelectFeature={(feature: CoreAIFeatureItem) => {
-          onSendMessage(feature.prompt);
-          setShowFeaturesModal(false);
-          toast.success(`${feature.label} activated!`);
-        }}
-      />
+      
     </div>
   );
 });
