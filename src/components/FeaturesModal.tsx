@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { 
   X, ChevronRight, FileText, BookOpen, Briefcase, Rocket, Scale, 
   Terminal, Heart, Languages, Mic, Swords, Hourglass, Code 
@@ -93,46 +93,61 @@ interface FeaturesModalProps {
 }
 
 export const FeaturesModal: React.FC<FeaturesModalProps> = ({ isOpen, onClose, onSelectFeature }) => {
+  // Escape key dabane par close karne ke liye
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-md animate-in fade-in duration-200">
+    // Outer overlay: Bahar tap karne par onClose trigger hoga
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      {/* Modal Card: Bounded height + flex column layout */}
       <div 
-        className="relative w-full max-w-3xl bg-card border border-emerald-500/30 rounded-3xl p-5 sm:p-7 shadow-[0_0_60px_-15px_rgba(16,185,129,0.3)] overflow-hidden"
+        className="relative w-full max-w-2xl sm:max-w-3xl max-h-[85vh] sm:max-h-[80vh] flex flex-col bg-card/95 backdrop-blur-xl border border-emerald-500/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-[0_0_50px_-10px_rgba(16,185,129,0.25)] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Soft Background Neon Glow */}
-        <div className="absolute -top-20 -left-20 w-52 h-52 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-20 -right-20 w-52 h-52 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-16 -left-16 w-44 h-44 bg-emerald-500/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-16 -right-16 w-44 h-44 bg-teal-500/15 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Header matching user image */}
-        <div className="relative flex items-center justify-between pb-4 border-b border-border/40">
+        {/* Header (Always Visible, Non-scrolling) */}
+        <div className="relative flex items-center justify-between pb-3 sm:pb-4 border-b border-border/40 shrink-0">
           <div className="flex items-center gap-3">
-            {/* 4-leaf Clover Cross Icon */}
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 p-2 flex items-center justify-center shadow-md shadow-emerald-500/20">
+            {/* Clover 4-Leaf Icon */}
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 p-2 flex items-center justify-center shadow-md shadow-emerald-500/20">
               <div className="grid grid-cols-2 gap-1 w-full h-full">
-                <span className="bg-white/90 rounded-sm" />
-                <span className="bg-white/90 rounded-sm" />
-                <span className="bg-white/90 rounded-sm" />
-                <span className="bg-white/90 rounded-sm" />
+                <span className="bg-white/90 rounded-xs" />
+                <span className="bg-white/90 rounded-xs" />
+                <span className="bg-white/90 rounded-xs" />
+                <span className="bg-white/90 rounded-xs" />
               </div>
             </div>
-            <div className="h-6 w-px bg-border/70" />
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">Features</h2>
+            <div className="h-5 w-px bg-border/70" />
+            <h2 className="text-lg sm:text-2xl font-bold tracking-tight text-foreground">Features</h2>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center border border-border/40 transition-all cursor-pointer hover:scale-105"
+            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center border border-border/40 transition-all cursor-pointer hover:scale-105"
             aria-label="Close"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* 3-Column Grid of Features Cards matching user image */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-3 mt-5 max-h-[60vh] overflow-y-auto overscroll-contain touch-pan-y pr-1">
+        {/* 3-Column Scrollable Grid: flex-1 + min-h-0 se scrolling 100% smooth chalegi */}
+        <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain touch-pan-y pr-1.5 sm:pr-2 mt-4 space-y-2.5 sm:space-y-0 sm:grid sm:grid-cols-2 md:grid-cols-3 sm:gap-3">
           {allCoreAiFeatures.map((feature, idx) => (
             <button
               key={feature.id}
@@ -141,14 +156,14 @@ export const FeaturesModal: React.FC<FeaturesModalProps> = ({ isOpen, onClose, o
                 onSelectFeature(feature);
                 onClose();
               }}
-              className={`group flex items-center justify-between p-2.5 rounded-2xl border transition-all text-left cursor-pointer hover:-translate-y-0.5 active:translate-y-0 ${
+              className={`w-full group flex items-center justify-between p-2.5 rounded-2xl border transition-all text-left cursor-pointer hover:-translate-y-0.5 active:translate-y-0 ${
                 idx === 0 
                   ? "bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_20px_-5px_rgba(16,185,129,0.25)]" 
                   : "bg-muted/30 hover:bg-muted/70 border-border/50 hover:border-emerald-500/40 hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.2)]"
               }`}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-slate-950 border border-slate-800 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform shadow-xs">
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 dark:bg-slate-950 border border-slate-800 flex items-center justify-center text-white shrink-0 group-hover:scale-105 transition-transform shadow-xs">
                   <feature.icon className="w-4 h-4 text-emerald-400 group-hover:text-emerald-300" />
                 </div>
                 <span className="text-xs sm:text-sm font-semibold text-foreground truncate group-hover:text-emerald-400 transition-colors">
