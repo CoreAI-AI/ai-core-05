@@ -308,14 +308,9 @@ export const ChatSidebar = ({
         </Button>
       </div>
 
-           {/* 11 CoreAI Features & Settings */}
+                 {/* Settings Navigation */}
       <div className="p-2 border-b border-sidebar-border/30">
-        <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center justify-between">
-          <span>AI Features</span>
-          <span className="text-[10px] font-normal text-primary">100% Free</span>
-        </div>
-        <nav className="space-y-0.5 mt-1">
-          {/* Settings Button */}
+        <nav className="space-y-0.5">
           <Button
             variant="ghost"
             size="sm"
@@ -329,38 +324,6 @@ export const ChatSidebar = ({
           >
             <Settings className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
             Settings
-          </Button>
-
-          {/* First 5 Features or All 11 when Expanded */}
-          {(showAllFeatures ? coreAiFeatures : coreAiFeatures.slice(0, 5)).map((feature) => (
-            <Button
-              key={feature.id}
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start h-8 text-xs text-sidebar-foreground hover:bg-muted/60 rounded-xl"
-              onClick={() => handleFeatureClick(feature)}
-              title={feature.label}
-            >
-              <feature.icon className="w-3.5 h-3.5 mr-2 text-primary shrink-0" />
-              <span className="truncate">{feature.label}</span>
-            </Button>
-          ))}
-
-          {/* More / Less Toggle Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-between h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-lg transition-all"
-            onClick={() => setShowAllFeatures(!showAllFeatures)}
-          >
-            <span className="flex items-center gap-1 font-medium">
-              {showAllFeatures ? "Show Less" : "More Features (6+)"}
-            </span>
-            {showAllFeatures ? (
-              <ChevronUp className="w-3 h-3 text-muted-foreground" />
-            ) : (
-              <ChevronDown className="w-3 h-3 text-muted-foreground" />
-            )}
           </Button>
         </nav>
       </div>
