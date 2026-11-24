@@ -945,7 +945,7 @@ const Index = () => {
                 </Button>
               </div>
               <ScrollArea className="flex-1 p-4 sm:p-6">
-                <div className="max-w-3xl mx-auto">
+                <div className="max-w-5xl mx-auto">
                   <Settings user={user} />
                 </div>
               </ScrollArea>
