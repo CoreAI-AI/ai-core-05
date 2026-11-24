@@ -73,11 +73,47 @@ export const buildCompanionContext = (message: string, now = new Date()): string
   const m = learnFromMessage(message, now);
   const due = dueFollowUps(now);
   const parts = [`User local time: ${timeContext(now)}.`];
+  
+  // Read active personality & custom instructions from localStorage (Zero cost)
+  try {
+    const rawDemo = localStorage.getItem('user_settings_demo');
+    let userSettings: any = null;
+    if (rawDemo) {
+      userSettings = JSON.parse(rawDemo);
+    } else {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('user_settings_')) {
+          userSettings = JSON.parse(localStorage.getItem(key) || '{}');
+          break;
+        }
+      }
+    }
+
+    if (userSettings) {
+      if (userSettings.personalityPreset) {
+        parts.push(`PERSONALITY: ${getPersonalityInstruction(userSettings.personalityPreset)}`);
+      }
+      if (userSettings.customAboutMe?.trim()) {
+        parts.push(`ABOUT USER: ${userSettings.customAboutMe.trim()}`);
+      }
+      if (userSettings.customResponseStyle?.trim()) {
+        parts.push(`RESPONSE PREFERENCE: ${userSettings.customResponseStyle.trim()}`);
+      }
+      if (userSettings.responseLength) {
+        parts.push(`LENGTH: Prefer ${userSettings.responseLength} replies.`);
+      }
+    }
+  } catch {
+    /* fallback to default friend */
+  }
+
   if (m.name) parts.push(`User's name: ${m.name}.`);
   if (m.facts.length) parts.push(`Remembered about user: ${m.facts.join("; ")}.`);
-  if (due.length) parts.push(`PENDING FOLLOW-UP (ask warmly how it went, at the start of your reply): ${due.map((f) => `"${f.topic}" (said on ${f.created})`).join("; ")}.`);
+  if (due.length) parts.push(`PENDING FOLLOW-UP (ask warmly how it went): ${due.map((f) => `"${f.topic}"`).join("; ")}.`);
   if (due.length) markFollowUpsAsked(now);
-  return parts.join(" ").slice(0, 1200);
+  
+  return parts.join(" ").slice(0, 1600);
 };
 
 export const addManualFact = (factText: string) => {
