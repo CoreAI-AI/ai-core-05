@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { CoreAILogo } from './CoreAILogo';
+import coreaiLogo from '@/assets/coreai-logo.png';
 
 interface TypingWaveformProps {
   show: boolean;
@@ -8,6 +8,7 @@ interface TypingWaveformProps {
 
 export const TypingWaveform = memo(({ show }: TypingWaveformProps) => {
   if (!show) return null;
+
   const reduceMotion = useReducedMotion();
 
   return (
@@ -18,16 +19,24 @@ export const TypingWaveform = memo(({ show }: TypingWaveformProps) => {
       exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
       transition={{ duration: 0.2 }}
       role="status"
+      aria-live="polite"
       aria-label="CoreAI is thinking"
     >
-      <motion.div
-        className="w-5 h-5 text-foreground shrink-0"
+      {/* Pure Clean CoreAI Logo with Smooth Spin (No Extra Effects) */}
+      <motion.img
+        src={coreaiLogo}
+        alt="CoreAI"
+        className="w-6 h-6 rounded-full object-cover shrink-0 select-none"
         animate={reduceMotion ? undefined : { rotate: 360 }}
-        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-      >
-        <CoreAILogo className="w-full h-full text-foreground" />
-      </motion.div>
-      <span className="text-xs text-muted-foreground">
+        transition={{
+          duration: 2.4,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+      />
+
+      {/* Simple Clean Thinking Text */}
+      <span className="text-xs font-normal text-muted-foreground select-none">
         CoreAI is thinking...
       </span>
     </motion.div>
