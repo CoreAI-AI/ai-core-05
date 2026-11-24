@@ -15,9 +15,14 @@ export interface UserSettings {
   textToSpeechEnabled: boolean;
   selectedVoice: string;
   speechRate: number;
-  
   // Data & History
   autoSaveConversations: boolean;
+
+  // --- Real Personality & Custom Instructions (Zero Cost) ---
+  personalityPreset: 'friend' | 'mentor' | 'teacher' | 'creative' | 'technical';
+  customAboutMe: string;           // "CoreAI aapke baare mein kya jaane?"
+  customResponseStyle: string;     // "CoreAI kis style mein respond kare?"
+  sendOnEnter: boolean;            // Enter = Send, Shift+Enter = New line
 }
 
 const defaultSettings: UserSettings = {
@@ -32,8 +37,13 @@ const defaultSettings: UserSettings = {
   textToSpeechEnabled: false,
   selectedVoice: '',
   speechRate: 1,
-  
   autoSaveConversations: true,
+
+  // Defaults
+  personalityPreset: 'friend',
+  customAboutMe: '',
+  customResponseStyle: '',
+  sendOnEnter: true,
 };
 
 export const useSettings = (userId?: string) => {
@@ -59,6 +69,8 @@ export const useSettings = (userId?: string) => {
     const updatedSettings = { ...settings, ...newSettings };
     setSettings(updatedSettings);
     localStorage.setItem(settingsKey, JSON.stringify(updatedSettings));
+    // Also broadcast to companion memory so AI immediately gets personality updates
+    window.dispatchEvent(new Event('coreai_settings_updated'));
   };
 
   const resetSettings = () => {
