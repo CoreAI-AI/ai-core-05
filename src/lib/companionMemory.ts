@@ -79,3 +79,92 @@ export const buildCompanionContext = (message: string, now = new Date()): string
   if (due.length) markFollowUpsAsked(now);
   return parts.join(" ").slice(0, 1200);
 };
+
+export const addManualFact = (factText: string) => {
+  const trimmed = factText.trim();
+  if (!trimmed) return;
+  const m = loadMemory();
+  if (!m.facts.includes(trimmed)) {
+    m.facts = [...m.facts, trimmed].slice(-15);
+    save(m);
+  }
+};
+
+export const removeFact = (index: number) => {
+  const m = loadMemory();
+  m.facts = m.facts.filter((_, i) => i !== index);
+  save(m);
+};
+
+export const clearAllMemoryFacts = () => {
+  const m = loadMemory();
+  m.facts = [];
+  m.followUps = [];
+  save(m);
+};
+
+/** Active Personality context builder helper */
+const getPersonalityInstruction = (preset?: string): string => {
+  switch (preset) {
+    case 'mentor':
+      return "Role: Professional Mentor. Be structured, analytical, objective, and action-oriented.";
+    case 'teacher':
+      return "Role: Patient Teacher. Explain concepts step-by-step with simple analogies and clear examples.";
+    case 'creative':
+      return "Role: Creative Thinker. Be imaginative, expressive, poetic when suitable, and offer unique angles.";
+    case 'technical':
+      return "Role: Senior Technical Expert. Direct code/answers first, high precision, zero pleasantries or fluff.";
+    case 'friend':
+    default:
+      return "Role: Empathetic Best Friend (Dost). Warm, caring, respectful, natural Hindi/Hinglish, emotionally supportive.";
+  }
+};
+
+/** Learn from the message and build the private context sent with this request only. */
+export const buildCompanionContext = (message: string, now = new Date()): string => {
+  const m = learnFromMessage(message, now);
+  const due = dueFollowUps(now);
+  const parts = [`User local time: ${timeContext(now)}.`];
+  
+  // Read active personality & custom instructions from localStorage (Zero cost)
+  try {
+    const rawDemo = localStorage.getItem('user_settings_demo');
+    let userSettings: any = null;
+    if (rawDemo) {
+      userSettings = JSON.parse(rawDemo);
+    } else {
+      // Find first user_settings key
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('user_settings_')) {
+          userSettings = JSON.parse(localStorage.getItem(key) || '{}');
+          break;
+        }
+      }
+    }
+
+    if (userSettings) {
+      if (userSettings.personalityPreset) {
+        parts.push(`PERSONALITY: ${getPersonalityInstruction(userSettings.personalityPreset)}`);
+      }
+      if (userSettings.customAboutMe?.trim()) {
+        parts.push(`ABOUT USER: ${userSettings.customAboutMe.trim()}`);
+      }
+      if (userSettings.customResponseStyle?.trim()) {
+        parts.push(`RESPONSE PREFERENCE: ${userSettings.customResponseStyle.trim()}`);
+      }
+      if (userSettings.responseLength) {
+        parts.push(`LENGTH: Prefer ${userSettings.responseLength} replies.`);
+      }
+    }
+  } catch {
+    /* fallback to default friend */
+  }
+
+  if (m.name) parts.push(`User's name: ${m.name}.`);
+  if (m.facts.length) parts.push(`Remembered about user: ${m.facts.join("; ")}.`);
+  if (due.length) parts.push(`PENDING FOLLOW-UP (ask warmly how it went): ${due.map((f) => `"${f.topic}"`).join("; ")}.`);
+  if (due.length) markFollowUpsAsked(now);
+  
+  return parts.join(" ").slice(0, 1600);
+};
