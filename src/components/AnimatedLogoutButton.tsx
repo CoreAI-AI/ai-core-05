@@ -36,9 +36,9 @@ export const AnimatedLogoutButton = ({ onSignOut, isDemo }: AnimatedLogoutButton
     <button
       onClick={handleClick}
       disabled={state !== "idle"}
-      className={cn(
-        "relative w-full h-10 rounded-xl font-medium text-sm overflow-hidden transition-all duration-300",
-        "flex items-center justify-center gap-2",
+           className={cn(
+        "relative w-full h-11 rounded-xl font-medium text-sm md:text-base overflow-hidden transition-all duration-200",
+        "flex items-center justify-center gap-2.5",
         state === "idle" && "bg-transparent hover:bg-destructive/10 text-sidebar-foreground hover:text-destructive border border-transparent",
         state === "loading" && "bg-orange-500 text-white cursor-not-allowed",
         state === "success" && "bg-green-500 text-white cursor-default"
