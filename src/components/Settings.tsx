@@ -14,8 +14,18 @@ import {
   User as UserIcon, Monitor, Moon, Sun, Palette, 
   Volume2, Database, LogOut, Trash2, History,
   Upload, Check, Sparkles, Brain, MessageSquare, 
-  Download, Plus, ShieldCheck, HeartHandshake, Briefcase, GraduationCap, Code2, Feather
+  Download, Plus, ShieldCheck, HeartHandshake, Briefcase, GraduationCap, Code2, Feather,
+  MoreVertical, Shield, FileText, HelpCircle, Info
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { UserSettings, useSettings } from "@/hooks/useSettings";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -40,6 +50,7 @@ interface SettingsProps {
 type TabKey = 'profile' | 'personality' | 'memory' | 'chat' | 'voice' | 'data';
 
 export const Settings = ({ user }: SettingsProps) => {
+  const navigate = useNavigate();
   const { settings, updateSettings } = useSettings(user?.id);
   const { theme, setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<TabKey>('profile');
@@ -204,10 +215,91 @@ export const Settings = ({ user }: SettingsProps) => {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight">CoreAI Preferences & Settings</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Customize your AI's personality, memory, audio, and appearance</p>
         </div>
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+               <div className="flex items-center gap-2 self-start sm:self-auto">
           <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5" /> 100% Free & Private
           </span>
+
+          {/* 3-Dots More Options Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted border border-border/50 transition-all cursor-pointer"
+                title="More Options & Pages"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-2xl bg-popover/95 backdrop-blur-xl border border-border/80 shadow-2xl z-50">
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1">
+                Quick Settings
+              </DropdownMenuLabel>
+              {navItems.map((item) => {
+                const ItemIcon = item.icon;
+                return (
+                  <DropdownMenuItem
+                    key={item.key}
+                    onClick={() => setActiveTab(item.key)}
+                    className={`rounded-xl cursor-pointer text-xs sm:text-sm py-2 px-2.5 flex items-center justify-between ${
+                      activeTab === item.key ? 'bg-primary/10 text-primary font-medium' : 'text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <ItemIcon className="w-4 h-4 text-muted-foreground" />
+                      <span>{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-muted text-muted-foreground">
+                        {item.badge}
+                      </span>
+                    )}
+                  </DropdownMenuItem>
+                );
+              })}
+
+              <DropdownMenuSeparator className="my-1 border-border/40" />
+
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1">
+                Legal & Privacy
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => navigate('/privacy-policy')}
+                className="rounded-xl cursor-pointer text-xs sm:text-sm py-2 px-2.5 flex items-center gap-2.5 text-foreground hover:bg-muted"
+              >
+                <Shield className="w-4 h-4 text-emerald-500" />
+                <span>Privacy Policy</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate('/terms')}
+                className="rounded-xl cursor-pointer text-xs sm:text-sm py-2 px-2.5 flex items-center gap-2.5 text-foreground hover:bg-muted"
+              >
+                <FileText className="w-4 h-4 text-blue-500" />
+                <span>Terms & Conditions</span>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator className="my-1 border-border/40" />
+
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1">
+                About & Help
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => navigate('/about')}
+                className="rounded-xl cursor-pointer text-xs sm:text-sm py-2 px-2.5 flex items-center gap-2.5 text-foreground hover:bg-muted"
+              >
+                <Info className="w-4 h-4 text-cyan-500" />
+                <span>About CoreAI & Founder</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate('/faq')}
+                className="rounded-xl cursor-pointer text-xs sm:text-sm py-2 px-2.5 flex items-center gap-2.5 text-foreground hover:bg-muted"
+              >
+                <HelpCircle className="w-4 h-4 text-amber-500" />
+                <span>FAQ & Help Guide</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
