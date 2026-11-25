@@ -136,8 +136,8 @@ export const ChatMessage = memo(({
                 <p>{message}</p>
               )}
               
-              {timestamp && (
-                <p className="text-[10px] text-muted-foreground/70 mt-1 text-right">{timestamp}</p>
+                            {timestamp && (
+                <p className="text-xs text-muted-foreground/80 mt-1.5 text-right font-normal tracking-normal">{timestamp}</p>
               )}
             </motion.div>
           </div>
@@ -221,8 +221,8 @@ export const ChatMessage = memo(({
             </div>
           )}
           
-          {timestamp && (
-            <p className="text-[10px] text-muted-foreground mt-2">{timestamp}</p>
+                    {timestamp && (
+            <p className="text-xs text-muted-foreground/80 mt-2 font-normal tracking-normal">{timestamp}</p>
           )}
         </motion.div>
         
