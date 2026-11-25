@@ -315,18 +315,18 @@ export const ChatInput = memo(({
           className="w-full min-h-[44px] max-h-[160px] resize-none border-0 bg-transparent px-2 pt-1 pb-2 text-sm sm:text-[15px] leading-relaxed text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none transition-all duration-75"
         />
 
-        {/* Bottom Ergonomic Action Bar — Only Single Clean Bar */}
+         {/* Bottom Ergonomic Action Bar — Only Single Clean Bar */}
         <div className="flex items-center justify-between gap-1 pt-1 border-t border-border/30 dark:border-white/5">
           {/* Left Actions: + Menu & Modes Pill */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1">
             {/* Attachment Menu (+) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                               <Button
+                <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
+                  className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer shrink-0"
                   title="Attach up to 8 images or files"
                 >
                   <Plus className="h-5 w-5 stroke-[2]" />
@@ -355,7 +355,7 @@ export const ChatInput = memo(({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-9 px-3.5 gap-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 transition-all cursor-pointer"
+                  className="h-9 px-2 sm:px-3.5 gap-1.5 sm:gap-2 rounded-full text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 transition-all cursor-pointer shrink-0"
                   title="Change CoreAI Mode"
                 >
                   {activeModeConfig.id === 'normal' ? (
@@ -363,10 +363,11 @@ export const ChatInput = memo(({
                   ) : (
                     <activeModeConfig.icon className={`h-5 w-5 ${activeModeConfig.color}`} />
                   )}
-                  <span className="truncate max-w-[110px]">{activeModeConfig.label.split(' ')[0]}</span>
+                  <span className="truncate max-w-[80px] sm:max-w-[110px]">{activeModeConfig.label.split(' ')[0]}</span>
                   <ChevronDown className="h-4 w-4 opacity-70" />
                 </Button>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent align="start" className="w-64 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
                 <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   CoreAI Modes ({availableModes.length})
@@ -399,17 +400,18 @@ export const ChatInput = memo(({
 {/* CoreAI Features Dropdown - Rich Colorful Mini-Cards */}
 <DropdownMenu>
   <DropdownMenuTrigger asChild>
-    <Button
+        <Button
       type="button"
       variant="ghost"
       size="sm"
-      className="h-9 px-3.5 gap-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 hover:border-emerald-500/40 hover:shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)] transition-all cursor-pointer"
+      className="h-9 px-2 sm:px-3.5 gap-1 sm:gap-2 rounded-full text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 hover:border-emerald-500/40 hover:shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)] transition-all cursor-pointer shrink-0"
       title="Open CoreAI Features"
     >
       <Sparkles className="h-4 w-4 text-emerald-400" />
-      <span>Features</span>
+      <span className="hidden sm:inline">Features</span>
       <ChevronDown className="h-3.5 w-3.5 opacity-60" />
     </Button>
+
   </DropdownMenuTrigger>
   <DropdownMenuContent align="start" className="w-[320px] sm:w-[420px] p-2.5 rounded-2xl bg-popover/95 backdrop-blur-xl border border-border/80 shadow-2xl z-50">
     <div className="flex items-center justify-between px-2 py-1 mb-1.5 border-b border-border/40 pb-1.5">
@@ -460,7 +462,7 @@ export const ChatInput = memo(({
           </div>
 
           {/* Right Actions: Mic + Send Button */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 pl-1">
             <Button
               type="button"
               variant="ghost"
