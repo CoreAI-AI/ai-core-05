@@ -1007,7 +1007,7 @@ const Index = () => {
                     />
                   </div>
 
-                                      <Button
+                  <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => {
@@ -1021,24 +1021,24 @@ const Index = () => {
                         return next;
                       });
                     }}
-                    className={`h-8 w-8 rounded-full transition-all cursor-pointer ${
+                    className={`h-9 w-9 rounded-full transition-all cursor-pointer ${
                       isFocusMode
                         ? 'bg-primary/20 text-primary border border-primary/40 shadow-sm'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
                     }`}
                     title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
                   >
-                    <Focus className="h-4 w-4" />
+                    <Focus className="h-4.5 w-4.5" />
                   </Button>
 
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={startNewChat}
-                    className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
+                    className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
                     title="New Chat"
                   >
-                    <SquarePen className="h-4 w-4" />
+                    <SquarePen className="h-4.5 w-4.5" />
                   </Button>
 
                 </div>
