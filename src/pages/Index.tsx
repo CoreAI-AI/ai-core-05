@@ -1203,8 +1203,8 @@ const Index = () => {
               
               <div className="px-2 py-2 sm:py-3 sm:p-4">
                 <div className="max-w-3xl xl:max-w-4xl mx-auto w-full">
-                  {!isPremium && (
-                    <p className="text-center text-[11px] text-muted-foreground pb-1" aria-live="polite">
+                   {!isPremium && (
+                    <p className="text-center text-xs text-muted-foreground pb-1 font-medium" aria-live="polite">
                       ⚡ {usageLimits.remaining}/{usageLimits.DAILY_CHAT_LIMIT} free chats left today
                     </p>
                   )}
