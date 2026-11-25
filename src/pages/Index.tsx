@@ -1028,7 +1028,7 @@ const Index = () => {
                     }`}
                     title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
                   >
-                    <Focus className="h-4.5 w-4.5" />
+                    <Focus className="h-4 w-5" />
                   </Button>
 
                   <Button
@@ -1038,7 +1038,7 @@ const Index = () => {
                     className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
                     title="New Chat"
                   >
-                    <SquarePen className="h-4.5 w-4.5" />
+                    <SquarePen className="h-5 w-5" />
                   </Button>
 
                 </div>
