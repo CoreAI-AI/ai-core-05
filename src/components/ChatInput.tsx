@@ -332,16 +332,16 @@ export const ChatInput = memo(({
                   <Plus className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-52 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
-                <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
+                <DropdownMenuContent align="start" className="w-56 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
+                <DropdownMenuItem onClick={() => fileInputRef.current?.click()} className="rounded-xl cursor-pointer text-sm py-2.5 transition-colors">
                   <ImageIcon className="h-4 w-4 mr-2.5 text-cyan-500" />
                   Photos (Up to 8 Images)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-xs py-2">
+                <DropdownMenuItem onClick={handleTakePhoto} className="rounded-xl cursor-pointer text-sm py-2.5 transition-colors">
                   <Camera className="h-4 w-4 mr-2.5 text-emerald-500" />
                   Camera (Take Photo)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-xs py-2">
+                <DropdownMenuItem onClick={() => anyFileInputRef.current?.click()} className="rounded-xl cursor-pointer text-sm py-2.5 transition-colors">
                   <FileIcon className="h-4 w-4 mr-2.5 text-amber-500" />
                   File (Document / PDF)
                 </DropdownMenuItem>
@@ -351,45 +351,45 @@ export const ChatInput = memo(({
             {/* CoreAI Mode Pill with Logo */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
+                                <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2.5 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 transition-all cursor-pointer"
+                  className="h-8 px-3 gap-1.5 rounded-full text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 transition-all cursor-pointer"
                   title="Change CoreAI Mode"
                 >
                   {activeModeConfig.id === 'normal' ? (
-                    <img src={coreaiLogo} alt="CoreAI" className="h-3.5 w-3.5 rounded-full object-contain shrink-0" />
+                    <img src={coreaiLogo} alt="CoreAI" className="h-4 w-4 rounded-full object-contain shrink-0" />
                   ) : (
-                    <activeModeConfig.icon className={`h-3.5 w-3.5 ${activeModeConfig.color}`} />
+                    <activeModeConfig.icon className={`h-4 w-4 ${activeModeConfig.color}`} />
                   )}
-                  <span className="truncate max-w-[90px]">{activeModeConfig.label.split(' ')[0]}</span>
-                  <ChevronDown className="h-3 w-3 opacity-50" />
+                  <span className="truncate max-w-[100px]">{activeModeConfig.label.split(' ')[0]}</span>
+                  <ChevronDown className="h-3.5 w-3.5 opacity-60" />
                 </Button>
-                           </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-60 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
-                <div className="px-2.5 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-64 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
+                <div className="px-3 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   CoreAI Modes ({availableModes.length})
                 </div>
                 {/* Scrollable Container with explicit touch-pan-y so all 11 modes can be smoothly scrolled */}
-                <div className="max-h-[260px] overflow-y-auto overscroll-contain touch-pan-y pr-1 space-y-0.5">
+                <div className="max-h-[280px] overflow-y-auto overscroll-contain touch-pan-y pr-1 space-y-0.5">
                   {availableModes.map((m) => (
                     <DropdownMenuItem
                       key={m.id}
                       onClick={() => handleSelectMode(m.id, m.label)}
-                      className={`flex items-center justify-between px-2.5 py-1.5 rounded-xl cursor-pointer text-xs ${
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer text-sm ${
                         currentMode === m.id ? "bg-muted font-medium text-foreground" : "text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
                         {m.id === 'normal' ? (
-                          <img src={coreaiLogo} alt="CoreAI" className="h-3.5 w-3.5 rounded-full object-contain shrink-0" />
+                          <img src={coreaiLogo} alt="CoreAI" className="h-4 w-4 rounded-full object-contain shrink-0" />
                         ) : (
-                          <m.icon className={`h-3.5 w-3.5 ${m.color}`} />
+                          <m.icon className={`h-4 w-4 ${m.color}`} />
                         )}
                         <span>{m.label}</span>
                       </div>
-                      {currentMode === m.id && <span className="text-[10px] text-primary font-semibold">Active</span>}
+                      {currentMode === m.id && <span className="text-xs text-primary font-semibold">Active</span>}
                     </DropdownMenuItem>
                   ))}
                 </div>
@@ -497,8 +497,8 @@ export const ChatInput = memo(({
       </div>
 
             {/* Powered by Tagline */}
-      <div className="text-center mt-1.5">
-        <p className="text-[10px] text-muted-foreground/80 tracking-tight">
+            <div className="text-center mt-2">
+        <p className="text-xs text-muted-foreground/85 tracking-normal">
           CoreAI can make mistakes. Verify important information.
         </p>
       </div>
