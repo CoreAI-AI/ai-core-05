@@ -49,14 +49,14 @@ export const MemoryControl = ({ chatId, onMemoryChange }: MemoryControlProps) =>
           variant="ghost"
           size="sm"
           className={cn(
-            "h-8 gap-1.5 px-2 text-xs",
+            "h-9 gap-2 px-3 text-sm font-medium rounded-full",
             memoryEnabled ? "text-primary" : "text-muted-foreground"
           )}
         >
           {memoryEnabled ? (
-            <Brain className="w-3.5 h-3.5" />
+            <Brain className="w-4 h-4" />
           ) : (
-            <Lock className="w-3.5 h-3.5" />
+            <Lock className="w-4 h-4" />
           )}
           <span className="hidden sm:inline">
             {memoryEnabled ? "Memory On" : "Memory Off"}
