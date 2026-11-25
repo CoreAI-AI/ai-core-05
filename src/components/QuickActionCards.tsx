@@ -415,30 +415,30 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
 
            {/* 4 Action Pills - ChatGPT Capsule Style */}
       <div className="flex items-center justify-center gap-2 mb-6 flex-wrap">
-        <button
+                <button
           type="button"
           onClick={() => handlePillClick("image")}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
         >
-          <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
+          <ImageIcon className="h-4 w-4 text-muted-foreground" />
           <span>Create image</span>
         </button>
 
         <button
           type="button"
           onClick={() => handlePillClick("advice")}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
         >
-          <MessageCircle className="h-3.5 w-3.5 text-muted-foreground" />
+          <MessageCircle className="h-4 w-4 text-muted-foreground" />
           <span>Get advice</span>
         </button>
 
         <button
           type="button"
           onClick={() => handlePillClick("summarize")}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
         >
-          <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+          <FileText className="h-4 w-4 text-muted-foreground" />
           <span>Summarize text</span>
         </button>
 
@@ -446,9 +446,9 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-medium bg-muted/30 border border-border/60 hover:bg-muted/80 hover:border-border text-foreground transition-all shadow-2xs active:scale-[0.98] cursor-pointer"
             >
-              <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+              <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
               <span>More</span>
             </button>
           </DropdownMenuTrigger>
@@ -563,10 +563,10 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
                       <IconComp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs sm:text-sm font-semibold text-foreground tracking-tight group-hover:text-primary transition-colors truncate">
+                    <h4 className="text-sm sm:text-base font-semibold text-foreground tracking-tight group-hover:text-primary transition-colors truncate">
                         {card.title}
                       </h4>
-                      <p className="text-[10px] sm:text-[11px] text-muted-foreground truncate leading-snug">
+                      <p className="text-xs sm:text-sm text-muted-foreground truncate leading-relaxed mt-0.5">
                         {card.description}
                       </p>
                     </div>
