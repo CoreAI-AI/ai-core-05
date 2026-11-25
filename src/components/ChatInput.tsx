@@ -359,9 +359,9 @@ export const ChatInput = memo(({
                   title="Change CoreAI Mode"
                 >
                   {activeModeConfig.id === 'normal' ? (
-                    <img src={coreaiLogo} alt="CoreAI" className="h-4.5 w-4.5 rounded-full object-contain shrink-0" />
+                    <img src={coreaiLogo} alt="CoreAI" className="h-5 w-5 rounded-full object-contain shrink-0" />
                   ) : (
-                    <activeModeConfig.icon className={`h-4.5 w-4.5 ${activeModeConfig.color}`} />
+                    <activeModeConfig.icon className={`h-5 w-5 ${activeModeConfig.color}`} />
                   )}
                   <span className="truncate max-w-[110px]">{activeModeConfig.label.split(' ')[0]}</span>
                   <ChevronDown className="h-4 w-4 opacity-70" />
