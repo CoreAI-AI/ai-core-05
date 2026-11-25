@@ -322,14 +322,14 @@ export const ChatInput = memo(({
             {/* Attachment Menu (+) */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
+                               <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
+                  className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
                   title="Attach up to 8 images or files"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-5 w-5 stroke-[2]" />
                 </Button>
               </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-56 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
@@ -351,20 +351,20 @@ export const ChatInput = memo(({
             {/* CoreAI Mode Pill with Logo */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                                <Button
+                <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-8 px-3 gap-1.5 rounded-full text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 transition-all cursor-pointer"
+                  className="h-9 px-3.5 gap-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 transition-all cursor-pointer"
                   title="Change CoreAI Mode"
                 >
                   {activeModeConfig.id === 'normal' ? (
-                    <img src={coreaiLogo} alt="CoreAI" className="h-4 w-4 rounded-full object-contain shrink-0" />
+                    <img src={coreaiLogo} alt="CoreAI" className="h-4.5 w-4.5 rounded-full object-contain shrink-0" />
                   ) : (
-                    <activeModeConfig.icon className={`h-4 w-4 ${activeModeConfig.color}`} />
+                    <activeModeConfig.icon className={`h-4.5 w-4.5 ${activeModeConfig.color}`} />
                   )}
-                  <span className="truncate max-w-[100px]">{activeModeConfig.label.split(' ')[0]}</span>
-                  <ChevronDown className="h-3.5 w-3.5 opacity-60" />
+                  <span className="truncate max-w-[110px]">{activeModeConfig.label.split(' ')[0]}</span>
+                  <ChevronDown className="h-4 w-4 opacity-70" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-64 p-1.5 rounded-2xl bg-popover border border-border/80 shadow-xl z-50">
@@ -403,12 +403,12 @@ export const ChatInput = memo(({
       type="button"
       variant="ghost"
       size="sm"
-      className="h-7 px-2.5 gap-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 hover:border-emerald-500/40 hover:shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)] transition-all cursor-pointer"
+      className="h-9 px-3.5 gap-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 hover:border-emerald-500/40 hover:shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)] transition-all cursor-pointer"
       title="Open CoreAI Features"
     >
-      <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+      <Sparkles className="h-4 w-4 text-emerald-400" />
       <span>Features</span>
-      <ChevronDown className="h-3 w-3 opacity-50" />
+      <ChevronDown className="h-3.5 w-3.5 opacity-60" />
     </Button>
   </DropdownMenuTrigger>
   <DropdownMenuContent align="start" className="w-[320px] sm:w-[420px] p-2.5 rounded-2xl bg-popover/95 backdrop-blur-xl border border-border/80 shadow-2xl z-50">
@@ -467,15 +467,15 @@ export const ChatInput = memo(({
               size="icon"
               onClick={handleVoiceRecording}
               disabled={disabled || transcribing}
-              className={`h-8 w-8 rounded-full shrink-0 transition-all ${
+              className={`h-9 w-9 rounded-full shrink-0 transition-all ${
                 isRecording ? 'bg-destructive/20 text-destructive animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
               }`}
               title={isRecording ? "Stop recording" : "Voice input"}
             >
               {transcribing ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
               ) : (
-                <Mic className="h-4 w-4" />
+                <Mic className="h-5 w-5" />
               )}
             </Button>
 
@@ -483,14 +483,14 @@ export const ChatInput = memo(({
               type="button"
               onClick={() => handleSubmit()}
               disabled={!message.trim() || disabled}
-              className={`h-8 w-8 rounded-full p-0 transition-all duration-150 flex items-center justify-center shrink-0 ${
+              className={`h-9 w-9 rounded-full p-0 transition-all duration-150 flex items-center justify-center shrink-0 ${
                 message.trim() && !disabled
                   ? "bg-foreground text-background hover:opacity-90 active:scale-90 shadow-2xs cursor-pointer"
                   : "bg-muted/50 text-muted-foreground/30 cursor-not-allowed"
               }`}
               title="Send message"
             >
-              <ArrowUp className="h-4 w-4 stroke-[2.5]" />
+              <ArrowUp className="h-5 w-5 stroke-[2.5]" />
             </Button>
           </div>
         </div>
