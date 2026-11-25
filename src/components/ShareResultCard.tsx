@@ -3,7 +3,7 @@ import { Download, Share2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import logoAsset from "@/assets/coreai-logo-original.jpeg.asset.json";
+import coreaiLogo from "@/assets/coreai-logo.png";
 
 const SITE = "coreaii.vercel.app";
 const W = 1080;
@@ -73,8 +73,13 @@ const emoji = (ctx: CanvasRenderingContext2D, e: string, x: number, y: number, s
 };
 
 const loadImg = (src: string) => new Promise<HTMLImageElement | null>((res) => {
-  const i = new Image(); i.crossOrigin = "anonymous";
-  i.onload = () => res(i); i.onerror = () => res(null); i.src = src;
+  const i = new Image();
+  if (src.startsWith("http") && !src.includes(window.location.host)) {
+    i.crossOrigin = "anonymous";
+  }
+  i.onload = () => res(i);
+  i.onerror = () => res(null);
+  i.src = src;
 });
 
 const layout = (ctx: CanvasRenderingContext2D, text: string, maxW: number, size: number, weight: number) => {
@@ -83,13 +88,16 @@ const layout = (ctx: CanvasRenderingContext2D, text: string, maxW: number, size:
   return { lines: wrap(ctx, text, maxW), size, lh };
 };
 
-// Draw the original logo exactly (no recolor/distortion), clipped to its own circle.
+// Draw bundled CoreAI logo cleanly into circular badge
 const drawLogo = (ctx: CanvasRenderingContext2D, logo: HTMLImageElement | null, cx: number, cy: number, r: number) => {
   if (!logo) return;
   const s = logo.width / 1024;
-  const lc = 512 * s, lr = 374 * s;
-  ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
-  ctx.drawImage(logo, lc - lr, 500 * s - lr, lr * 2, lr * 2, cx - r, cy - r, r * 2, r * 2);
+  const lc = 512 * s, lr = 376 * s;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.drawImage(logo, lc - lr, 504 * s - lr, lr * 2, lr * 2, cx - r, cy - r, r * 2, r * 2);
   ctx.restore();
 };
 
@@ -125,7 +133,7 @@ export async function renderCard(answer: string, question?: string): Promise<Blo
   const c = document.createElement("canvas");
   const ctx = c.getContext("2d")!;
   try { await document.fonts?.ready; } catch { /* ignore */ }
-  const logo = await loadImg(logoAsset.url);
+    const logo = await loadImg(coreaiLogo);
 
   const cardX = 80, cardW = W - 160, inX = cardX + 40, inW = cardW - 80;
   const qText = toPlainText(question?.trim() || "Ask anything on CoreAI");
@@ -290,7 +298,7 @@ export const ShareResultCard = ({ open, onOpenChange, answer, question }: Props)
       <DialogContent className="max-w-sm max-h-[95dvh] overflow-y-auto p-4">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-center gap-2">
-            <img src={logoAsset.url} alt="CoreAI logo" className="h-10 w-10 rounded-full object-contain" />
+              <img src={coreaiLogo} alt="CoreAI logo" className="h-10 w-10 rounded-full object-contain" />
             <span className="flex flex-col items-start leading-tight">
               <span className="text-xl font-extrabold">Core<span className="text-primary">AI</span></span>
               <span className="text-[11px] font-medium text-muted-foreground">Think • Learn • Grow</span>
