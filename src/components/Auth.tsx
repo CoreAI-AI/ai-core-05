@@ -22,7 +22,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
   const [authStage, setAuthStage] = useState<'idle' | 'loading' | 'success'>('idle');
   const [demoStage, setDemoStage] = useState<'idle' | 'loading' | 'success'>('idle');
@@ -45,6 +45,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
       setGoogleLoading(false);
     }
   };
+
   useEffect(() => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
@@ -66,7 +67,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-        if (!validate()) return;
+    if (!validate()) return;
     setIsLoading(true);
     setAuthStage('loading');
 
@@ -92,12 +93,10 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
           localStorage.removeItem("coreai_intro_seen");
           localStorage.setItem("coreai_intro_source", "signup");
 
-          // यदि सेशन तुरंत मिल गया तो सीधे ऐप में ले जाओ
-                   if (data.session) {
+          if (data.session) {
             setAuthStage('success');
             toast.success("Account created! Welcome to CoreAI 🎉");
             setTimeout(() => onAuthSuccess(), 500);
-          }
           } else {
             toast.success("Account created! Please sign in with your password.");
             setIsSignUp(false);
@@ -125,19 +124,19 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         localStorage.removeItem("coreai_intro_seen");
         localStorage.setItem("coreai_intro_source", "login");
 
-               setAuthStage('success');
+        setAuthStage('success');
         toast.success("Welcome back! 👋");
         setTimeout(() => onAuthSuccess(), 500);
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
-       } finally {
+    } finally {
       setIsLoading(false);
       setTimeout(() => setAuthStage('idle'), 1500);
     }
   };
 
-   const handleDemoLogin = async () => {
+  const handleDemoLogin = async () => {
     setIsDemoLoading(true);
     setDemoStage('loading');
     try {
@@ -256,7 +255,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
                 </div>
               )}
 
-                            {/* 3-Stage Animated Submit Button */}
+              {/* 3-Stage Animated Submit Button */}
               <button
                 type="submit"
                 disabled={anyLoading || authStage === 'loading'}
@@ -289,7 +288,7 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
               </div>
             </div>
 
-            {/* Official 100% Free Google Sign-In Button */}
+            {/* 100% Free Google Sign-In Button */}
             <button
               type="button"
               onClick={handleGoogleSignIn}
