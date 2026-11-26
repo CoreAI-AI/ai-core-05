@@ -418,9 +418,7 @@ export const Settings = ({ user }: SettingsProps) => {
                           {nameStage === 'success' && <><Check className="w-3.5 h-3.5 stroke-[2.5]" /> Updated! ✓</>}
                           {nameStage === 'idle' && <><Check className="w-3.5 h-3.5" /> Save</>}
                         </button>
-                      )}
-                    
-                      )}
+                    )}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {user?.email || "Guest User (Chats saved locally on your device)"}
