@@ -49,6 +49,15 @@ export const MessageActions = ({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+        const [isSpinning, setIsSpinning] = useState(false);
+
+  const handleRegenerateClick = () => {
+    if (!onRegenerate || isSpinning) return;
+    setIsSpinning(true);
+    onRegenerate();
+    setTimeout(() => setIsSpinning(false), 800);
+  };
+
       const { data } = await supabase
         .from('message_feedback')
         .select('feedback_type')
@@ -243,18 +252,30 @@ export const MessageActions = ({
         </>
       )}
 
-      {/* Regenerate Button */}
+            {/* Regenerate Button with 360 Spin */}
       {!isUser && onRegenerate && (
         <Button
           variant="ghost"
           size="sm"
-          onClick={onRegenerate}
-          className="h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all"
+          onClick={handleRegenerateClick}
+          className="h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-90 transition-all"
           title="Regenerate response"
         >
-          <RotateCcw className="h-3.5 w-3.5" />
+          <RotateCcw className={cn("h-3.5 w-3.5 transition-transform duration-700 ease-out", isSpinning && "rotate-[360deg] text-primary")} />
         </Button>
       )}
+                  <DropdownMenuItem onClick={handleReadAloud} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm">
+              {isThisPlaying ? (
+                <span className="flex items-center gap-0.5 text-emerald-500">
+                  <span className="w-1 h-3.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1 h-3.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1 h-3.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </span>
+              ) : (
+                <Volume2 className="h-4 w-4" />
+              )}
+              {isThisPlaying ? 'Stop reading' : 'Read aloud'}
+            </DropdownMenuItem>
 
       {/* More Options Menu */}
       {!isUser && (
