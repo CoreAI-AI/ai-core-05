@@ -873,9 +873,6 @@ const Index = () => {
   if (showAuth || !user) return <Auth onAuthSuccess={() => setShowAuth(false)} />;
 
   return (
-    <div className={`flex h-[100dvh] w-full bg-background ...
-
-  return (
     <div className={`flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none ${isPremium ? 'premium-mode' : ''}`}>
       {/* Sidebar with slide transition */}
       <AnimatePresence mode="wait">
