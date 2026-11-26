@@ -868,6 +868,13 @@ const Index = () => {
       toast.error("Failed to export chat");
     }
   };
+    // Agar auth load ho raha hai ya user logged in nahi hai toh Login/Signup dikhayein
+  if (authLoading) return <PageSkeleton />;
+  if (showAuth || !user) return <Auth onAuthSuccess={() => setShowAuth(false)} />;
+
+  return (
+    <div className={`flex h-[100dvh] w-full bg-background ...
+
   return (
     <div className={`flex h-[100dvh] w-full bg-background overflow-hidden overscroll-none ${isPremium ? 'premium-mode' : ''}`}>
       {/* Sidebar with slide transition */}
