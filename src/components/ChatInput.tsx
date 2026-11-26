@@ -461,7 +461,7 @@ export const ChatInput = memo(({
 
           </div>
 
-          {/* Right Actions: Mic + Send Button */}
+                   {/* Right Actions: Animated Mic + Tactile Send Button */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 pl-1">
             <Button
               type="button"
@@ -469,15 +469,17 @@ export const ChatInput = memo(({
               size="icon"
               onClick={handleVoiceRecording}
               disabled={disabled || transcribing}
-              className={`h-9 w-9 rounded-full shrink-0 transition-all ${
-                isRecording ? 'bg-destructive/20 text-destructive animate-pulse' : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
+              className={`h-9 w-9 rounded-full shrink-0 transition-all duration-300 relative ${
+                isRecording
+                  ? 'bg-emerald-500/20 text-emerald-500 ring-2 ring-emerald-500/60 ring-offset-2 ring-offset-background animate-pulse scale-105'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95'
               }`}
-              title={isRecording ? "Stop recording" : "Voice input"}
+              title={isRecording ? "Stop recording (Listening...)" : "Voice input"}
             >
               {transcribing ? (
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
               ) : (
-                <Mic className="h-5 w-5" />
+                <Mic className={`h-5 w-5 transition-transform duration-200 ${isRecording ? 'scale-110' : ''}`} />
               )}
             </Button>
 
@@ -485,14 +487,20 @@ export const ChatInput = memo(({
               type="button"
               onClick={() => handleSubmit()}
               disabled={!message.trim() || disabled}
-              className={`h-9 w-9 rounded-full p-0 transition-all duration-150 flex items-center justify-center shrink-0 ${
-                message.trim() && !disabled
-                  ? "bg-foreground text-background hover:opacity-90 active:scale-90 shadow-2xs cursor-pointer"
+              className={`h-9 w-9 rounded-full p-0 transition-all duration-200 flex items-center justify-center shrink-0 shadow-xs ${
+                disabled
+                  ? "bg-muted/50 text-muted-foreground/30 cursor-wait scale-95"
+                  : message.trim()
+                  ? "bg-foreground text-background hover:opacity-95 hover:scale-105 active:scale-90 shadow-md cursor-pointer"
                   : "bg-muted/50 text-muted-foreground/30 cursor-not-allowed"
               }`}
               title="Send message"
             >
-              <ArrowUp className="h-5 w-5 stroke-[2.5]" />
+              {disabled ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <ArrowUp className="h-5 w-5 stroke-[2.5] transition-transform duration-150 active:translate-y-0.5" />
+              )}
             </Button>
           </div>
         </div>
