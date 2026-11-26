@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Zap, Loader2, Eye, EyeOff } from "lucide-react";
+import { Zap, Loader2, Eye, EyeOff, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import coreaiLogo from '@/assets/coreai-logo.png';
 
@@ -22,11 +22,29 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
   const [isDemoLoading, setIsDemoLoading] = useState(false);
+  const [authStage, setAuthStage] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [demoStage, setDemoStage] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string }>({});
 
+  const handleGoogleSignIn = async () => {
+    try {
+      setGoogleLoading(true);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+        },
+      });
+      if (error) throw error;
+    } catch (error: any) {
+      toast.error(error.message || "Google sign in failed");
+      setGoogleLoading(false);
+    }
+  };
   useEffect(() => {
     const rememberedEmail = localStorage.getItem('rememberedEmail');
     if (rememberedEmail) {
@@ -48,8 +66,9 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+        if (!validate()) return;
     setIsLoading(true);
+    setAuthStage('loading');
 
     try {
       if (isSignUp) {
@@ -74,9 +93,11 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
           localStorage.setItem("coreai_intro_source", "signup");
 
           // यदि सेशन तुरंत मिल गया तो सीधे ऐप में ले जाओ
-          if (data.session) {
+                   if (data.session) {
+            setAuthStage('success');
             toast.success("Account created! Welcome to CoreAI 🎉");
-            onAuthSuccess();
+            setTimeout(() => onAuthSuccess(), 500);
+          }
           } else {
             toast.success("Account created! Please sign in with your password.");
             setIsSignUp(false);
@@ -104,18 +125,21 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
         localStorage.removeItem("coreai_intro_seen");
         localStorage.setItem("coreai_intro_source", "login");
 
+               setAuthStage('success');
         toast.success("Welcome back! 👋");
-        onAuthSuccess();
+        setTimeout(() => onAuthSuccess(), 500);
       }
     } catch (error: any) {
       toast.error(error.message || "Authentication failed");
-    } finally {
+       } finally {
       setIsLoading(false);
+      setTimeout(() => setAuthStage('idle'), 1500);
     }
   };
 
-  const handleDemoLogin = async () => {
+   const handleDemoLogin = async () => {
     setIsDemoLoading(true);
+    setDemoStage('loading');
     try {
       const { data, error } = await supabase.functions.invoke('create-demo-user');
       if (error) throw error;
@@ -129,12 +153,15 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
 
       if (signInError) throw signInError;
 
+      setDemoStage('success');
       toast.success("Demo account ready! Explore CoreAI 🚀");
-      onAuthSuccess();
+      setTimeout(() => onAuthSuccess(), 500);
     } catch (error: any) {
       toast.error(error.message || "Demo setup failed. Please try again.");
+      setDemoStage('idle');
     } finally {
       setIsDemoLoading(false);
+      setTimeout(() => setDemoStage('idle'), 1500);
     }
   };
 
@@ -228,15 +255,31 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
                   </Label>
                 </div>
               )}
-              <Button type="submit" className="w-full h-11 rounded-xl gradient-bg text-white font-medium shadow-md btn-press" disabled={anyLoading}>
-                {isLoading ? (
-                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {isSignUp ? "Creating..." : "Signing in..."}</>
-                ) : (
+
+                            {/* 3-Stage Animated Submit Button */}
+              <button
+                type="submit"
+                disabled={anyLoading || authStage === 'loading'}
+                className={`w-full h-11 rounded-xl font-medium shadow-md transition-all duration-200 flex items-center justify-center gap-2 active:scale-95 ${
+                  authStage === 'loading'
+                    ? 'bg-amber-500 text-white cursor-wait scale-[0.98]'
+                    : authStage === 'success'
+                    ? 'bg-emerald-500 text-white cursor-default'
+                    : 'gradient-bg text-white hover:opacity-95'
+                }`}
+              >
+                {authStage === 'loading' && (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> {isSignUp ? "Creating Account..." : "Signing In..."}</>
+                )}
+                {authStage === 'success' && (
+                  <><Check className="w-4 h-4 stroke-[2.5]" /> {isSignUp ? "Account Ready! ✓" : "Welcome Back! ✓"}</>
+                )}
+                {authStage === 'idle' && (
                   isSignUp ? "Create Account" : "Sign In"
                 )}
-              </Button>
+              </button>
             </form>
-            
+
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-border" />
@@ -245,21 +288,53 @@ export const Auth = ({ onAuthSuccess }: AuthProps) => {
                 <span className="bg-card px-2 text-muted-foreground">or</span>
               </div>
             </div>
-            
-            <Button 
-              type="button" 
-              variant="outline" 
-              className="w-full h-11 rounded-xl font-medium btn-press border-primary/30 hover:bg-primary/5"
+
+            {/* Official 100% Free Google Sign-In Button */}
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={anyLoading || googleLoading}
+              className="w-full h-11 rounded-xl font-medium border border-border/80 bg-background hover:bg-muted/50 transition-all flex items-center justify-center gap-2.5 text-sm active:scale-95 text-foreground disabled:opacity-50"
+            >
+              {googleLoading ? (
+                <><Loader2 className="w-4 h-4 animate-spin text-muted-foreground" /> Connecting Google...</>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47c-.29 1.48-1.14 2.73-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09C3.26 21.3 7.31 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.27 14.29c-.25-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29V6.62H1.29C.47 8.24 0 10.06 0 12s.47 3.76 1.29 5.38l3.98-3.09z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.7 1.29 6.62l3.98 3.09c.95-2.85 3.6-4.96 6.73-4.96z"/>
+                  </svg>
+                  <span>Continue with Google</span>
+                </>
+              )}
+            </button>
+
+            {/* 3-Stage Animated Demo Button */}
+            <button
+              type="button"
               onClick={handleDemoLogin}
               disabled={anyLoading}
+              className={`w-full h-11 rounded-xl font-medium border transition-all duration-200 flex items-center justify-center gap-2 text-sm active:scale-95 ${
+                demoStage === 'loading'
+                  ? 'bg-amber-500 text-white border-amber-500 cursor-wait scale-[0.98]'
+                  : demoStage === 'success'
+                  ? 'bg-emerald-500 text-white border-emerald-500 cursor-default'
+                  : 'border-primary/30 hover:bg-primary/5 text-foreground'
+              }`}
             >
-              {isDemoLoading ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Setting up demo...</>
-              ) : (
-                <><Zap className="w-4 h-4 mr-2 text-primary" /> Try Demo Account (Instant)</>
+              {demoStage === 'loading' && (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Setting up demo...</>
               )}
-            </Button>
-            
+              {demoStage === 'success' && (
+                <><Check className="w-4 h-4 stroke-[2.5]" /> Demo Ready! ✓</>
+              )}
+              {demoStage === 'idle' && (
+                <><Zap className="w-4 h-4 text-primary" /> Try Demo Account (Instant)</>
+              )}
+            </button>
+
             <Button
               variant="link"
               onClick={() => { setIsSignUp(!isSignUp); setErrors({}); }}
