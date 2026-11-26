@@ -38,7 +38,7 @@ export const MessageActions = ({
   className,
   question 
 }: MessageActionsProps) => {
-  const [copied, setCopied] = useState(false);
+  const [copyState, setCopyState] = useState<"idle" | "loading" | "success">("idle");
   const [shareOpen, setShareOpen] = useState(false);
   const [feedback, setFeedback] = useState<'good' | 'bad' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -46,7 +46,6 @@ export const MessageActions = ({
   useEffect(() => {
     const loadFeedback = async () => {
       if (!messageId || isUser) return;
-      
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
@@ -61,21 +60,25 @@ export const MessageActions = ({
         setFeedback(data.feedback_type as 'good' | 'bad');
       }
     };
-
     loadFeedback();
   }, [messageId, isUser]);
 
   const handleCopy = async () => {
+    if (copyState !== "idle") return;
+    setCopyState("loading");
     try {
-      await navigator.clipboard.writeText(message);
-      setCopied(true);
-      toast.success('Message copied');
-      setTimeout(() => setCopied(false), 2000);
+      await Promise.all([
+        navigator.clipboard.writeText(message),
+        new Promise(r => setTimeout(r, 400))
+      ]);
+      setCopyState("success");
+      toast.success('Message copied to clipboard! ✓');
+      setTimeout(() => setCopyState("idle"), 1400);
     } catch (err) {
+      setCopyState("idle");
       toast.error('Failed to copy');
     }
   };
-
   const handleFeedback = async (type: 'good' | 'bad') => {
     if (!messageId || isSubmitting) return;
 
