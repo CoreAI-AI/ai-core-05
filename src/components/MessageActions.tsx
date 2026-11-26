@@ -173,20 +173,26 @@ export const MessageActions = ({
       "flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pt-1 text-muted-foreground",
       className
     )}>
-      {/* Minimalist Ghost Copy Button */}
-      <Button
-        variant="ghost"
-        size="sm"
+            {/* 3-Stage Tactile Animated Copy Button */}
+      <button
         onClick={handleCopy}
-        className="h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all"
+        disabled={copyState !== "idle"}
+        className={cn(
+          "h-7 px-2 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-1",
+          copyState === "idle" && "text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95",
+          copyState === "loading" && "bg-orange-500 text-white cursor-not-allowed scale-95",
+          copyState === "success" && "bg-emerald-500 text-white cursor-default scale-100"
+        )}
         title="Copy message"
       >
-        {copied ? (
-          <Check className="h-3.5 w-3.5 text-green-500" />
-        ) : (
-          <Copy className="h-3.5 w-3.5" />
+        {copyState === "idle" && <Copy className="h-3.5 w-3.5" />}
+        {copyState === "loading" && <span className="animate-pulse text-[11px]">Copying...</span>}
+        {copyState === "success" && (
+          <span className="flex items-center gap-1 text-[11px]">
+            <Check className="h-3.5 w-3.5 stroke-[2.5]" /> Done!
+          </span>
         )}
-      </Button>
+      </button>
 
       {/* Share Result Pill Badge */}
       {!isUser && (
