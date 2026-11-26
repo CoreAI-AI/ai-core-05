@@ -53,6 +53,9 @@ export const Settings = ({ user }: SettingsProps) => {
   const navigate = useNavigate();
   const { settings, updateSettings } = useSettings(user?.id);
   const { theme, setTheme } = useTheme();
+  const [exportStage, setExportStage] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [prefStage, setPrefStage] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [nameStage, setNameStage] = useState<'idle' | 'loading' | 'success'>('idle');
   const [activeTab, setActiveTab] = useState<TabKey>('profile');
   const [localSettings, setLocalSettings] = useState<UserSettings>(settings);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -138,8 +141,9 @@ export const Settings = ({ user }: SettingsProps) => {
     }
   };
 
-  const handleExportChats = () => {
+   const handleExportChats = () => {
     try {
+      setExportStage('loading');
       const chatsData: Record<string, any> = {};
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -154,9 +158,12 @@ export const Settings = ({ user }: SettingsProps) => {
       a.download = `coreai_backup_${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
+      setExportStage('success');
       toast.success("Backup downloaded successfully");
+      setTimeout(() => setExportStage('idle'), 2000);
     } catch {
       toast.error("Failed to export backup");
+      setExportStage('idle');
     }
   };
 
@@ -388,10 +395,31 @@ export const Settings = ({ user }: SettingsProps) => {
                         placeholder="Your display name"
                         className="h-9 max-w-sm text-sm rounded-xl bg-muted/30 border-border/50"
                       />
-                      {hasChanges && (
-                        <Button size="sm" onClick={handleNameBlur} className="h-9 rounded-xl text-xs gap-1.5">
-                          <Check className="w-3.5 h-3.5" /> Save
-                        </Button>
+                                            {hasChanges && (
+                        <button
+                          onClick={() => {
+                            setNameStage('loading');
+                            handleNameBlur();
+                            setNameStage('success');
+                            setTimeout(() => {
+                              setNameStage('idle');
+                              setHasChanges(false);
+                            }, 1500);
+                          }}
+                          className={`h-9 px-3 rounded-xl text-xs font-medium transition-all duration-200 flex items-center gap-1.5 active:scale-95 ${
+                            nameStage === 'loading'
+                              ? 'bg-amber-500 text-white cursor-wait'
+                              : nameStage === 'success'
+                              ? 'bg-emerald-500 text-white cursor-default'
+                              : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                          }`}
+                        >
+                          {nameStage === 'loading' && <span>Saving...</span>}
+                          {nameStage === 'success' && <><Check className="w-3.5 h-3.5 stroke-[2.5]" /> Updated! ✓</>}
+                          {nameStage === 'idle' && <><Check className="w-3.5 h-3.5" /> Save</>}
+                        </button>
+                      )}
+                    
                       )}
                     </div>
                     <p className="text-xs text-muted-foreground">
@@ -517,16 +545,41 @@ export const Settings = ({ user }: SettingsProps) => {
                     <Label className="text-xs font-medium">How would you like CoreAI to respond?</Label>
                     <p className="text-[11px] text-muted-foreground">E.g., "Keep answers concise", "Use simple Hindi analogies", "Provide code examples first"</p>
                     <Textarea
-                      value={localSettings.customResponseStyle || ""}
+                                           value={localSettings.customResponseStyle || ""}
                       onChange={(e) => setLocalSettings(prev => ({ ...prev, customResponseStyle: e.target.value }))}
-                      onBlur={() => {
-                        updateSettings({ customResponseStyle: localSettings.customResponseStyle });
-                        toast.success("Response style instructions saved");
-                      }}
                       placeholder="Define reply tone, language or formatting..."
                       rows={2}
                       className="rounded-xl text-xs bg-muted/30 border-border/50 resize-none"
                     />
+                  </div>
+
+                  {/* 3-Stage Save Instructions Button */}
+                  <div className="pt-2 flex justify-end">
+                    <button
+                      onClick={() => {
+                        setPrefStage('loading');
+                        updateSettings({
+                          customAboutMe: localSettings.customAboutMe,
+                          customResponseStyle: localSettings.customResponseStyle,
+                        });
+                        setTimeout(() => {
+                          setPrefStage('success');
+                          toast.success("Preferences saved successfully!");
+                          setTimeout(() => setPrefStage('idle'), 2000);
+                        }, 300);
+                      }}
+                      className={`h-9 px-4 rounded-xl text-xs font-medium transition-all duration-200 flex items-center gap-1.5 active:scale-95 ${
+                        prefStage === 'loading'
+                          ? 'bg-amber-500 text-white cursor-wait'
+                          : prefStage === 'success'
+                          ? 'bg-emerald-500 text-white cursor-default'
+                          : 'bg-primary text-primary-foreground hover:bg-primary/90'
+                      }`}
+                    >
+                      {prefStage === 'loading' && <span>Saving...</span>}
+                      {prefStage === 'success' && <><Check className="w-3.5 h-3.5 stroke-[2.5]" /> Saved! ✓</>}
+                      {prefStage === 'idle' && <><Check className="w-3.5 h-3.5" /> Save Preferences</>}
+                    </button>
                   </div>
                 </div>
               </section>
@@ -821,9 +874,21 @@ export const Settings = ({ user }: SettingsProps) => {
                     <p className="text-sm font-medium">Export Local Backup</p>
                     <p className="text-xs text-muted-foreground">Download all your conversations as a JSON file</p>
                   </div>
-                  <Button onClick={handleExportChats} variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 self-start sm:self-auto">
-                    <Download className="w-3.5 h-3.5" /> Download Backup
-                  </Button>
+                                    <button
+                    onClick={handleExportChats}
+                    disabled={exportStage !== 'idle'}
+                    className={`h-9 px-3.5 rounded-xl text-xs font-medium transition-all duration-200 flex items-center gap-1.5 self-start sm:self-auto border active:scale-95 ${
+                      exportStage === 'loading'
+                        ? 'bg-amber-500 text-white border-amber-500 cursor-wait'
+                        : exportStage === 'success'
+                        ? 'bg-emerald-500 text-white border-emerald-500 cursor-default'
+                        : 'border-border/60 hover:bg-muted text-foreground'
+                    }`}
+                  >
+                    {exportStage === 'loading' && <span>Exporting...</span>}
+                    {exportStage === 'success' && <><Check className="w-3.5 h-3.5 stroke-[2.5]" /> Downloaded! ✓</>}
+                    {exportStage === 'idle' && <><Download className="w-3.5 h-3.5" /> Download Backup</>}
+                  </button>
                 </div>
 
                 <Separator className="bg-border/40" />
