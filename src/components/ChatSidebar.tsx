@@ -329,18 +329,18 @@ export const ChatSidebar = ({
         </div>
       </div>
 
-      {/* Gradient + New Chat Button (Screenshot Match) */}
+            {/* Gradient + New Chat Button (Screenshot Match) */}
       <div className="p-3 border-b border-sidebar-border/30">
-                <Button
+        <Button
           onClick={() => handleAction('newChat')}
-          className="w-full h-11 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-95 text-white font-medium rounded-xl shadow-sm transition-all text-sm md:text-base flex items-center justify-center gap-2.5"
+          className="w-full h-11 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-95 text-white font-medium rounded-xl shadow-sm hover:shadow-[0_0_24px_-3px_rgba(79,70,229,0.5)] active:scale-95 transition-all duration-200 text-sm md:text-base flex items-center justify-center gap-2.5 cursor-pointer"
         >
-          <Plus className="w-4 h-4 stroke-[2.2]" />
+          <Plus className="w-4 h-4 stroke-[2.2] transition-transform duration-200 group-hover:rotate-90" />
           New Chat
         </Button>
       </div>
 
-                       {/* 3 Action Tabs + Settings Navigation */}
+            {/* 3 Action Tabs + Settings Navigation */}
            <div className="p-2 border-b border-sidebar-border/30">
         <nav className="space-y-1">
           {/* Tab 1: Explore Prompts */}
