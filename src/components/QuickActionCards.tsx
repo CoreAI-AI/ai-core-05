@@ -556,8 +556,9 @@ export const QuickActionCards = ({ onAction, onCardClick }: QuickActionCardsProp
                 <Card
                   key={card.id}
                   onClick={() => triggerAction(card.prompt)}
-                  className={`p-2.5 sm:p-3.5 rounded-2xl bg-card/80 hover:bg-card border border-border/60 ${card.hoverBorder} transition-all duration-200 cursor-pointer group shadow-xs hover:shadow-sm`}
+                  className={`p-2.5 sm:p-3.5 rounded-2xl bg-card/80 hover:bg-card border border-border/60 ${card.hoverBorder} transition-all duration-150 cursor-pointer group shadow-xs hover:shadow-md active:scale-[0.98] active:translate-y-0.5 select-none`}
                 >
+
                   <div className="flex items-center gap-2.5 sm:gap-3">
                     <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 border ${card.badgeClasses} transition-transform duration-200 group-hover:scale-105`}>
                       <IconComp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
