@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Download, Share2, Loader2 } from "lucide-react";
+import { Download, Share2, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -244,6 +244,9 @@ export const ShareResultCard = ({ open, onOpenChange, answer, question }: Props)
 
   const file = () => new File([blob!], "coreai-result.png", { type: "image/png" });
   const shareText = `Yeh answer maine CoreAI se nikala! Tum bhi free try karo 👉 https://${SITE}`;
+  const [saveStage, setSaveStage] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [copyStage, setCopyStage] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [shareStage, setShareStage] = useState<'idle' | 'loading' | 'success'>('idle');
 
   const handleShare = async () => {
     if (!blob) return;
@@ -257,19 +260,28 @@ export const ShareResultCard = ({ open, onOpenChange, answer, question }: Props)
     } catch { /* cancelled */ }
   };
 
-  const handleDownload = () => {
+    const handleDownload = () => {
     if (!url) return;
+    setSaveStage('loading');
     const a = document.createElement("a");
     a.href = url; a.download = "coreai-result.png"; a.click();
+    setSaveStage('success');
     toast.success("Card saved");
+    setTimeout(() => setSaveStage('idle'), 2000);
   };
 
   const handleCopy = async () => {
     if (!blob) return;
+    setCopyStage('loading');
     try {
       await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      setCopyStage('success');
       toast.success("Card copied");
-    } catch { toast.error("Copy not supported here — use Download"); }
+      setTimeout(() => setCopyStage('idle'), 2000);
+    } catch {
+      toast.error("Copy not supported here — use Download");
+      setCopyStage('idle');
+    }
   };
 
   const handleFacebook = () => {
@@ -317,10 +329,45 @@ export const ShareResultCard = ({ open, onOpenChange, answer, question }: Props)
             </button>
           ))}
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <Button onClick={handleShare} disabled={!blob} className="gap-1"><Share2 className="h-4 w-4" />Share</Button>
-          <Button onClick={handleDownload} disabled={!blob} variant="outline" className="gap-1"><Download className="h-4 w-4" />Save</Button>
+               <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={async () => {
+              setShareStage('loading');
+              await handleShare();
+              setShareStage('success');
+              setTimeout(() => setShareStage('idle'), 2000);
+            }}
+            disabled={!blob}
+            className={`h-10 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 ${
+              shareStage === 'loading'
+                ? 'bg-amber-500 text-white cursor-wait'
+                : shareStage === 'success'
+                ? 'bg-emerald-500 text-white cursor-default'
+                : 'gradient-bg text-white hover:opacity-95'
+            }`}
+          >
+            {shareStage === 'loading' && <span>Sharing...</span>}
+            {shareStage === 'success' && <><Check className="h-4 w-4 stroke-[2.5]" /> Shared! ✓</>}
+            {shareStage === 'idle' && <><Share2 className="h-4 w-4" /> Share</>}
+          </button>
+
+          <button
+            onClick={handleDownload}
+            disabled={!blob || saveStage !== 'idle'}
+            className={`h-10 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-1.5 border active:scale-95 ${
+              saveStage === 'loading'
+                ? 'bg-amber-500 text-white border-amber-500 cursor-wait'
+                : saveStage === 'success'
+                ? 'bg-emerald-500 text-white border-emerald-500 cursor-default'
+                : 'border-border/60 hover:bg-muted text-foreground'
+            }`}
+          >
+            {saveStage === 'loading' && <span>Saving...</span>}
+            {saveStage === 'success' && <><Check className="h-4 w-4 stroke-[2.5]" /> Saved! ✓</>}
+            {saveStage === 'idle' && <><Download className="h-4 w-4" /> Save</>}
+          </button>
         </div>
+
       </DialogContent>
     </Dialog>
   );
