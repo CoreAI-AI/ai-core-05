@@ -320,16 +320,16 @@ export const ChatInput = memo(({
           {/* Left Actions: + Menu & Modes Pill */}
           <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 flex-1">
             {/* Attachment Menu (+) */}
-            <DropdownMenu>
+             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer shrink-0"
+                  className="group h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-90 transition-all duration-200 cursor-pointer shrink-0"
                   title="Attach up to 8 images or files"
                 >
-                  <Plus className="h-5 w-5 stroke-[2]" />
+                  <Plus className="h-5 w-5 stroke-[2.2] transition-transform duration-200 group-hover:rotate-90 group-data-[state=open]:rotate-45" />
                 </Button>
               </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-56 p-1.5 rounded-2xl bg-popover border border-border/70 shadow-xl z-50">
@@ -400,17 +400,17 @@ export const ChatInput = memo(({
 {/* CoreAI Features Dropdown - Rich Colorful Mini-Cards */}
 <DropdownMenu>
   <DropdownMenuTrigger asChild>
-        <Button
-      type="button"
-      variant="ghost"
-      size="sm"
-      className="h-9 px-2 sm:px-3.5 gap-1 sm:gap-2 rounded-full text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 hover:border-emerald-500/40 hover:shadow-[0_0_15px_-3px_rgba(16,185,129,0.25)] transition-all cursor-pointer shrink-0"
-      title="Open CoreAI Features"
-    >
-      <Sparkles className="h-4 w-4 text-emerald-400" />
-      <span className="hidden sm:inline">Features</span>
-      <ChevronDown className="h-3.5 w-3.5 opacity-60" />
-    </Button>
+       <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="group h-9 px-2 sm:px-3.5 gap-1 sm:gap-2 rounded-full text-xs sm:text-sm font-medium text-muted-foreground hover:text-foreground bg-muted/40 hover:bg-muted/70 border border-border/50 hover:border-emerald-500/40 hover:shadow-[0_0_16px_-2px_rgba(16,185,129,0.35)] active:scale-95 transition-all duration-200 cursor-pointer shrink-0"
+          title="Open CoreAI Features"
+        >
+          <Sparkles className="h-4 w-4 text-emerald-400 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
+          <span className="hidden sm:inline">Features</span>
+          <ChevronDown className="h-3.5 w-3.5 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+        </Button>
 
   </DropdownMenuTrigger>
   <DropdownMenuContent align="start" className="w-[320px] sm:w-[420px] p-2.5 rounded-2xl bg-popover/95 backdrop-blur-xl border border-border/80 shadow-2xl z-50">
