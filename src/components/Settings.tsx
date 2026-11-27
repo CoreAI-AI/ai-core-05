@@ -56,6 +56,7 @@ export const Settings = ({ user }: SettingsProps) => {
   const [exportStage, setExportStage] = useState<'idle' | 'loading' | 'success'>('idle');
   const [prefStage, setPrefStage] = useState<'idle' | 'loading' | 'success'>('idle');
   const [nameStage, setNameStage] = useState<'idle' | 'loading' | 'success'>('idle');
+  const [addFactStage, setAddFactStage] = useState<'idle' | 'loading' | 'success'>('idle');
   const [activeTab, setActiveTab] = useState<TabKey>('profile');
   const [localSettings, setLocalSettings] = useState<UserSettings>(settings);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
@@ -167,12 +168,15 @@ export const Settings = ({ user }: SettingsProps) => {
     }
   };
 
-  const handleAddFact = () => {
-    if (!newFactInput.trim()) return;
+  const handleAddFact = async () => {
+    if (!newFactInput.trim() || addFactStage !== 'idle') return;
+    setAddFactStage('loading');
     addManualFact(newFactInput.trim());
     setNewFactInput("");
     refreshMemory();
-    toast.success("Fact remembered by CoreAI");
+    setAddFactStage('success');
+    toast.success("Fact remembered by CoreAI! ✓");
+    setTimeout(() => setAddFactStage('idle'), 1500);
   };
 
   const handleRemoveFact = (index: number) => {
@@ -618,9 +622,21 @@ export const Settings = ({ user }: SettingsProps) => {
                     placeholder="Add a new memory fact (e.g., 'Likes dark mode and coffee')..."
                     className="h-9 text-xs rounded-xl bg-muted/30 border-border/50"
                   />
-                  <Button size="sm" onClick={handleAddFact} className="h-9 rounded-xl text-xs gap-1.5 shrink-0">
-                    <Plus className="w-3.5 h-3.5" /> Add Fact
-                  </Button>
+                  <button
+                    onClick={handleAddFact}
+                    disabled={addFactStage !== 'idle' || !newFactInput.trim()}
+                    className={cn(
+                      "h-9 px-3.5 rounded-xl text-xs font-medium flex items-center gap-1.5 shrink-0 transition-all duration-200 cursor-pointer select-none",
+                      addFactStage === 'idle' && (newFactInput.trim() ? "bg-primary text-primary-foreground hover:opacity-90 active:scale-95 shadow-xs" : "bg-muted text-muted-foreground cursor-not-allowed opacity-60"),
+                      addFactStage === 'loading' && "bg-primary/80 text-primary-foreground cursor-wait scale-95",
+                      addFactStage === 'success' && "bg-emerald-500 text-white scale-105 shadow-sm font-semibold"
+                    )}
+                  >
+                    {addFactStage === 'loading' && <span className="w-3 h-3 rounded-full border-2 border-white border-t-transparent animate-spin" />}
+                    {addFactStage === 'success' && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
+                    {addFactStage === 'idle' && <Plus className="w-3.5 h-3.5" />}
+                    <span>{addFactStage === 'loading' ? 'Remembering...' : addFactStage === 'success' ? 'Remembered! ✓' : 'Add Fact'}</span>
+                  </button>
                 </div>
 
                 {/* Facts List */}
