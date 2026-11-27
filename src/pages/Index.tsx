@@ -1036,15 +1036,15 @@ const Index = () => {
                     <Focus className={`h-4 w-5 transition-transform duration-300 ${isFocusMode ? 'scale-110' : ''}`} />
                   </Button>
 
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={startNewChat}
-                    className="group h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 hover:scale-105 active:scale-90 transition-all duration-150 cursor-pointer"
-                    title="New Chat"
-                  >
-                    <SquarePen className="h-5 w-5 transition-transform duration-200 group-hover:rotate-6" />
-                  </Button>
+<Button
+  variant="ghost"
+  size="icon"
+  onClick={startNewChat}
+  className="group h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 hover:scale-110 active:scale-90 transition-all duration-200 cursor-pointer"
+  title="New Chat"
+>
+  <SquarePen className="h-5 w-5 transition-transform duration-200 group-hover:rotate-12 group-hover:scale-110 text-muted-foreground group-hover:text-primary" />
+</Button>
 
                 </div>
               </header>
