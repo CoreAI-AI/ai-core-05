@@ -939,11 +939,12 @@ const Index = () => {
             <div className="flex flex-col h-full bg-background">
               <div className="flex items-center justify-between p-4 border-b border-border/40">
                 <h2 className="text-lg font-bold tracking-tight text-foreground">Settings</h2>
-                <Button
+               <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowSettings(false)}
-                  className="h-8 w-8 p-0 rounded-full hover:bg-muted"
+                  className="h-8 w-8 p-0 rounded-full hover:bg-muted hover:rotate-90 hover:scale-105 active:scale-90 transition-all duration-200 cursor-pointer"
+                  title="Close settings"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -1025,24 +1026,24 @@ const Index = () => {
                         return next;
                       });
                     }}
-                    className={`h-9 w-9 rounded-full transition-all cursor-pointer ${
+                    className={`h-9 w-9 rounded-full hover:scale-105 active:scale-90 transition-all duration-200 cursor-pointer ${
                       isFocusMode
-                        ? 'bg-primary/20 text-primary border border-primary/40 shadow-sm'
+                        ? 'bg-primary/20 text-primary border border-primary/40 shadow-sm ring-2 ring-primary/30 ring-offset-1'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
                     }`}
                     title={isFocusMode ? "Exit Focus Mode" : "Focus Mode"}
                   >
-                    <Focus className="h-4 w-5" />
+                    <Focus className={`h-4 w-5 transition-transform duration-300 ${isFocusMode ? 'scale-110' : ''}`} />
                   </Button>
 
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={startNewChat}
-                    className="h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-all cursor-pointer"
+                    className="group h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 hover:scale-105 active:scale-90 transition-all duration-150 cursor-pointer"
                     title="New Chat"
                   >
-                    <SquarePen className="h-5 w-5" />
+                    <SquarePen className="h-5 w-5 transition-transform duration-200 group-hover:rotate-6" />
                   </Button>
 
                 </div>
