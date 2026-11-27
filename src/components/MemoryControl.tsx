@@ -49,19 +49,22 @@ export const MemoryControl = ({ chatId, onMemoryChange }: MemoryControlProps) =>
           variant="ghost"
           size="sm"
           className={cn(
-            "h-9 gap-2 px-3 text-sm font-medium rounded-full",
-            memoryEnabled ? "text-primary" : "text-muted-foreground"
+            "group h-9 gap-2 px-3 text-sm font-medium rounded-full transition-all duration-200 hover:scale-105 active:scale-95 cursor-pointer",
+            memoryEnabled 
+              ? "text-primary bg-primary/10 hover:bg-primary/20 shadow-xs" 
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
           )}
         >
           {memoryEnabled ? (
-            <Brain className="w-4 h-4" />
+            <Brain className="w-4 h-4 transition-transform duration-300 group-hover:scale-110 animate-pulse" />
           ) : (
-            <Lock className="w-4 h-4" />
+            <Lock className="w-4 h-4 transition-transform duration-200 group-hover:rotate-12" />
           )}
           <span className="hidden sm:inline">
             {memoryEnabled ? "Memory On" : "Memory Off"}
           </span>
         </Button>
+        
       </PopoverTrigger>
       <PopoverContent align="end" className="w-72">
         <div className="space-y-4">
