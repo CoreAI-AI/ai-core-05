@@ -376,34 +376,29 @@ export const ChatSidebar = ({
           </Button>
 
           {/* Tab 3: Deep Research */}
-          <Button
+         <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 rounded-xl group transition-all duration-150 font-normal hover:font-medium"
+            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 active:scale-[0.98] rounded-xl group transition-all duration-150 font-normal hover:font-medium"
             onClick={() => {
               onNewChat();
-              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
-                onCollapse();
-              }
+              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) onCollapse();
             }}
           >
-            <Globe className="w-4 h-4 mr-2.5 text-cyan-400 group-hover:scale-105 transition-transform" />
+            <Globe className="w-4 h-4 mr-2.5 text-cyan-400 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-200" />
             <span className="truncate">Deep Research</span>
           </Button>
 
-          {/* Settings Tab */}
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 rounded-xl transition-all duration-150 font-normal hover:font-medium"
+            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 active:scale-[0.98] rounded-xl group transition-all duration-150 font-normal hover:font-medium"
             onClick={() => {
               onOpenSettings();
-              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
-                onCollapse();
-              }
+              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) onCollapse();
             }}
           >
-            <Settings className="w-4 h-4 mr-2.5 text-muted-foreground" />
+            <Settings className="w-4 h-4 mr-2.5 text-muted-foreground group-hover:scale-110 group-hover:rotate-45 transition-transform duration-200" />
             <span className="truncate">Settings</span>
           </Button>
         </nav>
