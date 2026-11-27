@@ -31,7 +31,6 @@ export interface CoreAIFeatureItem {
 
 // 11 CoreAI 0-Expense Special Features
 export const coreAiFeatures: CoreAIFeatureItem[] = [
-  // First 5 Features (Visible by default)
   {
     id: 'doc-reader',
     label: 'Document & Notes Q&A',
@@ -62,7 +61,6 @@ export const coreAiFeatures: CoreAIFeatureItem[] = [
     icon: Scale,
     prompt: 'Welcome to Decision Matrix! What difficult choice or dilemma are you facing? (e.g. "Job A vs Job B" or "College vs Startup"). List your options, and I will create a structured pros, cons, and risk comparison table.'
   },
-  // Expanded 6 Features (Visible on "More...")
   {
     id: 'prompt-vault',
     label: 'Prompt Vault & Optimizer',
@@ -128,7 +126,7 @@ export const ChatSidebar = ({
   onCollapse,
   onSelectFeature
 }: ChatSidebarProps) => {
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -149,17 +147,6 @@ export const ChatSidebar = ({
     const saved = localStorage.getItem('pinnedChats');
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
-
-  const handleFeatureClick = (feature: CoreAIFeatureItem) => {
-    if (onSelectFeature) {
-      onSelectFeature(feature);
-    } else {
-      onNewChat();
-    }
-    if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
-      onCollapse();
-    }
-  };
 
   const handleAction = (action: string) => {
     if (action === 'newChat') {
@@ -216,7 +203,7 @@ export const ChatSidebar = ({
           : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
       )}
     >
-            <Button
+      <Button
         variant="ghost"
         className="flex-1 justify-start text-sm truncate h-10 px-2.5 hover:bg-transparent shadow-none transition-colors duration-150 font-normal group-hover:font-medium"
         onClick={() => handleSelectWithAutoClose(chat)}
@@ -282,7 +269,7 @@ export const ChatSidebar = ({
       {/* Top Header */}
       <div className="p-3.5 border-b border-sidebar-border/30">
         <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2.5">
             <img src={coreaiLogo} alt="CoreAI" className="w-7 h-7 rounded-full ring-1 ring-border/40" />
             <span className="font-semibold text-lg text-sidebar-foreground tracking-tight">CoreAI</span>
           </div>
@@ -302,8 +289,8 @@ export const ChatSidebar = ({
           </div>
         </div>
         
-                {/* ChatGPT Style Sleek Search chats */}
-               <div className="relative flex items-center group">
+        {/* Sleek Search chats */}
+        <div className="relative flex items-center group">
           <Search className="absolute left-3 w-4 h-4 text-muted-foreground group-focus-within:text-foreground transition-colors pointer-events-none" />
           <Input 
             ref={searchInputRef}
@@ -329,54 +316,47 @@ export const ChatSidebar = ({
         </div>
       </div>
 
-            {/* Gradient + New Chat Button (Screenshot Match) */}
+      {/* Gradient + New Chat Button with Tactile & Glow Animation */}
       <div className="p-3 border-b border-sidebar-border/30">
         <Button
           onClick={() => handleAction('newChat')}
-          className="w-full h-11 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-95 text-white font-medium rounded-xl shadow-sm hover:shadow-[0_0_24px_-3px_rgba(79,70,229,0.5)] active:scale-95 transition-all duration-200 text-sm md:text-base flex items-center justify-center gap-2.5 cursor-pointer"
+          className="group w-full h-11 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:opacity-95 text-white font-medium rounded-xl shadow-sm hover:shadow-[0_0_24px_-3px_rgba(79,70,229,0.6)] hover:scale-[1.02] active:scale-95 transition-all duration-200 text-sm md:text-base flex items-center justify-center gap-2.5 cursor-pointer"
         >
-          <Plus className="w-4 h-4 stroke-[2.2] transition-transform duration-200 group-hover:rotate-90" />
+          <Plus className="w-4 h-4 stroke-[2.2] transition-transform duration-300 group-hover:rotate-90 group-hover:scale-110" />
           New Chat
         </Button>
       </div>
 
-            {/* 3 Action Tabs + Settings Navigation */}
-           <div className="p-2 border-b border-sidebar-border/30">
+      {/* Navigation */}
+      <div className="p-2 border-b border-sidebar-border/30">
         <nav className="space-y-1">
-          {/* Tab 1: Explore Prompts */}
           <Button
             variant="ghost"
             size="sm"
             className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 rounded-xl group transition-all duration-150 font-normal hover:font-medium"
             onClick={() => {
               navigate('/explore');
-              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
-                onCollapse();
-              }
+              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) onCollapse();
             }}
           >
             <Sparkles className="w-4 h-4 mr-2.5 text-indigo-400 group-hover:scale-105 transition-transform" />
             <span className="truncate">Explore Prompts</span>
           </Button>
 
-          {/* Tab 2: Notes & Canvas */}
           <Button
             variant="ghost"
             size="sm"
             className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 rounded-xl group transition-all duration-150 font-normal hover:font-medium"
             onClick={() => {
               navigate('/notes');
-              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
-                onCollapse();
-              }
+              if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) onCollapse();
             }}
           >
             <StickyNote className="w-4 h-4 mr-2.5 text-amber-400 group-hover:scale-105 transition-transform" />
             <span className="truncate">Notes & Canvas</span>
           </Button>
 
-          {/* Tab 3: Deep Research */}
-         <Button
+          <Button
             variant="ghost"
             size="sm"
             className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 active:scale-[0.98] rounded-xl group transition-all duration-150 font-normal hover:font-medium"
@@ -406,7 +386,7 @@ export const ChatSidebar = ({
 
       {/* History Section */}
       <div className="flex-1 overflow-y-auto p-2 no-scrollbar">
-               <div className="px-2.5 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+        <div className="px-2.5 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           History
         </div>
         
@@ -425,9 +405,9 @@ export const ChatSidebar = ({
         </div>
       </div>
 
-      {/* User Info & Logout (Screenshot Match) */}
+      {/* User Info & Logout */}
       <div className="p-3 border-t border-sidebar-border/30 bg-muted/20">
-                {user && (
+        {user && (
           <div className="mb-2.5 p-2.5 rounded-xl bg-card/60 border border-border/40 transition-colors duration-150">
             <div className="text-xs text-muted-foreground font-normal">Signed in as</div>
             <div className="text-sm font-medium text-foreground truncate mt-0.5">{user.email}</div>
