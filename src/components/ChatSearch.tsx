@@ -102,27 +102,27 @@ export const ChatSearch = ({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 rounded-lg hover:bg-muted"
+              className="h-8 w-8 p-0 rounded-lg hover:bg-muted active:scale-90 transition-all duration-150"
               onClick={() => navigateResult('up')}
               disabled={results.length === 0}
               title="Previous (Shift+Enter)"
             >
-              <ChevronUp className="w-4 h-4" />
+              <ChevronUp className="w-4 h-4 transition-transform active:-translate-y-0.5" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 rounded-lg hover:bg-muted"
+              className="h-8 w-8 p-0 rounded-lg hover:bg-muted active:scale-90 transition-all duration-150"
               onClick={() => navigateResult('down')}
               disabled={results.length === 0}
               title="Next (Enter)"
             >
-              <ChevronDown className="w-4 h-4" />
+              <ChevronDown className="w-4 h-4 transition-transform active:translate-y-0.5" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 rounded-lg hover:bg-muted ml-1"
+              className="h-8 w-8 p-0 rounded-lg hover:bg-muted hover:rotate-90 active:scale-90 transition-all duration-200 ml-1"
               onClick={onClose}
               title="Close (Esc)"
             >
