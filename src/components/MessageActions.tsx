@@ -32,6 +32,8 @@ interface MessageActionsProps {
   messageId?: string;
   chatId?: string;
   userPrompt?: string;
+  question?: string;
+  className?: string;
   onRegenerate?: () => void;
   onEdit?: () => void;
   onPin?: () => void;
@@ -44,6 +46,8 @@ export const MessageActions = ({
   messageId,
   chatId,
   userPrompt,
+  question,
+  className,
   onRegenerate,
   onEdit,
   onPin,
@@ -187,8 +191,10 @@ export const MessageActions = ({
     toast.info('Thank you for reporting. We will review this response.');
   };
 
+  const currentQuestion = question || userPrompt || "";
+
   return (
-    <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+    <div className={cn("flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity", className)}>
       {/* 3-Stage Animated Copy Button */}
       <button
         onClick={handleCopy}
@@ -220,6 +226,18 @@ export const MessageActions = ({
           </>
         )}
       </button>
+
+      {/* Direct Share Result Card Button */}
+      {!isUser && (
+        <button
+          onClick={() => setShareOpen(true)}
+          className="h-7 px-2 rounded-lg flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all cursor-pointer select-none"
+          title="Share Result Card"
+        >
+          <Share2 className="h-3.5 w-3.5 text-primary" />
+          <span className="hidden sm:inline">Share</span>
+        </button>
+      )}
 
       {/* Feedback Buttons */}
       {!isUser && (
@@ -284,7 +302,7 @@ export const MessageActions = ({
               <MoreHorizontal className="h-3.5 w-3.5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44 rounded-2xl border border-border shadow-xl p-1.5">
+          <DropdownMenuContent align="end" className="w-48 rounded-2xl border border-border shadow-xl p-1.5">
             <DropdownMenuItem onClick={handleReadAloud} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm">
               {isThisPlaying ? (
                 <span className="flex items-center gap-0.5 text-emerald-500">
@@ -304,8 +322,8 @@ export const MessageActions = ({
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={handleShare} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm">
-              <Share2 className="h-4 w-4" />
-              Share text
+              <Share2 className="h-4 w-4 text-primary" />
+              Share result card
             </DropdownMenuItem>
             <DropdownMenuSeparator className="my-1" />
             <DropdownMenuItem onClick={handleReport} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm text-destructive focus:text-destructive">
@@ -329,13 +347,13 @@ export const MessageActions = ({
         </Button>
       )}
 
-      {/* Share Dialog */}
+      {/* Share Result Card Dialog */}
       {!isUser && (
         <ShareResultCard
-          isOpen={shareOpen}
-          onClose={() => setShareOpen(false)}
-          prompt={userPrompt || ""}
-          response={message}
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          question={currentQuestion}
+          answer={message}
         />
       )}
     </div>
