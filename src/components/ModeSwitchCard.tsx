@@ -168,17 +168,17 @@ export const ModeSwitchCard: React.FC<ModeSwitchCardProps> = ({
             <Button
               size="sm"
               onClick={() => onSwitch(targetMode, userPrompt)}
-              className="h-8 px-3 text-xs font-medium rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm flex items-center gap-1.5"
+              className="group h-8 px-3 text-xs font-medium rounded-full bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-[0_0_18px_-2px_rgba(59,130,246,0.5)] hover:scale-105 active:scale-95 transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
             >
               Switch to {meta.label}
-              <ArrowRight className="h-3 w-3" />
+              <ArrowRight className="h-3 w-3 transition-transform duration-200 group-hover:translate-x-1" />
             </Button>
 
             <Button
               size="sm"
               variant="ghost"
               onClick={() => onCancel(userPrompt)}
-              className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground rounded-full flex items-center gap-1"
+              className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all duration-150 rounded-full flex items-center gap-1 cursor-pointer"
             >
               <X className="h-3 w-3" />
               Cancel (Normal Chat में ही रहें)
