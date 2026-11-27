@@ -62,7 +62,7 @@ const ImagesSection = () => {
         img.onload = () => resolve();
         img.onerror = () => resolve();
         img.src = imageUrl;
-       setTimeout(resolve, 4000);
+        setTimeout(resolve, 4000);
       });
 
       const newCreation = saveMyCreation({
@@ -103,7 +103,6 @@ const ImagesSection = () => {
   };
 
   return (
-    // FIX SCROLL: h-screen h-[100dvh] overflow-y-auto overflow-x-hidden ensures smooth full-page scrolling
     <div className="flex flex-col h-screen h-[100dvh] overflow-y-auto overflow-x-hidden bg-background text-foreground transition-colors duration-200">
       {/* Top Header */}
       <header className="sticky top-0 z-30 bg-background/90 backdrop-blur-md border-b border-border/50 shrink-0">
@@ -122,40 +121,43 @@ const ImagesSection = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Search Input */}
-            <div className="relative w-40 sm:w-56">
-              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search styles..."
-                className="w-full h-8 pl-8 pr-3 text-xs rounded-full bg-muted/60 border border-border/40 text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
-              />
-            </div>
-            
- {/* Creations Toggle - ChatGPT Pill */}
-            <button
+            <Button
+              variant={showCreations ? "default" : "outline"}
+              size="sm"
               onClick={() => setShowCreations(!showCreations)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 transition-all border cursor-pointer ${
-                showCreations 
-                  ? "bg-foreground text-background border-foreground shadow-2xs" 
-                  : "bg-muted/40 text-muted-foreground hover:text-foreground border-border/50 hover:bg-muted/70"
-              }`}
-              title="My Creations"
+              className="h-8 rounded-full text-xs font-medium gap-1.5 active:scale-95 transition-all"
             >
               <FolderHeart className="w-3.5 h-3.5" />
-              <span className="text-xs">Creations</span>
-              <span className="text-[11px] opacity-70">({creations.length})</span>
-            </button>
+              <span>Creations ({creations.length})</span>
+            </Button>
           </div>
         </div>
 
-        {/* 2 TABS: ChatGPT Segmented Pill Bar */}
-        <div className="max-w-6xl mx-auto px-4 pb-3 pt-1 flex items-center gap-2">
-          <div className="inline-flex p-1 bg-muted/40 rounded-full border border-border/50 backdrop-blur-xs">
+        {/* Tab & Search Bar */}
+        <div className="max-w-6xl mx-auto px-4 pb-3 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Search 40+ styles..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full h-9 pl-9 pr-8 text-xs rounded-xl bg-muted/50 border border-border/60 text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-1 focus:ring-primary"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded-full"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
+          {/* Navigation Pills */}
+          <div className="flex items-center gap-1.5 self-start sm:self-auto bg-muted/40 p-1 rounded-xl border border-border/40">
             {(["Trending", "Templates"] as const).map((tab) => {
-              const isActive = activeTab === tab && !showCreations;
+              const isActive = activeTab === tab;
               return (
                 <button
                   key={tab}
@@ -163,10 +165,10 @@ const ImagesSection = () => {
                     setActiveTab(tab);
                     setShowCreations(false);
                   }}
-                  className={`text-xs px-4 py-1.5 rounded-full font-medium transition-all duration-150 cursor-pointer ${
+                  className={`px-3 py-1 rounded-lg text-xs font-medium transition-all ${
                     isActive
-                      ? "bg-background text-foreground shadow-2xs font-semibold"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      ? "bg-background text-foreground shadow-xs font-semibold"
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
                   {tab}
@@ -175,7 +177,6 @@ const ImagesSection = () => {
             })}
           </div>
         </div>
-
       </header>
 
       {/* Main Container */}
@@ -218,7 +219,7 @@ const ImagesSection = () => {
               </div>
             </div>
 
-            {/* Input & Create Button */}
+            {/* Input & Create Button with Tactile Animation */}
             <div className="relative flex items-center">
               <input
                 ref={composerInputRef}
@@ -241,9 +242,13 @@ const ImagesSection = () => {
                 type="button"
                 disabled={isGenerating}
                 onClick={handleDirectGenerate}
-                className="absolute right-1.5 h-8 sm:h-9 px-3 sm:px-4 rounded-lg bg-foreground text-background hover:opacity-90 font-medium text-xs flex items-center gap-1.5 transition-all disabled:opacity-60"
+                className="absolute right-1.5 h-8 sm:h-9 px-3 sm:px-4 rounded-lg bg-foreground text-background hover:opacity-90 active:scale-95 font-medium text-xs flex items-center gap-1.5 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-60"
               >
-                {isGenerating ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
+                {isGenerating ? (
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />
+                ) : (
+                  <Wand2 className="w-3.5 h-3.5 transition-transform hover:rotate-12" />
+                )}
                 <span>{isGenerating ? "Creating..." : "Create"}</span>
               </Button>
             </div>
@@ -259,23 +264,22 @@ const ImagesSection = () => {
             </h2>
 
             {creations.length === 0 ? (
-              <div className="py-16 text-center text-muted-foreground text-sm border border-dashed border-border/60 rounded-2xl p-6">
-                <FolderHeart className="w-10 h-10 mx-auto text-muted-foreground/40 mb-3" />
-                <p className="font-medium text-foreground">No creations yet</p>
-                <p className="text-xs text-muted-foreground mt-1">Select any style and press Create!</p>
+              <div className="py-20 text-center text-muted-foreground border border-dashed border-border/60 rounded-2xl p-6">
+                No images created yet. Pick a style above and tap Create!
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                 {creations.map((c) => (
-                  <div key={c.id} className="group relative aspect-square rounded-xl overflow-hidden border border-border/50 bg-muted/30">
-                    <img src={c.imageUrl} alt={c.styleName} className="h-full w-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-2.5 flex flex-col justify-end">
-                      <p className="text-[11px] font-medium text-white line-clamp-1">{c.styleName}</p>
-                      <p className="text-[10px] text-white/70 line-clamp-1">{c.prompt}</p>
-                      <div className="flex items-center gap-1.5 mt-2">
+                  <div key={c.id} className="group relative rounded-xl overflow-hidden border border-border/60 bg-muted/20 flex flex-col shadow-xs">
+                    <div className="aspect-square w-full overflow-hidden bg-muted relative">
+                      <img src={c.imageUrl} alt={c.prompt} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                    </div>
+                    <div className="p-2.5 space-y-1.5 flex-1 flex flex-col justify-between">
+                      <p className="text-xs text-foreground font-medium line-clamp-2">{c.prompt}</p>
+                      <div className="flex items-center justify-between gap-1 pt-1 border-t border-border/40">
                         <button
                           onClick={() => handleDownloadImage(c.imageUrl, c.styleName)}
-                          className="flex-1 py-1 rounded-md bg-white text-black text-[11px] font-medium flex items-center justify-center gap-1"
+                          className="flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
                         >
                           <Download className="w-3 h-3" /> Download
                         </button>
@@ -294,7 +298,6 @@ const ImagesSection = () => {
             )}
           </section>
         ) : activeTab === "Templates" ? (
-          /* TEMPLATES EMPTY STATE (User: template mein abhi kuch nahi ho) */
           <section className="py-20 text-center border border-dashed border-border/60 rounded-2xl p-8">
             <div className="max-w-xs mx-auto space-y-2">
               <Sparkles className="w-8 h-8 text-muted-foreground/40 mx-auto" />
@@ -305,7 +308,6 @@ const ImagesSection = () => {
             </div>
           </section>
         ) : (
-          /* TRENDING RESPONSIVE GRID: 2 cols mobile, 3 cols tablet, 4-5 cols desktop */
           <section className="space-y-3">
             <div className="flex items-center justify-between">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -325,13 +327,12 @@ const ImagesSection = () => {
                     <div
                       key={style.id}
                       onClick={() => handleSelectStyle(style)}
-                      className={`group relative flex flex-col rounded-xl overflow-hidden cursor-pointer border transition-all duration-200 ${
+                      className={`group relative flex flex-col rounded-xl overflow-hidden cursor-pointer border transition-all duration-300 ${
                         isSelected 
-                          ? "ring-2 ring-primary border-primary shadow-md scale-[1.02]" 
-                          : "border-border/60 hover:border-foreground/30 hover:shadow-xs"
+                          ? "ring-2 ring-primary border-primary shadow-lg scale-[1.02]" 
+                          : "border-border/60 hover:border-primary/50 hover:-translate-y-1 hover:shadow-md"
                       }`}
                     >
-                      {/* Image Thumbnail matching user's screenshots */}
                       <div className="relative aspect-4/5 w-full overflow-hidden bg-muted">
                         <img
                           src={style.image}
@@ -339,13 +340,10 @@ const ImagesSection = () => {
                           loading="lazy"
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
-                        
-                        {/* Title Badge at bottom */}
-                        <div className="absolute bottom-2 left-2 right-2">
-                          <p className="text-xs sm:text-sm font-semibold text-white drop-shadow-sm leading-tight line-clamp-1">
-                            {style.name}
-                          </p>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                        <div className="absolute bottom-2 left-2 right-2 text-white">
+                          <p className="text-xs sm:text-sm font-semibold leading-tight drop-shadow-sm">{style.name}</p>
+                          <p className="text-[10px] text-white/80 line-clamp-1 mt-0.5">{style.prompt}</p>
                         </div>
                       </div>
                     </div>
