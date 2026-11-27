@@ -1,55 +1,62 @@
-import { useState, useEffect } from 'react';
-import { Copy, Check, RotateCcw, Pencil, ThumbsUp, ThumbsDown, MoreHorizontal, Volume2, Flag, Pin, Share2, Image as ImageIcon } from 'lucide-react';
-import { ShareResultCard } from './ShareResultCard';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { 
+  Copy, 
+  Check, 
+  RotateCcw, 
+  ThumbsUp, 
+  ThumbsDown, 
+  Volume2, 
+  MoreHorizontal,
+  Pin,
+  Share2,
+  Flag,
+  Pencil
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
-import { pinMessage } from './PinnedMessages';
-import { useTTSPlayer } from '@/hooks/useTTSPlayer';
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { ShareResultCard } from "@/components/ShareResultCard";
+import { useTTSPlayer } from "@/hooks/useTTSPlayer";
+import { cn } from "@/lib/utils";
 
 interface MessageActionsProps {
   message: string;
+  isUser: boolean;
   messageId?: string;
   chatId?: string;
-  isUser: boolean;
+  userPrompt?: string;
   onRegenerate?: () => void;
   onEdit?: () => void;
-  onReadAloud?: () => void;
-  className?: string;
-  question?: string;
+  onPin?: () => void;
+  isPinned?: boolean;
 }
 
-export const MessageActions = ({ 
-  message, 
+export const MessageActions = ({
+  message,
+  isUser,
   messageId,
   chatId,
-  isUser, 
-  onRegenerate, 
+  userPrompt,
+  onRegenerate,
   onEdit,
-  onReadAloud,
-  className,
-  question 
+  onPin,
+  isPinned
 }: MessageActionsProps) => {
   const [copyState, setCopyState] = useState<"idle" | "loading" | "success">("idle");
   const [shareOpen, setShareOpen] = useState(false);
   const [feedback, setFeedback] = useState<'good' | 'bad' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSpinning, setIsSpinning] = useState(false);
 
-  useEffect(() => {
-    const loadFeedback = async () => {
-      if (!messageId || isUser) return;
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-        const [isSpinning, setIsSpinning] = useState(false);
+  const { isPlaying, currentMessageId, play, stop } = useTTSPlayer();
+  const isThisPlaying = isPlaying && currentMessageId === messageId;
 
   const handleRegenerateClick = () => {
     if (!onRegenerate || isSpinning) return;
@@ -57,6 +64,12 @@ export const MessageActions = ({
     onRegenerate();
     setTimeout(() => setIsSpinning(false), 800);
   };
+
+  useEffect(() => {
+    const loadFeedback = async () => {
+      if (!messageId || isUser) return;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
       const { data } = await supabase
         .from('message_feedback')
@@ -88,6 +101,7 @@ export const MessageActions = ({
       toast.error('Failed to copy');
     }
   };
+
   const handleFeedback = async (type: 'good' | 'bad') => {
     if (!messageId || isSubmitting) return;
 
@@ -111,116 +125,103 @@ export const MessageActions = ({
         await supabase
           .from('message_feedback')
           .upsert({
-            user_id: user.id,
             message_id: messageId,
+            user_id: user.id,
             feedback_type: type
-          }, {
-            onConflict: 'user_id,message_id'
           });
         setFeedback(type);
-        toast.success('Thanks for your feedback!');
+        toast.success(type === 'good' ? 'Thanks for feedback! 👍' : 'Feedback recorded');
       }
     } catch (error) {
-      console.error('Error saving feedback:', error);
-      toast.error('Failed to save feedback');
+      toast.error('Failed to submit feedback');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const tts = useTTSPlayer();
-  const isThisPlaying = tts.isActive && tts.text === message;
-
   const handleReadAloud = () => {
     if (isThisPlaying) {
-      tts.stop();
-      return;
+      stop();
+    } else {
+      play(message, messageId);
     }
-    if (onReadAloud) {
-      onReadAloud();
-      return;
+  };
+
+  const handlePin = async () => {
+    if (!messageId || !chatId) return;
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please sign in to pin messages');
+        return;
+      }
+
+      if (isPinned) {
+        await supabase
+          .from('pinned_messages')
+          .delete()
+          .eq('message_id', messageId)
+          .eq('user_id', user.id);
+        toast.success('Message unpinned');
+      } else {
+        await supabase
+          .from('pinned_messages')
+          .insert({
+            message_id: messageId,
+            chat_id: chatId,
+            user_id: user.id
+          });
+        toast.success('Message pinned');
+      }
+      onPin?.();
+    } catch (error) {
+      toast.error('Failed to update pin');
     }
-    tts.play(message, { title: message.slice(0, 60) + (message.length > 60 ? "…" : "") });
-    toast.success('Reading aloud...');
+  };
+
+  const handleShare = () => {
+    setShareOpen(true);
   };
 
   const handleReport = () => {
-    toast.success('Message reported. Thank you for helping us improve.');
-  };
-
-  const handlePin = () => {
-    if (!chatId || !messageId) {
-      toast.error('Cannot pin this message');
-      return;
-    }
-    
-    const pinned = pinMessage(chatId, messageId, message);
-    if (pinned) {
-      toast.success('Message pinned!');
-    } else {
-      toast.info('Message already pinned');
-    }
-  };
-
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          text: message,
-        });
-      } else {
-        await navigator.clipboard.writeText(message);
-        toast.success('Message copied to clipboard');
-      }
-    } catch (err) {
-      // User cancelled
-    }
+    toast.info('Thank you for reporting. We will review this response.');
   };
 
   return (
-    <div className={cn(
-      "flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150 pt-1 text-muted-foreground",
-      className
-    )}>
-            {/* 3-Stage Tactile Animated Copy Button */}
+    <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+      {/* 3-Stage Animated Copy Button */}
       <button
         onClick={handleCopy}
         disabled={copyState !== "idle"}
         className={cn(
-          "h-7 px-2 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-1",
+          "h-7 px-2 rounded-lg flex items-center gap-1.5 text-xs font-medium transition-all duration-200 cursor-pointer select-none",
           copyState === "idle" && "text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95",
-          copyState === "loading" && "bg-orange-500 text-white cursor-not-allowed scale-95",
-          copyState === "success" && "bg-emerald-500 text-white cursor-default scale-100"
+          copyState === "loading" && "text-primary bg-primary/10 scale-95",
+          copyState === "success" && "text-emerald-500 bg-emerald-500/10 scale-105 shadow-xs"
         )}
-        title="Copy message"
+        title={copyState === "success" ? "Copied!" : "Copy response"}
       >
-        {copyState === "idle" && <Copy className="h-3.5 w-3.5" />}
-        {copyState === "loading" && <span className="animate-pulse text-[11px]">Copying...</span>}
+        {copyState === "idle" && (
+          <>
+            <Copy className="h-3.5 w-3.5 transition-transform" />
+            <span className="hidden sm:inline">Copy</span>
+          </>
+        )}
+        {copyState === "loading" && (
+          <>
+            <span className="w-3 h-3 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+            <span className="hidden sm:inline">Copying...</span>
+          </>
+        )}
         {copyState === "success" && (
-          <span className="flex items-center gap-1 text-[11px]">
-            <Check className="h-3.5 w-3.5 stroke-[2.5]" /> Done!
-          </span>
+          <>
+            <Check className="h-3.5 w-3.5 text-emerald-500 stroke-[2.5]" />
+            <span className="font-semibold text-emerald-500">Copied! ✓</span>
+          </>
         )}
       </button>
 
-      {/* Share Result Pill Badge */}
-      {!isUser && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setShareOpen(true)}
-          className="h-7 px-2.5 gap-1.5 text-xs rounded-full bg-muted/50 hover:bg-muted text-muted-foreground hover:text-foreground border border-border/40 active:scale-95 transition-all"
-          title="Share result card"
-        >
-          <ImageIcon className="h-3.5 w-3.5" />
-          <span>Card</span>
-        </Button>
-      )}
-      {!isUser && (
-        <ShareResultCard open={shareOpen} onOpenChange={setShareOpen} answer={message} question={question} />
-      )}
-
-      {/* Good/Bad Feedback Buttons */}
+      {/* Feedback Buttons */}
       {!isUser && (
         <>
           <Button
@@ -229,21 +230,26 @@ export const MessageActions = ({
             onClick={() => handleFeedback('good')}
             disabled={isSubmitting}
             className={cn(
-              "h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all",
-              feedback === 'good' && "text-green-500 hover:text-green-500"
+              "h-7 w-7 p-0 rounded-full active:scale-95 transition-all",
+              feedback === 'good' 
+                ? 'text-primary bg-primary/10 hover:bg-primary/20' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
             )}
             title="Good response"
           >
             <ThumbsUp className="h-3.5 w-3.5" />
           </Button>
+
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleFeedback('bad')}
             disabled={isSubmitting}
             className={cn(
-              "h-7 w-7 p-0 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/70 active:scale-95 transition-all",
-              feedback === 'bad' && "text-red-500 hover:text-red-500"
+              "h-7 w-7 p-0 rounded-full active:scale-95 transition-all",
+              feedback === 'bad' 
+                ? 'text-destructive bg-destructive/10 hover:bg-destructive/20' 
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
             )}
             title="Bad response"
           >
@@ -252,7 +258,7 @@ export const MessageActions = ({
         </>
       )}
 
-            {/* Regenerate Button with 360 Spin */}
+      {/* Regenerate Button with 360 Spin */}
       {!isUser && onRegenerate && (
         <Button
           variant="ghost"
@@ -264,18 +270,6 @@ export const MessageActions = ({
           <RotateCcw className={cn("h-3.5 w-3.5 transition-transform duration-700 ease-out", isSpinning && "rotate-[360deg] text-primary")} />
         </Button>
       )}
-                  <DropdownMenuItem onClick={handleReadAloud} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm">
-              {isThisPlaying ? (
-                <span className="flex items-center gap-0.5 text-emerald-500">
-                  <span className="w-1 h-3.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1 h-3.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1 h-3.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                </span>
-              ) : (
-                <Volume2 className="h-4 w-4" />
-              )}
-              {isThisPlaying ? 'Stop reading' : 'Read aloud'}
-            </DropdownMenuItem>
 
       {/* More Options Menu */}
       {!isUser && (
@@ -292,13 +286,21 @@ export const MessageActions = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44 rounded-2xl border border-border shadow-xl p-1.5">
             <DropdownMenuItem onClick={handleReadAloud} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm">
-              <Volume2 className="h-4 w-4" />
-              Read aloud
+              {isThisPlaying ? (
+                <span className="flex items-center gap-0.5 text-emerald-500">
+                  <span className="w-1 h-3.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                  <span className="w-1 h-3.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                  <span className="w-1 h-3.5 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                </span>
+              ) : (
+                <Volume2 className="h-4 w-4" />
+              )}
+              {isThisPlaying ? 'Stop reading' : 'Read aloud'}
             </DropdownMenuItem>
             {chatId && messageId && (
               <DropdownMenuItem onClick={handlePin} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm">
                 <Pin className="h-4 w-4" />
-                Pin message
+                {isPinned ? 'Unpin message' : 'Pin message'}
               </DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={handleShare} className="gap-2.5 cursor-pointer rounded-xl text-xs sm:text-sm">
@@ -325,6 +327,16 @@ export const MessageActions = ({
         >
           <Pencil className="h-3.5 w-3.5" />
         </Button>
+      )}
+
+      {/* Share Dialog */}
+      {!isUser && (
+        <ShareResultCard
+          isOpen={shareOpen}
+          onClose={() => setShareOpen(false)}
+          prompt={userPrompt || ""}
+          response={message}
+        />
       )}
     </div>
   );
