@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { useTheme } from "next-themes";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +28,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { UserSettings, useSettings } from "@/hooks/useSettings";
+import { FaithPreference, UserSettings, useSettings } from "@/hooks/useSettings";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -93,11 +94,15 @@ export const Settings = ({ user }: SettingsProps) => {
   const handleProfilePictureChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast.error("Profile picture must be under 2MB");
+        return;
+      }
       const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setLocalSettings(prev => ({ ...prev, profilePicture: result }));
-        updateSettings({ profilePicture: result });
+      reader.onloadend = () => {
+        const base64String = reader.result as string;
+        setLocalSettings(prev => ({ ...prev, profilePicture: base64String }));
+        updateSettings({ profilePicture: base64String });
         toast.success("Profile photo updated");
       };
       reader.readAsDataURL(file);
@@ -108,13 +113,27 @@ export const Settings = ({ user }: SettingsProps) => {
     if (localSettings.displayName !== settings.displayName) {
       updateSettings({ displayName: localSettings.displayName });
       setHasChanges(false);
-      toast.success("Name updated");
     }
+  };
+
+  const handleClearHistory = () => {
+    if (user?.id) {
+      localStorage.removeItem(`coreai_chats_${user.id}`);
+    } else {
+      localStorage.removeItem('coreai_chats_demo');
+    }
+    toast.success("Local conversation history cleared");
+    setTimeout(() => window.location.reload(), 400);
   };
 
   const getUserInitials = () => {
     if (localSettings.displayName) {
-      return localSettings.displayName.split(' ').map(n => n[0]).join('').toUpperCase();
+      return localSettings.displayName
+        .split(' ')
+        .map(n => n[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
     }
     if (user?.email) {
       return user.email[0].toUpperCase();
@@ -123,50 +142,43 @@ export const Settings = ({ user }: SettingsProps) => {
   };
 
   const testVoice = () => {
-    window.speechSynthesis.cancel();
-    setIsPlayingVoice(true);
-    const utterance = new SpeechSynthesisUtterance("Namaste, main CoreAI hoon.");
-    const voice = voices.find(v => v.name === localSettings.selectedVoice);
-    if (voice) utterance.voice = voice;
-    utterance.rate = localSettings.speechRate;
-    utterance.pitch = localSettings.speechPitch || 1;
-    utterance.onend = () => setIsPlayingVoice(false);
-    utterance.onerror = () => setIsPlayingVoice(false);
-    window.speechSynthesis.speak(utterance);
-    toast.success("Playing sample voice...");
-  };
-
-  const handleClearHistory = async () => {
-    try {
-      if (user) {
-        await (supabase as any).from('messages').delete().eq('chat_id', user.id);
-        await (supabase as any).from('chats').delete().eq('user_id', user.id);
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      setIsPlayingVoice(true);
+      const greeting = localSettings.faithPreference === 'islam' 
+        ? "Assalamu Alaikum! Yeh CoreAI ki aawaz ka preview hai."
+        : localSettings.faithPreference === 'hinduism'
+        ? "Namaste! Yeh CoreAI ki aawaz ka preview hai."
+        : localSettings.faithPreference === 'sikhism'
+        ? "Sat Sri Akaal! Yeh CoreAI ki aawaz ka preview hai."
+        : localSettings.faithPreference === 'christianity'
+        ? "Peace be with you! This is CoreAI speaking."
+        : "Namaste! Yeh CoreAI ki aawaz ka preview hai.";
+      const utterance = new SpeechSynthesisUtterance(greeting);
+      utterance.rate = localSettings.speechRate || 1;
+      if (localSettings.selectedVoice) {
+        const voice = voices.find(v => v.name === localSettings.selectedVoice);
+        if (voice) utterance.voice = voice;
       }
-      localStorage.removeItem('demo_chats');
-      localStorage.removeItem('demo_messages');
-      localStorage.removeItem('favorite_chats');
-      toast.success("Chat history cleared successfully");
-      setTimeout(() => window.location.reload(), 500);
-    } catch (error) {
-      toast.error("Failed to clear chat history");
+      utterance.onend = () => setIsPlayingVoice(false);
+      utterance.onerror = () => setIsPlayingVoice(false);
+      window.speechSynthesis.speak(utterance);
     }
   };
 
   const handleExportChats = () => {
+    setExportStage('loading');
     try {
-      setExportStage('loading');
-      const chatsData: Record<string, any> = {};
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('chats') || key.includes('messages') || key.includes('companion'))) {
-          chatsData[key] = localStorage.getItem(key);
-        }
-      }
-      const blob = new Blob([JSON.stringify(chatsData, null, 2)], { type: 'application/json' });
+      const storageKey = user?.id ? `coreai_chats_${user.id}` : 'coreai_chats_demo';
+      const chats = localStorage.getItem(storageKey) || '[]';
+      const mem = localStorage.getItem('coreai_companion_v1') || '{}';
+      const blob = new Blob([JSON.stringify({ exportDate: new Date().toISOString(), chats: JSON.parse(chats), memory: JSON.parse(mem), settings: localSettings }, null, 2)], {
+        type: 'application/json'
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `coreai_backup_${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `coreai-backup-${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
       setExportStage('success');
@@ -232,13 +244,22 @@ export const Settings = ({ user }: SettingsProps) => {
     { id: 'technical', name: 'Code & Tech Pro', icon: Code2, desc: 'Clean code first, high precision, zero filler' },
   ];
 
+  const faithOptions = [
+    { id: 'universal' as FaithPreference, label: 'Universal', greeting: 'Hello / Namaste', icon: '🌍', desc: 'Neutral, warm and respectful' },
+    { id: 'islam' as FaithPreference, label: 'Islam', greeting: 'Assalamu Alaikum', icon: '🌙', desc: 'Salam, warmth & Islamic etiquette' },
+    { id: 'hinduism' as FaithPreference, label: 'Hinduism', greeting: 'Namaste / Pranam', icon: '🪔', desc: 'Namaste, dharma & cultural respect' },
+    { id: 'christianity' as FaithPreference, label: 'Christianity', greeting: 'Peace be with you', icon: '✝️', desc: 'Blessings, peace & grace' },
+    { id: 'sikhism' as FaithPreference, label: 'Sikhism', greeting: 'Sat Sri Akaal', icon: '☬', desc: 'Sat Sri Akaal & Chardi Kala' },
+    { id: 'jainism_buddhism' as FaithPreference, label: 'Jain / Buddhist', greeting: 'Jai Jinendra / Shanti', icon: '☸️', desc: 'Ahimsa, peace & mindfulness' },
+  ];
+
   return (
     <div className="w-full max-w-5xl mx-auto pb-16 text-foreground">
       {/* Header bar */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/40 pb-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight">CoreAI Preferences & Settings</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Customize your AI's personality, memory, audio, and appearance</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Customize your AI's personality, greetings, memory, audio, and appearance</p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -258,83 +279,58 @@ export const Settings = ({ user }: SettingsProps) => {
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-2xl bg-popover/95 backdrop-blur-xl border border-border/80 shadow-2xl z-50">
-              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1">
+            <DropdownMenuContent align="end" className="w-56 rounded-2xl p-1.5 shadow-xl border-border/60">
+              <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground uppercase px-2 py-1 tracking-wider">
                 Quick Settings
               </DropdownMenuLabel>
-              {navItems.map((item) => {
-                const ItemIcon = item.icon;
-                return (
-                  <DropdownMenuItem
-                    key={item.key}
-                    onClick={() => setActiveTab(item.key)}
-                    className={`rounded-xl cursor-pointer text-xs sm:text-sm py-2 px-2.5 flex items-center justify-between ${
-                      activeTab === item.key ? 'bg-primary/10 text-primary font-medium' : 'text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <ItemIcon className="w-4 h-4 text-muted-foreground" />
-                      <span>{item.label}</span>
-                    </div>
-                    {item.badge && (
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
-                        {item.badge}
-                      </span>
-                    )}
-                  </DropdownMenuItem>
-                );
-              })}
+              <DropdownMenuItem onClick={() => setActiveTab('profile')} className="rounded-xl text-xs flex items-center gap-2 cursor-pointer py-1.5">
+                <UserIcon className="w-3.5 h-3.5 text-muted-foreground" /> Profile & Look
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('personality')} className="rounded-xl text-xs flex items-center gap-2 cursor-pointer py-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-muted-foreground" /> AI Personality
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('memory')} className="rounded-xl text-xs flex items-center gap-2 cursor-pointer py-1.5">
+                <Brain className="w-3.5 h-3.5 text-muted-foreground" /> Memory & Facts
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('chat')} className="rounded-xl text-xs flex items-center gap-2 cursor-pointer py-1.5">
+                <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" /> Chat Shortcuts
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTab('voice')} className="rounded-xl text-xs flex items-center gap-2 cursor-pointer py-1.5">
+                <Volume2 className="w-3.5 h-3.5 text-muted-foreground" /> Voice & Audio
+              </DropdownMenuItem>
 
               <DropdownMenuSeparator className="my-1 border-border/40" />
 
-              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1">
+              <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground uppercase px-2 py-1 tracking-wider">
                 Legal & Privacy
               </DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => navigate('/privacy-policy')}
-                className="rounded-xl cursor-pointer text-xs sm:text-sm py-2 px-2.5 flex items-center gap-2.5 text-foreground hover:bg-muted"
-              >
-                <Shield className="w-4 h-4 text-emerald-500" />
-                <span>Privacy Policy</span>
+              <DropdownMenuItem onClick={() => navigate('/privacy-policy')} className="rounded-xl text-xs flex items-center gap-2 cursor-pointer py-1.5">
+                <Shield className="w-3.5 h-3.5 text-muted-foreground" /> Privacy Policy
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => navigate('/terms')}
-                className="rounded-xl cursor-pointer text-xs sm:text-sm py-2 px-2.5 flex items-center gap-2.5 text-foreground hover:bg-muted"
-              >
-                <FileText className="w-4 h-4 text-blue-500" />
-                <span>Terms & Conditions</span>
+              <DropdownMenuItem onClick={() => navigate('/terms')} className="rounded-xl text-xs flex items-center gap-2 cursor-pointer py-1.5">
+                <FileText className="w-3.5 h-3.5 text-muted-foreground" /> Terms of Service
               </DropdownMenuItem>
 
               <DropdownMenuSeparator className="my-1 border-border/40" />
 
-              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1">
+              <DropdownMenuLabel className="text-[11px] font-semibold text-muted-foreground uppercase px-2 py-1 tracking-wider">
                 About & Help
               </DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => navigate('/about')}
-                className="rounded-xl cursor-pointer text-xs sm:text-sm py-2 px-2.5 flex items-center gap-2.5 text-foreground hover:bg-muted"
-              >
-                <Info className="w-4 h-4 text-cyan-500" />
-                <span>About CoreAI & Founder</span>
+              <DropdownMenuItem onClick={() => navigate('/about')} className="rounded-xl text-xs flex items-center gap-2 cursor-pointer py-1.5">
+                <Info className="w-3.5 h-3.5 text-muted-foreground" /> About CoreAI & Founder
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => navigate('/faq')}
-                className="rounded-xl cursor-pointer text-xs sm:text-sm py-2 px-2.5 flex items-center gap-2.5 text-foreground hover:bg-muted"
-              >
-                <HelpCircle className="w-4 h-4 text-amber-500" />
-                <span>FAQ & Help Guide</span>
+              <DropdownMenuItem onClick={() => navigate('/faq')} className="rounded-xl text-xs flex items-center gap-2 cursor-pointer py-1.5">
+                <HelpCircle className="w-3.5 h-3.5 text-muted-foreground" /> FAQ & Help
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
 
-      {/* Main Wide Layout (Sidebar Tabs on Desktop + Pills on Mobile) */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-        
-        {/* Navigation Sidebar (Desktop) / Horizontal Scroll (Mobile) */}
-        <div className="md:col-span-4 lg:col-span-3">
-          <div className="flex md:flex-col gap-1.5 overflow-x-auto pb-2 md:pb-0 scrollbar-none sticky top-2">
+        {/* Left Navigation Pills */}
+        <div className="md:col-span-4 lg:col-span-3 space-y-1">
+          <div className="flex md:flex-col gap-1 overflow-x-auto pb-2 md:pb-0 scrollbar-none">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.key;
@@ -342,10 +338,10 @@ export const Settings = ({ user }: SettingsProps) => {
                 <button
                   key={item.key}
                   onClick={() => setActiveTab(item.key)}
-                  className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all shrink-0 md:shrink text-left ${
+                  className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 text-left shrink-0 md:shrink md:w-full ${
                     isActive
-                      ? 'bg-primary text-primary-foreground shadow-xs'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
+                      ? 'bg-primary text-primary-foreground shadow-xs font-semibold'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                 >
                   <div className="flex items-center gap-2.5">
@@ -353,7 +349,7 @@ export const Settings = ({ user }: SettingsProps) => {
                     <span>{item.label}</span>
                   </div>
                   {item.badge && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono font-semibold ${
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ml-2 ${
                       isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-muted-foreground'
                     }`}>
                       {item.badge}
@@ -365,8 +361,8 @@ export const Settings = ({ user }: SettingsProps) => {
           </div>
         </div>
 
-        {/* Content Area */}
-        <div className="md:col-span-8 lg:col-span-9 space-y-6">
+        {/* Right Content Area */}
+        <div className="md:col-span-8 lg:col-span-9">
 
           {/* TAB 1: PROFILE & APPEARANCE */}
           {activeTab === 'profile' && (
@@ -443,6 +439,64 @@ export const Settings = ({ user }: SettingsProps) => {
                       {user?.email || "Guest User (Chats saved locally on your device)"}
                     </p>
                   </div>
+                </div>
+              </section>
+
+              {/* Cultural & Faith Greeting Section (Animated) */}
+              <section className="rounded-2xl border border-border/40 bg-card/40 p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    <HeartHandshake className="w-4 h-4 text-primary" />
+                    <span>Cultural & Faith Greeting</span>
+                  </div>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium">
+                    Personalized AI
+                  </span>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium">Faith & Greeting Preference</Label>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    CoreAI aapke chune huye vishwas aur culture ke hisaab se natural greetings aur respectful response dega.
+                  </p>
+                </div>
+
+                {/* 6 Animated Cards Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                  {faithOptions.map((f) => {
+                    const isSelected = (localSettings.faithPreference || 'universal') === f.id;
+                    return (
+                      <motion.button
+                        key={f.id}
+                        type="button"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          const updated = { ...localSettings, faithPreference: f.id };
+                          setLocalSettings(updated);
+                          updateSettings({ faithPreference: f.id });
+                          toast.success(`Greeting set to: "${f.greeting}"`);
+                        }}
+                        className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
+                          isSelected
+                            ? 'border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40'
+                            : 'border-border/50 hover:border-border bg-muted/20 hover:bg-muted/40'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xl select-none">{f.icon}</span>
+                          {isSelected && (
+                            <span className="h-4 w-4 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold">
+                              ✓
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs font-semibold text-foreground">{f.label}</div>
+                        <div className="text-[11px] text-primary/90 font-medium mt-0.5 truncate">{f.greeting}</div>
+                        <div className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{f.desc}</div>
+                      </motion.button>
+                    );
+                  })}
                 </div>
               </section>
 
