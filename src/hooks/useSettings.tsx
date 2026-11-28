@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+export type FaithPreference = 'universal' | 'islam' | 'hinduism' | 'christianity' | 'sikhism' | 'jainism_buddhism';
+
 export interface UserSettings {
   displayName: string;
   profilePicture?: string;
@@ -23,6 +25,9 @@ export interface UserSettings {
   customAboutMe: string;           // "CoreAI aapke baare mein kya jaane?"
   customResponseStyle: string;     // "CoreAI kis style mein respond kare?"
   sendOnEnter: boolean;            // Enter = Send, Shift+Enter = New line
+
+  // --- Faith & Cultural Greetings Preference ---
+  faithPreference: FaithPreference;
 }
 
 const defaultSettings: UserSettings = {
@@ -44,6 +49,7 @@ const defaultSettings: UserSettings = {
   customAboutMe: '',
   customResponseStyle: '',
   sendOnEnter: true,
+  faithPreference: 'universal',
 };
 
 export const useSettings = (userId?: string) => {
@@ -69,7 +75,7 @@ export const useSettings = (userId?: string) => {
     const updatedSettings = { ...settings, ...newSettings };
     setSettings(updatedSettings);
     localStorage.setItem(settingsKey, JSON.stringify(updatedSettings));
-    // Also broadcast to companion memory so AI immediately gets personality updates
+    // Broadcast to companion memory & homepage so AI immediately updates personality & greetings
     window.dispatchEvent(new Event('coreai_settings_updated'));
   };
 
