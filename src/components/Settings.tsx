@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { useTheme } from "next-themes";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,6 +63,10 @@ export const Settings = ({ user }: SettingsProps) => {
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
 
+  // Live Speech & Fact Delete Animations
+  const [isPlayingVoice, setIsPlayingVoice] = useState(false);
+  const [deletingFactIndex, setDeletingFactIndex] = useState<number | null>(null);
+
   // Real Memory state
   const [memoryFacts, setMemoryFacts] = useState<string[]>([]);
   const [newFactInput, setNewFactInput] = useState("");
@@ -119,11 +124,16 @@ export const Settings = ({ user }: SettingsProps) => {
 
   const testVoice = () => {
     window.speechSynthesis.cancel();
+    setIsPlayingVoice(true);
     const utterance = new SpeechSynthesisUtterance("Namaste, main CoreAI hoon.");
     const voice = voices.find(v => v.name === localSettings.selectedVoice);
     if (voice) utterance.voice = voice;
     utterance.rate = localSettings.speechRate;
+    utterance.pitch = localSettings.speechPitch || 1;
+    utterance.onend = () => setIsPlayingVoice(false);
+    utterance.onerror = () => setIsPlayingVoice(false);
     window.speechSynthesis.speak(utterance);
+    toast.success("Playing sample voice...");
   };
 
   const handleClearHistory = async () => {
@@ -142,7 +152,7 @@ export const Settings = ({ user }: SettingsProps) => {
     }
   };
 
-   const handleExportChats = () => {
+  const handleExportChats = () => {
     try {
       setExportStage('loading');
       const chatsData: Record<string, any> = {};
@@ -180,9 +190,13 @@ export const Settings = ({ user }: SettingsProps) => {
   };
 
   const handleRemoveFact = (index: number) => {
-    removeFact(index);
-    refreshMemory();
-    toast.success("Memory removed");
+    setDeletingFactIndex(index);
+    setTimeout(() => {
+      removeFact(index);
+      refreshMemory();
+      setDeletingFactIndex(null);
+      toast.success("Memory removed");
+    }, 220);
   };
 
   const handleClearAllMemory = () => {
@@ -226,7 +240,8 @@ export const Settings = ({ user }: SettingsProps) => {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight">CoreAI Preferences & Settings</h1>
           <p className="text-xs text-muted-foreground mt-0.5">Customize your AI's personality, memory, audio, and appearance</p>
         </div>
-               <div className="flex items-center gap-2 self-start sm:self-auto">
+
+        <div className="flex items-center gap-2 self-start sm:self-auto">
           <span className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5" /> 100% Free & Private
           </span>
@@ -262,7 +277,7 @@ export const Settings = ({ user }: SettingsProps) => {
                       <span>{item.label}</span>
                     </div>
                     {item.badge && (
-                      <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-muted text-muted-foreground">
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
                         {item.badge}
                       </span>
                     )}
@@ -399,7 +414,7 @@ export const Settings = ({ user }: SettingsProps) => {
                         placeholder="Your display name"
                         className="h-9 max-w-sm text-sm rounded-xl bg-muted/30 border-border/50"
                       />
-                                            {hasChanges && (
+                      {hasChanges && (
                         <button
                           onClick={() => {
                             setNameStage('loading');
@@ -422,7 +437,7 @@ export const Settings = ({ user }: SettingsProps) => {
                           {nameStage === 'success' && <><Check className="w-3.5 h-3.5 stroke-[2.5]" /> Updated! ✓</>}
                           {nameStage === 'idle' && <><Check className="w-3.5 h-3.5" /> Save</>}
                         </button>
-                    )}
+                      )}
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {user?.email || "Guest User (Chats saved locally on your device)"}
@@ -547,7 +562,7 @@ export const Settings = ({ user }: SettingsProps) => {
                     <Label className="text-xs font-medium">How would you like CoreAI to respond?</Label>
                     <p className="text-[11px] text-muted-foreground">E.g., "Keep answers concise", "Use simple Hindi analogies", "Provide code examples first"</p>
                     <Textarea
-                                           value={localSettings.customResponseStyle || ""}
+                      value={localSettings.customResponseStyle || ""}
                       onChange={(e) => setLocalSettings(prev => ({ ...prev, customResponseStyle: e.target.value }))}
                       placeholder="Define reply tone, language or formatting..."
                       rows={2}
@@ -613,7 +628,7 @@ export const Settings = ({ user }: SettingsProps) => {
                   CoreAI naturally remembers key facts from your conversations locally in your browser. You can inspect, add, or delete any fact below.
                 </p>
 
-                {/* Add Fact Manually */}
+                {/* Add Fact Manually with 3-Stage State */}
                 <div className="flex gap-2 pt-1">
                   <Input
                     value={newFactInput}
@@ -639,7 +654,7 @@ export const Settings = ({ user }: SettingsProps) => {
                   </button>
                 </div>
 
-                {/* Facts List */}
+                {/* Facts List with Smooth Animated Slide-out on Delete */}
                 <div className="space-y-2 pt-2">
                   {memoryFacts.length === 0 ? (
                     <div className="text-center py-8 rounded-xl border border-dashed border-border/50 bg-muted/10">
@@ -651,7 +666,9 @@ export const Settings = ({ user }: SettingsProps) => {
                     memoryFacts.map((fact, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/30 border border-border/40 text-xs"
+                        className={`flex items-center justify-between gap-3 p-3 rounded-xl bg-muted/30 border border-border/40 text-xs transition-all duration-200 ${
+                          deletingFactIndex === index ? "opacity-0 -translate-x-5 scale-95" : "opacity-100 translate-x-0"
+                        }`}
                       >
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
@@ -761,7 +778,7 @@ export const Settings = ({ user }: SettingsProps) => {
             </div>
           )}
 
-          {/* TAB 5: VOICE & AUDIO (PRESERVED 100%) */}
+          {/* TAB 5: VOICE & AUDIO */}
           {activeTab === 'voice' && (
             <div className="space-y-6">
               <section className="rounded-2xl border border-border/40 bg-card/40 p-5 space-y-4">
@@ -845,8 +862,22 @@ export const Settings = ({ user }: SettingsProps) => {
                           step={0.1}
                           className="w-full"
                         />
-                        <Button size="sm" variant="ghost" onClick={testVoice} className="h-7 px-2.5 text-xs rounded-full">
-                          Test
+                        {/* Dynamic Jumping Equalizer Test Button */}
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          onClick={testVoice} 
+                          className="h-7 px-2.5 text-xs rounded-full hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5"
+                        >
+                          {isPlayingVoice ? (
+                            <div className="flex items-end gap-0.5 h-3">
+                              <span className="w-0.5 bg-primary rounded-full animate-[bounce_0.6s_infinite_100ms] h-3" />
+                              <span className="w-0.5 bg-primary rounded-full animate-[bounce_0.6s_infinite_200ms] h-2" />
+                              <span className="w-0.5 bg-primary rounded-full animate-[bounce_0.6s_infinite_300ms] h-2.5" />
+                            </div>
+                          ) : (
+                            <span>Test</span>
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -856,7 +887,7 @@ export const Settings = ({ user }: SettingsProps) => {
             </div>
           )}
 
-          {/* TAB 6: DATA & ABOUT (PRESERVED 100%) */}
+          {/* TAB 6: DATA & ABOUT */}
           {activeTab === 'data' && (
             <div className="space-y-6">
               <section className="rounded-2xl border border-border/40 bg-card/40 p-5 space-y-4">
@@ -882,13 +913,13 @@ export const Settings = ({ user }: SettingsProps) => {
 
                 <Separator className="bg-border/40" />
 
-                {/* Export Data */}
+                {/* Export Data with 3-Stage State */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-medium">Export Local Backup</p>
                     <p className="text-xs text-muted-foreground">Download all your conversations as a JSON file</p>
                   </div>
-                                    <button
+                  <button
                     onClick={handleExportChats}
                     disabled={exportStage !== 'idle'}
                     className={`h-9 px-3.5 rounded-xl text-xs font-medium transition-all duration-200 flex items-center gap-1.5 self-start sm:self-auto border active:scale-95 ${
@@ -955,7 +986,7 @@ export const Settings = ({ user }: SettingsProps) => {
                 )}
               </section>
 
-              {/* Founder & Mission Section (Preserved) */}
+              {/* Founder & Mission Section (100% Preserved) */}
               <AboutSection />
             </div>
           )}
