@@ -1,7 +1,7 @@
 import { Mic, Square, Pause, Play, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
-import { useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface VoiceRecorderProps {
   onTranscriptionComplete: (text: string) => void;
@@ -32,7 +32,7 @@ export const VoiceRecorder = ({ onTranscriptionComplete, disabled }: VoiceRecord
 
   if (transcribing) {
     return (
-      <Button size="sm" variant="ghost" disabled>
+      <Button size="sm" variant="ghost" disabled className="text-primary">
         <Loader2 className="w-4 h-4 animate-spin" />
       </Button>
     );
@@ -40,43 +40,63 @@ export const VoiceRecorder = ({ onTranscriptionComplete, disabled }: VoiceRecord
 
   if (isRecording) {
     return (
-      <div className="flex gap-1">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex items-center gap-1.5 bg-destructive/10 border border-destructive/20 rounded-full px-2 py-0.5"
+      >
         <Button
           size="sm"
           variant="ghost"
           onClick={isPaused ? resumeRecording : pauseRecording}
-          className="text-foreground hover:bg-accent"
+          className="h-7 w-7 p-0 text-foreground hover:bg-destructive/20 rounded-full cursor-pointer"
         >
-          {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+          {isPaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
         </Button>
+
         <Button
           size="sm"
           variant="ghost"
           onClick={handleStopAndTranscribe}
-          className="text-destructive hover:bg-destructive/10"
+          className="h-7 w-7 p-0 text-destructive hover:bg-destructive/20 rounded-full cursor-pointer"
         >
-          <Square className="w-4 h-4" />
+          <Square className="w-3.5 h-3.5 fill-current" />
         </Button>
-        <div className="flex items-center gap-1 px-2">
-          <div className="w-2 h-2 bg-destructive rounded-full animate-pulse" />
-          <span className="text-xs text-muted-foreground">
-            {isPaused ? 'Paused' : 'Recording...'}
-          </span>
+
+        {/* Live Audio Waves Animation */}
+        <div className="flex items-center gap-0.5 px-1 h-3">
+          {[0.6, 1.2, 0.8, 1.4].map((scale, i) => (
+            <motion.span
+              key={i}
+              animate={isPaused ? { height: 4 } : { height: [4, 14, 6, 16, 4] }}
+              transition={{
+                repeat: Infinity,
+                duration: 0.8,
+                delay: i * 0.15,
+                ease: "easeInOut"
+              }}
+              className="w-0.5 bg-destructive rounded-full"
+            />
+          ))}
         </div>
-      </div>
+
+        <span className="text-[11px] font-medium text-destructive pr-1">
+          {isPaused ? 'Paused' : 'Listening...'}
+        </span>
+      </motion.div>
     );
   }
 
   return (
-    <Button
-      size="sm"
-      variant="ghost"
+    <motion.button
+      whileHover={{ scale: 1.08 }}
+      whileTap={{ scale: 0.92 }}
       onClick={startRecording}
       disabled={disabled}
-      className="text-foreground hover:bg-accent"
+      className="h-8 w-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer"
       title="Start voice recording (Ctrl+Shift+V)"
     >
       <Mic className="w-4 h-4" />
-    </Button>
+    </motion.button>
   );
 };
