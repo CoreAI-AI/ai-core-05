@@ -108,13 +108,32 @@ const getPersonalityInstruction = (preset?: string): string => {
   }
 };
 
+/** Faith & Cultural greeting guidelines helper */
+const getFaithInstruction = (faith?: string): string => {
+  switch (faith) {
+    case 'islam':
+      return "CULTURAL & FAITH CONTEXT: User practices Islam. Always greet warmly with 'Assalamu Alaikum' or 'Salam'. Respond with Islamic respect, warmth, empathy and halal etiquette.";
+    case 'hinduism':
+      return "CULTURAL & FAITH CONTEXT: User practices Hinduism. Always greet warmly with 'Namaste' or 'Pranam'. Uphold Indian cultural warmth, dharma, and respectful tone.";
+    case 'christianity':
+      return "CULTURAL & FAITH CONTEXT: User is Christian. Always greet warmly with 'Peace be with you' or 'Hello & Blessings'. Respond with compassion, grace, and uplifting warmth.";
+    case 'sikhism':
+      return "CULTURAL & FAITH CONTEXT: User is Sikh. Always greet warmly with 'Sat Sri Akaal'. Embody the Chardi Kala spirit, courage, and deep respect.";
+    case 'jainism_buddhism':
+      return "CULTURAL & FAITH CONTEXT: User follows Jainism/Buddhism. Greet with 'Jai Jinendra' or 'Namo Buddhaya / Om Shanti'. Emphasize ahimsa, mindfulness, peace, and loving-kindness.";
+    case 'universal':
+    default:
+      return "CULTURAL & FAITH CONTEXT: Universal/Neutral. Greet naturally with 'Hello' or 'Namaste'.";
+  }
+};
+
 /** Learn from the message and build the private context sent with this request only. */
 export const buildCompanionContext = (message: string, now = new Date()): string => {
   const m = learnFromMessage(message, now);
   const due = dueFollowUps(now);
   const parts = [`User local time: ${timeContext(now)}.`];
   
-  // Read active personality & custom instructions from localStorage (Zero cost)
+  // Read active personality, custom instructions & faith preference from localStorage (Zero cost)
   try {
     const rawDemo = localStorage.getItem('user_settings_demo');
     let userSettings: any = null;
@@ -133,6 +152,9 @@ export const buildCompanionContext = (message: string, now = new Date()): string
     if (userSettings) {
       if (userSettings.personalityPreset) {
         parts.push(`PERSONALITY: ${getPersonalityInstruction(userSettings.personalityPreset)}`);
+      }
+      if (userSettings.faithPreference) {
+        parts.push(getFaithInstruction(userSettings.faithPreference));
       }
       if (userSettings.customAboutMe?.trim()) {
         parts.push(`ABOUT USER: ${userSettings.customAboutMe.trim()}`);
