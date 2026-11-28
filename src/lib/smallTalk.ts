@@ -78,11 +78,116 @@ const MODE_GREETINGS: Record<string, string[]> = {
     "Namaste! 🪙 Smart Budget & Savings Advisor active hai. Expense cut, daily savings ya affordable alternatives mein kya madad karoon?",
     "Hello! 💡 Paise bachane ka smart tareeqa ya pocket-friendly options dhoondhein?"
   ],
-  'normal': [
+   'normal': [
     "Namaste! 👋 Kaise madad kar sakta hoon aaj?",
     "Hey! 😊 Kya jaanna chahenge?",
     "Hello! Batao, kis topic pe baat karni hai?"
   ]
+};
+
+// Faith-specific instant greetings (Zero latency & ₹0 cost)
+const FAITH_GREETINGS: Record<string, string[]> = {
+  islam: [
+    "Assalamu Alaikum! 🌙 Kaise madad kar sakta hoon aaj?",
+    "Walaikum Assalam! 😊 Bataiye aaj kya karna hai?",
+    "Assalamu Alaikum wa Rahmatullahi wa Barakatuhu! ✨ Khushi hui aap se baat karke. Bataiye aaj kya seekhna ya karna chahte hain?"
+  ],
+  hinduism: [
+    "Namaste! 🙏 Shubh din! Kaise madad kar sakta hoon aaj?",
+    "Pranam! 🕉️ Bataiye aaj kis vishay par baat karni hai?",
+    "Namaste ji! 😊 Ishwar kripa bani rahe. Aaj main aapki kya sahayata karoon?"
+  ],
+  sikhism: [
+    "Sat Sri Akaal! ⚔️ Chardi Kala! Kaise madad kar sakta hoon aaj?",
+    "Waheguru ji ka Khalsa, Waheguru ji ki Fateh! ✨ Bataiye aaj kya madad karoon?",
+    "Sat Sri Akaal ji! 😊 Veerji batao aaj ki seva kariye?"
+  ],
+  christianity: [
+    "Peace be with you! ✝️ How can I help you today?",
+    "Hello and blessings! ✨ May peace be upon your day. How can I assist you today?",
+    "Hello! God bless you. 😊 How can I support you today?"
+  ],
+  jainism_buddhism: [
+    "Jai Jinendra! 🌸 Michhami Dukkadam / Namaste! Kaise madad kar sakta hoon aaj?",
+    "Om Shanti! 🕊️ Shanti aur sadbhavna ke sath swagat hai. Bataiye kya madad karoon?",
+    "Namo Buddhaya! 🌿 Sadbhav aur shaanti ke saath, bataiye aaj kya seva karein?"
+  ],
+  universal: [
+    "Namaste! 👋 Kaise madad kar sakta hoon aaj?",
+    "Hey! 😊 Kya jaanna chahenge?",
+    "Hello! Batao, kis topic pe baat karni hai?"
+  ]
+};
+
+const FAITH_THANKS: Record<string, string[]> = {
+  islam: [
+    "JazakAllah Khair! 🙏 Hamesha aapki madad ke liye hazir hoon.",
+    "Alhamdulillah, khushi hui ki aapka kaam hua! 😊 Aur koi sawal ho toh zaroor batayein."
+  ],
+  hinduism: [
+    "Aapka swagat hai! 🙏 Prabhu kripa bani rahe.",
+    "Dhanyavaad! Khushi hui ki main aapke kaam aa saka. 😊"
+  ],
+  sikhism: [
+    "Waheguru mehar kare! 🙏 Aapka shukrana, hamesha tayaar hoon.",
+    "Bohat shukriya veerji! Hamesha chardi kala mein rahein. 😊"
+  ],
+  christianity: [
+    "You are most welcome! 🙏 God bless you on your journey.",
+    "Always happy to help! Grace and peace to you. 😊"
+  ],
+  jainism_buddhism: [
+    "Aapka aabhaar! 🙏 Shanti aur ahimsa ka marg hamesha mangalmaye ho.",
+    "Om Shanti! Mangal ho aapka. 😊"
+  ],
+  universal: [
+    "Aapka swagat hai! 🙏 Aur kuch chahiye toh batao.",
+    "Anytime! Happy to help. 😊"
+  ]
+};
+
+const FAITH_BYES: Record<string, string[]> = {
+  islam: [
+    "Khuda Hafiz! Allah tala aapko salamat aur khush rakhe. Jab bhi zarurat ho, wapas aa jaana. 👋",
+    "Fi Amanillah! Duaon mein yaad rakhna. 🌙 Take care!"
+  ],
+  hinduism: [
+    "Shubh alvida! Ishwar aapko safalta aur achhi sehat dein. Phir milenge! 👋",
+    "Namaste! Apna dhyan rakhiyega. 🕉️"
+  ],
+  sikhism: [
+    "Alvida ji! Waheguru hamesha ang-sang sahai hon. Chardi kala vich raho! 👋",
+    "Sat Sri Akaal! Rab rakha. ⚔️"
+  ],
+  christianity: [
+    "Goodbye! May God's peace and grace be with you always. Take care! 👋",
+    "Peace be with you! See you soon. ✝️"
+  ],
+  jainism_buddhism: [
+    "Om Shanti! 🕊️ Aapka din shaant aur mangalkari ho. Phir milenge! 👋",
+    "Jai Jinendra! Mann mein sadbhavna banaye rakhein. 🌸"
+  ],
+  universal: [
+    "Alvida! Jab bhi zarurat ho, wapas aa jaana. 👋",
+    "Bye! Take care. 💙"
+  ]
+};
+
+export const getActiveFaith = (): string => {
+  try {
+    const direct = localStorage.getItem('coreai_faith_preference');
+    if (direct) return direct;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('user_settings_')) {
+        const p = JSON.parse(localStorage.getItem(k) || '{}');
+        if (p.faithPreference) return p.faithPreference;
+      }
+    }
+  } catch {
+    /* fallback */
+  }
+  return 'universal';
 };
 
 function pick<T>(arr: T[]): T {
@@ -90,7 +195,7 @@ function pick<T>(arr: T[]): T {
 }
 
 /**
- * Returns a canned reply for trivial messages based on mode so we skip the AI call.
+ * Returns a canned reply for trivial messages based on mode & faith so we skip the AI call.
  */
 export function tryLocalReply(raw: string, mode: string = 'normal'): string | null {
   if (!raw) return null;
@@ -99,22 +204,27 @@ export function tryLocalReply(raw: string, mode: string = 'normal'): string | nu
   const msg = norm(raw);
   if (msg.length === 0 || msg.length > 80) return null;
 
+  const currentFaith = getActiveFaith();
+
   if (GREETINGS.includes(msg)) {
-    const list = MODE_GREETINGS[mode] || MODE_GREETINGS['normal'];
-    return pick(list);
+    if (mode !== 'normal' && MODE_GREETINGS[mode]) {
+      return pick(MODE_GREETINGS[mode]);
+    }
+    const faithList = FAITH_GREETINGS[currentFaith] || FAITH_GREETINGS['universal'];
+    return pick(faithList);
   }
+
   if (THANKS.some((t) => msg === t || msg.startsWith(t + " "))) {
-    return pick([
-      "Aapka swagat hai! 🙏 Aur kuch chahiye toh batao.",
-      "Anytime! Happy to help. 😊",
-    ]);
+    const thanksList = FAITH_THANKS[currentFaith] || FAITH_THANKS['universal'];
+    return pick(thanksList);
   }
+
   if (BYES.includes(msg)) {
-    return pick([
-      "Alvida! Jab bhi zarurat ho, wapas aa jaana. 👋",
-      "Bye! Take care. 💙",
-    ]);
+    const byesList = FAITH_BYES[currentFaith] || FAITH_BYES['universal'];
+    return pick(byesList);
   }
+>>>>
+  
   if (HOW_ARE_YOU.some((p) => msg === p || msg.startsWith(p))) {
     return "Main bilkul theek hoon aur aapki madad ke liye ready hoon. ✨ Aap sunao?";
   }
