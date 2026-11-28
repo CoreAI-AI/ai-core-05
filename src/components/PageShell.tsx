@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { SiteFooter } from "./SiteFooter";
 import { ReactNode, useEffect } from "react";
+import { motion } from "framer-motion";
 
 interface PageShellProps {
   title: string;
@@ -34,24 +35,40 @@ export const PageShell = ({ title, description, children, managedHead = false }:
 
   return (
     <div className="h-screen h-[100dvh] overflow-y-auto overflow-x-hidden flex flex-col bg-background scroll-smooth">
-      <header className="border-b border-border sticky top-0 bg-background/80 backdrop-blur z-10">
+      {/* Sticky Header with Backdrop Blur */}
+      <header className="border-b border-border/60 sticky top-0 bg-background/80 backdrop-blur-md z-20">
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="gap-2">
-            <ArrowLeft className="w-4 h-4" /> Home
-          </Button>
-          <nav className="hidden md:flex items-center gap-4 text-sm text-muted-foreground">
-            <Link to="/features" className="hover:text-foreground">Features</Link>
-            <Link to="/about" className="hover:text-foreground">About</Link>
-            <Link to="/faq" className="hover:text-foreground">FAQ</Link>
-            <Link to="/contact" className="hover:text-foreground">Contact</Link>
+          <motion.div whileHover={{ x: -2 }} whileTap={{ scale: 0.95 }}>
+            <Button variant="ghost" size="sm" onClick={() => navigate("/")} className="gap-2 rounded-xl cursor-pointer">
+              <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" /> Home
+            </Button>
+          </motion.div>
+          <nav className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
+            {["features", "about", "faq", "contact"].map((path) => (
+              <Link 
+                key={path}
+                to={`/${path}`} 
+                className="hover:text-foreground capitalize transition-colors relative py-1 hover:after:w-full after:w-0 after:h-0.5 after:bg-primary after:absolute after:bottom-0 after:left-0 after:transition-all after:duration-200"
+              >
+                {path}
+              </Link>
+            ))}
           </nav>
-          <Link to="/" className="text-sm font-semibold">CoreAI</Link>
+          <Link to="/" className="text-sm font-semibold tracking-tight hover:text-primary transition-colors">
+            CoreAI
+          </Link>
         </div>
       </header>
 
-      <main className="flex-1">
+      {/* Main Content with Page-Entrance Spring Animation */}
+      <motion.main 
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 280, damping: 25 }}
+        className="flex-1"
+      >
         <div className="max-w-4xl mx-auto px-6 py-10">{children}</div>
-      </main>
+      </motion.main>
 
       <SiteFooter />
     </div>
