@@ -52,6 +52,7 @@ interface SettingsProps {
 type TabKey = 'profile' | 'personality' | 'memory' | 'chat' | 'voice' | 'data';
 
 export const Settings = ({ user }: SettingsProps) => {
+  const [confirmingFaith, setConfirmingFaith] = useState<typeof faithOptions[0] | null>(null);
   const navigate = useNavigate();
   const { settings, updateSettings } = useSettings(user?.id);
   const { theme, setTheme } = useTheme();
@@ -463,10 +464,11 @@ export const Settings = ({ user }: SettingsProps) => {
                   </p>
                 </div>
 
-                {/* 6 Animated Cards Grid */}
+                 {/* 6 Animated Cards Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
                   {faithOptions.map((f) => {
-                    const isSelected = (localSettings.faithPreference || 'universal') === f.id;
+                    const currentActive = localStorage.getItem('coreai_faith_preference') || localSettings.faithPreference || 'universal';
+                    const isSelected = currentActive === f.id;
                     return (
                       <motion.button
                         key={f.id}
@@ -474,10 +476,8 @@ export const Settings = ({ user }: SettingsProps) => {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => {
-                          const updated = { ...localSettings, faithPreference: f.id };
-                          setLocalSettings(updated);
-                          updateSettings({ faithPreference: f.id });
-                          toast.success(`Greeting set to: "${f.greeting}"`);
+                          haptics.impact('light');
+                          setConfirmingFaith(f);
                         }}
                         className={`relative p-3.5 rounded-xl border text-left transition-all duration-200 cursor-pointer ${
                           isSelected
@@ -500,6 +500,91 @@ export const Settings = ({ user }: SettingsProps) => {
                     );
                   })}
                 </div>
+
+                {/* Animated Faith Confirmation Modal */}
+                <AnimatePresence>
+                  {confirmingFaith && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md"
+                    >
+                      <motion.div
+                        initial={{ scale: 0.9, y: 20, opacity: 0 }}
+                        animate={{ scale: 1, y: 0, opacity: 1 }}
+                        exit={{ scale: 0.9, y: 20, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 350, damping: 25 }}
+                        className="relative w-full max-w-md p-6 rounded-3xl border border-border/80 bg-card/95 shadow-2xl text-center space-y-4 overflow-hidden"
+                      >
+                        {/* Glowing Aura Accent */}
+                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-40 h-40 bg-primary/20 rounded-full blur-3xl pointer-events-none" />
+
+                        {/* Animated Icon Avatar */}
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1, rotate: [0, -10, 10, 0] }}
+                          transition={{ type: "spring", stiffness: 300, delay: 0.1 }}
+                          className="relative inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/30 text-3xl shadow-inner mx-auto"
+                        >
+                          {confirmingFaith.icon}
+                        </motion.div>
+
+                        <div>
+                          <h3 className="text-lg font-bold text-foreground">
+                            {confirmingFaith.label} Culture Confirm Karein?
+                          </h3>
+                          <p className="text-xs text-muted-foreground mt-1 px-2">
+                            CoreAI ab se aapke sath is sanskriti aur respectful greetings ke sath baat karega.
+                          </p>
+                        </div>
+
+                        {/* Live Greeting & Tone Preview Bubble */}
+                        <div className="p-3.5 rounded-2xl bg-muted/40 border border-border/50 text-left space-y-2">
+                          <div className="text-[11px] font-semibold text-primary uppercase tracking-wider">
+                            Chat Preview
+                          </div>
+                          <div className="text-xs text-foreground bg-card/80 p-2.5 rounded-xl border border-border/40 shadow-2xs">
+                            <span className="font-semibold text-primary">{confirmingFaith.greeting}</span>! Main bilkul theek hoon. Aaj main aapki kya sahayata kar sakta hoon?
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">
+                            ✨ <span className="font-medium text-foreground">Tone:</span> {confirmingFaith.desc}. (Poora reply kisi aur bhasha mein nahi hoga, natural Hindi/Hinglish mein blessings ka prayog hoga.)
+                          </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-2.5 pt-2">
+                          <button
+                            type="button"
+                            onClick={() => setConfirmingFaith(null)}
+                            className="flex-1 py-2.5 px-4 rounded-xl border border-border/60 hover:bg-muted text-xs font-medium transition-all"
+                          >
+                            Cancel
+                          </button>
+                          <motion.button
+                            type="button"
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => {
+                              const targetFaith = confirmingFaith.id as FaithPreference;
+                              localStorage.setItem('coreai_faith_preference', targetFaith);
+                              const updated = { ...localSettings, faithPreference: targetFaith };
+                              setLocalSettings(updated);
+                              updateSettings({ faithPreference: targetFaith });
+                              haptics.notification('success');
+                              toast.success(`${confirmingFaith.label} active ho gaya! Greeting: "${confirmingFaith.greeting}"`);
+                              setConfirmingFaith(null);
+                            }}
+                            className="flex-1 py-2.5 px-4 rounded-xl bg-primary text-primary-foreground text-xs font-semibold shadow-md hover:bg-primary/90 transition-all flex items-center justify-center gap-1.5"
+                          >
+                            <span>Confirm & Apply</span>
+                            <span>✓</span>
+                          </motion.button>
+                        </div>
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </section>
 
               {/* Theme Section */}
