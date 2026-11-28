@@ -1,8 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { 
   Search, MessageSquare, Settings, Trash2, MoreVertical, FileText, FileDown, 
-  PanelLeftClose, Pin, PinOff, Plus, BookOpen, Briefcase, Rocket, Scale, 
-  Terminal, Heart, Languages, Mic, Swords, Hourglass, ChevronDown, ChevronUp,
+  PanelLeftClose, Pin, PinOff, Plus, ChevronDown, ChevronUp,
   Sparkles, StickyNote, Globe, X
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -14,6 +13,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import coreaiLogo from '@/assets/coreai-logo.png';
 import { AnimatedLogoutButton } from "./AnimatedLogoutButton";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,95 +22,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export interface CoreAIFeatureItem {
-  id: string;
-  label: string;
-  icon: any;
-  prompt: string;
-}
-
-// 11 CoreAI 0-Expense Special Features
-export const coreAiFeatures: CoreAIFeatureItem[] = [
-  {
-    id: 'doc-reader',
-    label: 'Document & Notes Q&A',
-    icon: FileText,
-    prompt: 'Hello! I am your AI Document & Notes Reader. Please paste any notes, article, or document text here. I can summarize it, extract key insights, or answer any questions about it.'
-  },
-  {
-    id: 'quiz-maker',
-    label: 'Flashcards & Quiz',
-    icon: BookOpen,
-    prompt: 'Welcome to Flashcards & Quiz Maker! Give me any topic or paste study notes, and I will generate 5 interactive flashcards and a 5-question quiz with answers to test your knowledge.'
-  },
-  {
-    id: 'mock-interview',
-    label: 'Mock Interviewer',
-    icon: Briefcase,
-    prompt: 'Welcome to AI Mock Interviewer! Which job role or exam interview would you like to practice today? (e.g. Software Engineer, UPSC, Marketing, Data Analyst). Tell me your target role to begin.'
-  },
-  {
-    id: 'startup-incubator',
-    label: 'Startup & Idea Incubator',
-    icon: Rocket,
-    prompt: 'Welcome to Startup & Idea Incubator! Share your rough business or app idea. I will generate: 1) Value Proposition, 2) Target Audience & SWOT Analysis, 3) 5 Unique Brand Names, and 4) A 30-Day Launch Roadmap.'
-  },
-  {
-    id: 'decision-matrix',
-    label: 'Decision Matrix',
-    icon: Scale,
-    prompt: 'Welcome to Decision Matrix! What difficult choice or dilemma are you facing? (e.g. "Job A vs Job B" or "College vs Startup"). List your options, and I will create a structured pros, cons, and risk comparison table.'
-  },
-  {
-    id: 'prompt-vault',
-    label: 'Prompt Vault & Optimizer',
-    icon: Terminal,
-    prompt: 'Welcome to Prompt Vault! Paste any simple or rough prompt you have written, and I will rewrite and optimize it into an expert-level, high-precision prompt with clear constraints and formatting.'
-  },
-  {
-    id: 'mood-journal',
-    label: 'Mind & Mood Journal',
-    icon: Heart,
-    prompt: 'Welcome to your safe space Daily Mind & Mood Journal. How are you feeling today? Share what happened today or what is on your mind. I am here to listen like a trusted, empathetic friend.'
-  },
-  {
-    id: 'language-partner',
-    label: 'Language Exchange',
-    icon: Languages,
-    prompt: 'Hello! I am your interactive Language Exchange Partner. Which language would you like to practice with me today? We can practice conversations, correct grammar, and learn 3 new vocabulary words!'
-  },
-  {
-    id: 'voice-walkie',
-    label: 'Voice Walkie-Talkie',
-    icon: Mic,
-    prompt: 'Voice Walkie-Talkie mode active! You can speak or ask anything aloud, and I will reply with concise, spoken-style natural responses.'
-  },
-  {
-    id: 'debate-arena',
-    label: 'AI Debate Arena',
-    icon: Swords,
-    prompt: 'Welcome to AI Debate Arena! Name any topic or debate motion (e.g. "Remote Work vs Office" or "Social Media impact on youth"). I will present Affirmative arguments, Negative arguments, and an objective final verdict.'
-  },
-  {
-    id: 'future-you',
-    label: 'Future You (Time Capsule)',
-    icon: Hourglass,
-    prompt: 'Hello from 10 years in the future! I am your Future Self. Tell me: What is your current age, what is your biggest struggle right now, and what are your biggest dreams? Let us talk, or write a note to lock in your Digital Time Capsule.'
-  }
-];
-
 interface ChatSidebarProps {
   chats: Chat[];
-  currentChat: Chat | null;
+  currentChat?: Chat | null;
   onSelectChat: (chat: Chat) => void;
   onNewChat: () => void;
-  onSignOut: () => void;
-  onOpenSettings: () => void;
   onDeleteChat: (chatId: string) => void;
   onExportChat: (chatId: string, format: 'text' | 'pdf') => void;
-  user: User | null;
   onCollapse?: () => void;
-  onSelectFeature?: (feature: CoreAIFeatureItem) => void;
+  onOpenSettings: () => void;
+  user?: User | null;
+  onSignOut: () => void;
 }
 
 export const ChatSidebar = ({
@@ -118,50 +40,16 @@ export const ChatSidebar = ({
   currentChat,
   onSelectChat,
   onNewChat,
-  onSignOut,
-  onOpenSettings,
   onDeleteChat,
   onExportChat,
-  user,
   onCollapse,
-  onSelectFeature
+  onOpenSettings,
+  user,
+  onSignOut
 }: ChatSidebarProps) => {
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Keyboard shortcut (Ctrl+K or Cmd+K) to focus search
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        searchInputRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const [showAllFeatures, setShowAllFeatures] = useState(false);
-  const [pinnedChats, setPinnedChats] = useState<Set<string>>(() => {
-    const saved = localStorage.getItem('pinnedChats');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
-
-  const handleAction = (action: string) => {
-    if (action === 'newChat') {
-      onNewChat();
-      if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
-        onCollapse();
-      }
-    } else if (action === 'settings') {
-      onOpenSettings();
-    } else if (action === 'photos') {
-      navigate('/photos');
-    } else if (action === 'explore') {
-      navigate('/explore');
-    }
-  };
+  const navigate = useNavigate();
 
   const handleSelectWithAutoClose = (chat: Chat) => {
     onSelectChat(chat);
@@ -170,32 +58,66 @@ export const ChatSidebar = ({
     }
   };
 
+  const handleAction = (action: 'newChat' | 'settings') => {
+    if (action === 'newChat') onNewChat();
+    if (action === 'settings') onOpenSettings();
+    if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) {
+      onCollapse();
+    }
+  };
+
+  // Keyboard shortcut Ctrl/Cmd + K
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const [pinnedChatIds, setPinnedChatIds] = useState<string[]>(() => {
+    if (!user) return [];
+    try {
+      const saved = localStorage.getItem(`pinned_chats_${user.id}`);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const togglePin = (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    setPinnedChats(prev => {
-      const next = new Set(prev);
-      if (next.has(chatId)) {
-        next.delete(chatId);
-      } else {
-        next.add(chatId);
-      }
-      localStorage.setItem('pinnedChats', JSON.stringify([...next]));
+    if (!user) return;
+    setPinnedChatIds(prev => {
+      const next = prev.includes(chatId) ? prev.filter(id => id !== chatId) : [...prev, chatId];
+      localStorage.setItem(`pinned_chats_${user.id}`, JSON.stringify(next));
       return next;
     });
   };
 
-  const { pinnedList, regularList } = useMemo(() => {
-    const filtered = chats.filter(chat => 
-      chat.title.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    const pinned = filtered.filter(chat => pinnedChats.has(chat.id));
-    const regular = filtered.filter(chat => !pinnedChats.has(chat.id));
-    return { pinnedList: pinned, regularList: regular };
-  }, [chats, searchQuery, pinnedChats]);
+  const filteredChats = useMemo(() => {
+    if (!searchQuery.trim()) return chats;
+    return chats.filter(c => c.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [chats, searchQuery]);
+
+  const pinnedList = useMemo(() => {
+    return filteredChats.filter(c => pinnedChatIds.includes(c.id));
+  }, [filteredChats, pinnedChatIds]);
+
+  const regularList = useMemo(() => {
+    return filteredChats.filter(c => !pinnedChatIds.includes(c.id));
+  }, [filteredChats, pinnedChatIds]);
 
   const ChatItem = ({ chat, isPinned }: { chat: Chat; isPinned: boolean }) => (
-    <div 
-      key={chat.id} 
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -8 }}
+      transition={{ duration: 0.15 }}
       className={cn(
         "flex items-center group rounded-xl transition-all duration-150 px-1 py-0.5",
         currentChat?.id === chat.id 
@@ -218,7 +140,7 @@ export const ChatSidebar = ({
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground rounded-full"
+              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground rounded-full cursor-pointer hover:scale-105 active:scale-95 transition-transform"
               onClick={(e) => e.stopPropagation()}
             >
               <MoreVertical className="w-3.5 h-3.5" />
@@ -261,7 +183,7 @@ export const ChatSidebar = ({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-    </div>
+    </motion.div>
   );
 
   return (
@@ -270,21 +192,28 @@ export const ChatSidebar = ({
       <div className="p-3.5 border-b border-sidebar-border/30">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2.5">
-            <img src={coreaiLogo} alt="CoreAI" className="w-7 h-7 rounded-full ring-1 ring-border/40" />
+            <motion.img 
+              whileHover={{ rotate: 15, scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+              src={coreaiLogo} 
+              alt="CoreAI" 
+              className="w-7 h-7 rounded-full ring-1 ring-border/40 cursor-pointer" 
+            />
             <span className="font-semibold text-lg text-sidebar-foreground tracking-tight">CoreAI</span>
           </div>
           
           <div className="flex items-center gap-1">
             <ThemeToggle />
             {onCollapse && (
-              <Button
-                variant="ghost"
-                size="sm"
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                type="button"
                 onClick={onCollapse}
-                className="h-8 w-8 p-0 rounded-full text-sidebar-foreground hover:bg-sidebar-accent"
+                className="h-8 w-8 rounded-full flex items-center justify-center text-sidebar-foreground hover:bg-sidebar-accent cursor-pointer transition-colors"
               >
                 <PanelLeftClose className="h-4 w-4" />
-              </Button>
+              </motion.button>
             )}
           </div>
         </div>
@@ -301,13 +230,15 @@ export const ChatSidebar = ({
           />
                  
           {searchQuery ? (
-            <button
+            <motion.button
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
               type="button"
               onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
+              className="absolute right-2.5 p-1 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors cursor-pointer"
             >
               <X className="w-3 h-3" />
-            </button>
+            </motion.button>
           ) : (
             <kbd className="pointer-events-none absolute right-2.5 text-[9px] font-mono text-muted-foreground/70 bg-muted/60 px-1.5 py-0.5 rounded border border-border/40">
               ⌘K
@@ -316,7 +247,7 @@ export const ChatSidebar = ({
         </div>
       </div>
 
-      {/* Gradient + New Chat Button with Tactile & Glow Animation */}
+      {/* Gradient New Chat Button */}
       <div className="p-3 border-b border-sidebar-border/30">
         <Button
           onClick={() => handleAction('newChat')}
@@ -333,33 +264,33 @@ export const ChatSidebar = ({
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 rounded-xl group transition-all duration-150 font-normal hover:font-medium"
+            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 rounded-xl group transition-all duration-150 font-normal hover:font-medium cursor-pointer"
             onClick={() => {
               navigate('/explore');
               if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) onCollapse();
             }}
           >
-            <Sparkles className="w-4 h-4 mr-2.5 text-indigo-400 group-hover:scale-105 transition-transform" />
+            <Sparkles className="w-4 h-4 mr-2.5 text-indigo-400 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-200" />
             <span className="truncate">Explore Prompts</span>
           </Button>
 
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 rounded-xl group transition-all duration-150 font-normal hover:font-medium"
+            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 rounded-xl group transition-all duration-150 font-normal hover:font-medium cursor-pointer"
             onClick={() => {
               navigate('/notes');
               if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) onCollapse();
             }}
           >
-            <StickyNote className="w-4 h-4 mr-2.5 text-amber-400 group-hover:scale-105 transition-transform" />
+            <StickyNote className="w-4 h-4 mr-2.5 text-amber-400 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-200" />
             <span className="truncate">Notes & Canvas</span>
           </Button>
 
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 active:scale-[0.98] rounded-xl group transition-all duration-150 font-normal hover:font-medium"
+            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 active:scale-[0.98] rounded-xl group transition-all duration-150 font-normal hover:font-medium cursor-pointer"
             onClick={() => {
               onNewChat();
               if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) onCollapse();
@@ -372,7 +303,7 @@ export const ChatSidebar = ({
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 active:scale-[0.98] rounded-xl group transition-all duration-150 font-normal hover:font-medium"
+            className="w-full justify-start h-9 text-sm text-sidebar-foreground hover:bg-muted/60 active:scale-[0.98] rounded-xl group transition-all duration-150 font-normal hover:font-medium cursor-pointer"
             onClick={() => {
               onOpenSettings();
               if (typeof window !== 'undefined' && window.innerWidth < 1024 && onCollapse) onCollapse();
@@ -391,12 +322,15 @@ export const ChatSidebar = ({
         </div>
         
         <div className="space-y-0.5 mt-1">
-          {pinnedList.map(chat => (
-            <ChatItem key={chat.id} chat={chat} isPinned={true} />
-          ))}
-          {regularList.map(chat => (
-            <ChatItem key={chat.id} chat={chat} isPinned={false} />
-          ))}
+          <AnimatePresence initial={false}>
+            {pinnedList.map(chat => (
+              <ChatItem key={chat.id} chat={chat} isPinned={true} />
+            ))}
+            {regularList.map(chat => (
+              <ChatItem key={chat.id} chat={chat} isPinned={false} />
+            ))}
+          </AnimatePresence>
+
           {chats.length === 0 && (
             <div className="text-center py-6 text-xs text-muted-foreground">
               No chats yet
@@ -405,7 +339,7 @@ export const ChatSidebar = ({
         </div>
       </div>
 
-      {/* User Info & Logout */}
+      {/* User Info & Animated Logout */}
       <div className="p-3 border-t border-sidebar-border/30 bg-muted/20">
         {user && (
           <div className="mb-2.5 p-2.5 rounded-xl bg-card/60 border border-border/40 transition-colors duration-150">
