@@ -153,6 +153,8 @@ export const Settings = ({ user }: SettingsProps) => {
         ? "Sat Sri Akaal! Yeh CoreAI ki aawaz ka preview hai."
         : localSettings.faithPreference === 'christianity'
         ? "Peace be with you! This is CoreAI speaking."
+        : localSettings.faithPreference === 'jainism_buddhism'
+        ? "Jai Jinendra! Yeh CoreAI ki aawaz ka preview hai."
         : "Namaste! Yeh CoreAI ki aawaz ka preview hai.";
       const utterance = new SpeechSynthesisUtterance(greeting);
       utterance.rate = localSettings.speechRate || 1;
@@ -246,8 +248,8 @@ export const Settings = ({ user }: SettingsProps) => {
 
   const faithOptions = [
     { id: 'universal' as FaithPreference, label: 'Universal', greeting: 'Hello / Namaste', icon: '🌍', desc: 'Neutral, warm and respectful' },
-    { id: 'islam' as FaithPreference, label: 'Islam', greeting: 'Assalamu Alaikum', icon: '🌙', desc: 'Salam, warmth & Islamic etiquette' },
-    { id: 'hinduism' as FaithPreference, label: 'Hinduism', greeting: 'Namaste / Pranam', icon: '🪔', desc: 'Namaste, dharma & cultural respect' },
+    { id: 'islam' as FaithPreference, label: 'Islam', greeting: 'Assalamu Alaikum', icon: '🌙', desc: 'Salam, InshaAllah & Islamic warmth' },
+    { id: 'hinduism' as FaithPreference, label: 'Hinduism', greeting: 'Namaste / Pranam', icon: '🪔', desc: 'Namaste, Ishwar kripa & cultural respect' },
     { id: 'christianity' as FaithPreference, label: 'Christianity', greeting: 'Peace be with you', icon: '✝️', desc: 'Blessings, peace & grace' },
     { id: 'sikhism' as FaithPreference, label: 'Sikhism', greeting: 'Sat Sri Akaal', icon: '☬', desc: 'Sat Sri Akaal & Chardi Kala' },
     { id: 'jainism_buddhism' as FaithPreference, label: 'Jain / Buddhist', greeting: 'Jai Jinendra / Shanti', icon: '☸️', desc: 'Ahimsa, peace & mindfulness' },
