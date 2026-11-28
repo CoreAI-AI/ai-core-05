@@ -60,12 +60,49 @@ export const timeContext = (now = new Date()) => {
   return `${day}, ${now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })} (${part})`;
 };
 
-/** Short opening line for the chat screen (proactive follow-up). */
+const getSavedFaith = (): string => {
+  try {
+    const rawDemo = localStorage.getItem('user_settings_demo');
+    if (rawDemo) {
+      const parsed = JSON.parse(rawDemo);
+      if (parsed.faithPreference) return parsed.faithPreference;
+    }
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('user_settings_')) {
+        const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+        if (parsed.faithPreference) return parsed.faithPreference;
+      }
+    }
+  } catch {
+    /* fallback */
+  }
+  return 'universal';
+};
+
+/** Short opening line for the chat screen (proactive follow-up with faith-respectful greeting). */
 export const followUpGreeting = (now = new Date()) => {
   const due = dueFollowUps(now);
   if (!due.length) return null;
   const name = loadMemory().name;
-  return `${name ? name + " bhai" : "Bhai"}, kal tumne bataya tha: "${due[0].topic}" — kaisa gaya? Aakar batana zaroor! 💚`;
+  const faith = getSavedFaith();
+  
+  let prefix = "";
+  if (faith === 'islam') {
+    prefix = name ? `Assalamu Alaikum ${name} bhaijaan!` : "Assalamu Alaikum bhaijaan!";
+  } else if (faith === 'sikhism') {
+    prefix = name ? `Sat Sri Akaal ${name} veerji!` : "Sat Sri Akaal veerji!";
+  } else if (faith === 'hinduism') {
+    prefix = name ? `Namaste ${name} ji!` : "Namaste dost!";
+  } else if (faith === 'christianity') {
+    prefix = name ? `Peace be with you ${name}!` : "Peace be with you friend!";
+  } else if (faith === 'jainism_buddhism') {
+    prefix = name ? `Jai Jinendra ${name} ji!` : "Jai Jinendra dost!";
+  } else {
+    prefix = name ? `Namaste ${name} bhai!` : "Namaste dost!";
+  }
+
+  return `${prefix} Kal aapne bataya tha: "${due[0].topic}" — kaisa raha? Aakar batana zaroor! 💚`;
 };
 
 export const addManualFact = (factText: string) => {
@@ -108,22 +145,30 @@ const getPersonalityInstruction = (preset?: string): string => {
   }
 };
 
-/** Faith & Cultural greeting guidelines helper */
+/** 
+ * Faith & Cultural greeting & balanced language guidelines:
+ * Uses cultural terms & blessings naturally, but strictly avoids speaking 100% in another language.
+ */
 const getFaithInstruction = (faith?: string): string => {
   switch (faith) {
     case 'islam':
-      return "CULTURAL & FAITH CONTEXT: User practices Islam. Always greet warmly with 'Assalamu Alaikum' or 'Salam'. Respond with Islamic respect, warmth, empathy and halal etiquette.";
+      return "CULTURAL & FAITH CONTEXT: User practices Islam. Always greet with 'Assalamu Alaikum' or 'Salam'. Respond in natural, warm conversational Hindi/Hinglish, naturally blending Islamic polite terms & blessings (InshaAllah, Alhamdulillah, MashaAllah, JazakAllah, Bhaijaan, Dua). STRICT RULE: Do NOT speak 100% Arabic or heavy archaic Urdu; keep sentences simple, friendly, modern, and readable.";
+      
     case 'hinduism':
-      return "CULTURAL & FAITH CONTEXT: User practices Hinduism. Always greet warmly with 'Namaste' or 'Pranam'. Uphold Indian cultural warmth, dharma, and respectful tone.";
-    case 'christianity':
-      return "CULTURAL & FAITH CONTEXT: User is Christian. Always greet warmly with 'Peace be with you' or 'Hello & Blessings'. Respond with compassion, grace, and uplifting warmth.";
+      return "CULTURAL & FAITH CONTEXT: User practices Hinduism. Always greet with 'Namaste' or 'Pranam'. Respond in natural, warm conversational Hindi/Hinglish, naturally blending cultural warmth & blessings (Shubh-kamnayein, Ishwar/Prabhu kripa, Aashirwad, Parishram, Dhyan rakhiye). STRICT RULE: Do NOT use pure heavy Sanskrit; keep language conversational and easy to understand.";
+      
     case 'sikhism':
-      return "CULTURAL & FAITH CONTEXT: User is Sikh. Always greet warmly with 'Sat Sri Akaal'. Embody the Chardi Kala spirit, courage, and deep respect.";
+      return "CULTURAL & FAITH CONTEXT: User is Sikh. Always greet with 'Sat Sri Akaal'. Respond in warm, respectful Hindi/Hinglish infused with Punjabi warmth & spirit (Waheguru di mehar, Chardi Kala, Veerji/Veere, Shukrana, Fateh). STRICT RULE: Do NOT use full difficult Gurmukhi; keep sentences accessible in standard Hindi/Hinglish.";
+      
+    case 'christianity':
+      return "CULTURAL & FAITH CONTEXT: User is Christian. Always greet with 'Peace be with you' or 'Hello & Blessings'. Respond in natural, comforting Hindi/Hinglish/English with compassion and grace (God bless you, Duayein, Grace, Prabhu Yeshu/God ki kripa). STRICT RULE: Use modern, uplifting everyday language, avoiding ancient or archaic phrasing.";
+      
     case 'jainism_buddhism':
-      return "CULTURAL & FAITH CONTEXT: User follows Jainism/Buddhism. Greet with 'Jai Jinendra' or 'Namo Buddhaya / Om Shanti'. Emphasize ahimsa, mindfulness, peace, and loving-kindness.";
+      return "CULTURAL & FAITH CONTEXT: User follows Jainism/Buddhism. Greet with 'Jai Jinendra' or 'Namo Buddhaya / Om Shanti'. Respond with serene warmth emphasizing peace, mindfulness, ahimsa, and karuna (Mangal bhavnayein, Dhairya, Mann shant rakhiye) in simple, peaceful Hindi/Hinglish.";
+      
     case 'universal':
     default:
-      return "CULTURAL & FAITH CONTEXT: Universal/Neutral. Greet naturally with 'Hello' or 'Namaste'.";
+      return "CULTURAL & FAITH CONTEXT: Universal/Neutral. Greet warmly with 'Namaste' or 'Hello' in friendly, natural Hindi/Hinglish.";
   }
 };
 
