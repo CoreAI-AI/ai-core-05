@@ -1,21 +1,46 @@
 import * as React from "react";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark";
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="w-9 h-9"
+    <motion.button
+      whileHover={{ scale: 1.08 }}
+      whileTap={{ scale: 0.92 }}
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="relative w-9 h-9 rounded-full flex items-center justify-center text-sidebar-foreground hover:bg-sidebar-accent transition-colors cursor-pointer overflow-hidden"
+      title={`Switch to ${isDark ? "Light" : "Dark"} mode`}
+      aria-label="Toggle theme"
     >
-      <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Toggle theme</span>
-    </Button>
+      <AnimatePresence mode="wait" initial={false}>
+        {isDark ? (
+          <motion.div
+            key="moon"
+            initial={{ rotate: -90, scale: 0, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            exit={{ rotate: 90, scale: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 350, damping: 20 }}
+            className="flex items-center justify-center text-indigo-400"
+          >
+            <Moon className="h-4 w-4 fill-indigo-400/20 stroke-current" />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="sun"
+            initial={{ rotate: 90, scale: 0, opacity: 0 }}
+            animate={{ rotate: 0, scale: 1, opacity: 1 }}
+            exit={{ rotate: -90, scale: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 350, damping: 20 }}
+            className="flex items-center justify-center text-amber-500"
+          >
+            <Sun className="h-4 w-4 fill-amber-500/20 stroke-current" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.button>
   );
 }
