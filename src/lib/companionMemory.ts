@@ -178,19 +178,23 @@ export const buildCompanionContext = (message: string, now = new Date()): string
   const due = dueFollowUps(now);
   const parts = [`User local time: ${timeContext(now)}.`];
   
-  // Read active personality, custom instructions & faith preference from localStorage (Zero cost)
+    // Read active personality, custom instructions & faith preference from localStorage (Zero cost)
   try {
-    const rawDemo = localStorage.getItem('user_settings_demo');
+    // 1. Direct Faith Preference has absolute priority
+    const directFaith = localStorage.getItem('coreai_faith_preference');
+
+    // 2. Read user settings for other preferences
     let userSettings: any = null;
-    if (rawDemo) {
-      userSettings = JSON.parse(rawDemo);
-    } else {
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('user_settings_')) {
-          userSettings = JSON.parse(localStorage.getItem(key) || '{}');
-          break;
-        }
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('user_settings_')) {
+        try {
+          const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+          if (parsed && Object.keys(parsed).length > 0) {
+            userSettings = parsed;
+            break;
+          }
+        } catch { /* continue */ }
       }
     }
 
@@ -198,9 +202,15 @@ export const buildCompanionContext = (message: string, now = new Date()): string
       if (userSettings.personalityPreset) {
         parts.push(`PERSONALITY: ${getPersonalityInstruction(userSettings.personalityPreset)}`);
       }
-      if (userSettings.faithPreference) {
-        parts.push(getFaithInstruction(userSettings.faithPreference));
+      const activeFaith = directFaith || userSettings.faithPreference;
+      if (activeFaith) {
+        parts.push(getFaithInstruction(activeFaith));
       }
+    } else if (directFaith) {
+      parts.push(getFaithInstruction(directFaith));
+    }
+>>>>
+
       if (userSettings.customAboutMe?.trim()) {
         parts.push(`ABOUT USER: ${userSettings.customAboutMe.trim()}`);
       }
