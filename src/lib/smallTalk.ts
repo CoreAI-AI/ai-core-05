@@ -223,7 +223,6 @@ export function tryLocalReply(raw: string, mode: string = 'normal'): string | nu
     const byesList = FAITH_BYES[currentFaith] || FAITH_BYES['universal'];
     return pick(byesList);
   }
->>>>
   
   if (HOW_ARE_YOU.some((p) => msg === p || msg.startsWith(p))) {
     return "Main bilkul theek hoon aur aapki madad ke liye ready hoon. ✨ Aap sunao?";
